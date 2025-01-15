@@ -1,0 +1,605 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Darkness\\Test\\quanlykhodl\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|d:\\darkness\\test\\quanlykhodl\\quanlykhodl\\models\\account.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|solutionrelative:quanlykhodl\\models\\account.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|d:\\darkness\\test\\quanlykhodl\\quanlykhodl\\models\\token.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|solutionrelative:quanlykhodl\\models\\token.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|d:\\darkness\\test\\quanlykhodl\\quanlykhodl\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|solutionrelative:quanlykhodl\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Migrations\\20250115133203_db2.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:quanlykhodl\\Migrations\\20250115133203_db2.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|d:\\darkness\\test\\quanlykhodl\\quanlykhodl\\models\\dbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|solutionrelative:quanlykhodl\\models\\dbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Migrations\\20250115132347_db.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:quanlykhodl\\Migrations\\20250115132347_db.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|d:\\darkness\\test\\quanlykhodl\\quanlykhodl\\models\\product.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|solutionrelative:quanlykhodl\\models\\product.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Migrations\\20250115131644_db.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:quanlykhodl\\Migrations\\20250115131644_db.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|d:\\darkness\\test\\quanlykhodl\\quanlykhodl\\models\\warehousetransferstatus.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|solutionrelative:quanlykhodl\\models\\warehousetransferstatus.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|d:\\darkness\\test\\quanlykhodl\\quanlykhodl\\models\\warehouse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|solutionrelative:quanlykhodl\\models\\warehouse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|d:\\darkness\\test\\quanlykhodl\\quanlykhodl\\models\\supplier.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|solutionrelative:quanlykhodl\\models\\supplier.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|d:\\darkness\\test\\quanlykhodl\\quanlykhodl\\models\\statusitem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|solutionrelative:quanlykhodl\\models\\statusitem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|d:\\darkness\\test\\quanlykhodl\\quanlykhodl\\models\\role.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|solutionrelative:quanlykhodl\\models\\role.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|d:\\darkness\\test\\quanlykhodl\\quanlykhodl\\models\\retailcustomers.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|solutionrelative:quanlykhodl\\models\\retailcustomers.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|d:\\darkness\\test\\quanlykhodl\\quanlykhodl\\models\\productimportform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|solutionrelative:quanlykhodl\\models\\productimportform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|d:\\darkness\\test\\quanlykhodl\\quanlykhodl\\models\\productdeliverynote.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|solutionrelative:quanlykhodl\\models\\productdeliverynote.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|d:\\darkness\\test\\quanlykhodl\\quanlykhodl\\models\\plan.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|solutionrelative:quanlykhodl\\models\\plan.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|d:\\darkness\\test\\quanlykhodl\\quanlykhodl\\models\\notification.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|solutionrelative:quanlykhodl\\models\\notification.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|d:\\darkness\\test\\quanlykhodl\\quanlykhodl\\models\\importform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|solutionrelative:quanlykhodl\\models\\importform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|d:\\darkness\\test\\quanlykhodl\\quanlykhodl\\models\\imagestatusitem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|solutionrelative:quanlykhodl\\models\\imagestatusitem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|d:\\darkness\\test\\quanlykhodl\\quanlykhodl\\models\\imageproduct.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|solutionrelative:quanlykhodl\\models\\imageproduct.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|d:\\darkness\\test\\quanlykhodl\\quanlykhodl\\models\\floor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|solutionrelative:quanlykhodl\\models\\floor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|d:\\darkness\\test\\quanlykhodl\\quanlykhodl\\models\\deliverynote.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|solutionrelative:quanlykhodl\\models\\deliverynote.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|d:\\darkness\\test\\quanlykhodl\\quanlykhodl\\models\\category.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|solutionrelative:quanlykhodl\\models\\category.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|d:\\darkness\\test\\quanlykhodl\\quanlykhodl\\models\\area.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|solutionrelative:quanlykhodl\\models\\area.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Migrations\\20250115130511_db.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:quanlykhodl\\Migrations\\20250115130511_db.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Migrations\\20250115130248_db.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:quanlykhodl\\Migrations\\20250115130248_db.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Migrations\\20250115125931_db.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:quanlykhodl\\Migrations\\20250115125931_db.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Migrations\\20250115115615_db.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:quanlykhodl\\Migrations\\20250115115615_db.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|d:\\darkness\\test\\quanlykhodl\\quanlykhodl\\common\\baseentity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|solutionrelative:quanlykhodl\\common\\baseentity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|d:\\darkness\\test\\quanlykhodl\\quanlykhodl\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8FC7A361-4678-4E8E-B2C0-B166B6632DA3}|quanlykhodl\\quanlykhodl.csproj|solutionrelative:quanlykhodl\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 5,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "20250115133203_db2.cs",
+              "DocumentMoniker": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Migrations\\20250115133203_db2.cs",
+              "RelativeDocumentMoniker": "quanlykhodl\\Migrations\\20250115133203_db2.cs",
+              "ToolTip": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Migrations\\20250115133203_db2.cs",
+              "RelativeToolTip": "quanlykhodl\\Migrations\\20250115133203_db2.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAkAAABFAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-15T13:32:03.748Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Token.cs",
+              "DocumentMoniker": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\Token.cs",
+              "RelativeDocumentMoniker": "quanlykhodl\\Models\\Token.cs",
+              "ToolTip": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\Token.cs",
+              "RelativeToolTip": "quanlykhodl\\Models\\Token.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAcAAAAQAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-15T13:31:43.435Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "20250115132347_db.cs",
+              "DocumentMoniker": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Migrations\\20250115132347_db.cs",
+              "RelativeDocumentMoniker": "quanlykhodl\\Migrations\\20250115132347_db.cs",
+              "ToolTip": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Migrations\\20250115132347_db.cs",
+              "RelativeToolTip": "quanlykhodl\\Migrations\\20250115132347_db.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAABMAAAA+AAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-15T13:23:47.417Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "20250115131644_db.cs",
+              "DocumentMoniker": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Migrations\\20250115131644_db.cs",
+              "RelativeDocumentMoniker": "quanlykhodl\\Migrations\\20250115131644_db.cs",
+              "ToolTip": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Migrations\\20250115131644_db.cs",
+              "RelativeToolTip": "quanlykhodl\\Migrations\\20250115131644_db.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-15T13:16:44.883Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "product.cs",
+              "DocumentMoniker": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\product.cs",
+              "RelativeDocumentMoniker": "quanlykhodl\\Models\\product.cs",
+              "ToolTip": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\product.cs",
+              "RelativeToolTip": "quanlykhodl\\Models\\product.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAkAAAAqAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-15T11:53:24.09Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Account.cs",
+              "DocumentMoniker": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\Account.cs",
+              "RelativeDocumentMoniker": "quanlykhodl\\Models\\Account.cs",
+              "ToolTip": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\Account.cs",
+              "RelativeToolTip": "quanlykhodl\\Models\\Account.cs",
+              "ViewState": "AQIAAAMAAAAAAAAAAAAuwAkAAAAnAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-15T11:57:03.02Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\appsettings.json",
+              "RelativeDocumentMoniker": "quanlykhodl\\appsettings.json",
+              "ToolTip": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\appsettings.json",
+              "RelativeToolTip": "quanlykhodl\\appsettings.json",
+              "ViewState": "AQIAAAwAAAAAAAAAAAAAAAgAAABaAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-01-15T11:49:42.548Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "Warehousetransferstatus.cs",
+              "DocumentMoniker": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\Warehousetransferstatus.cs",
+              "RelativeDocumentMoniker": "quanlykhodl\\Models\\Warehousetransferstatus.cs",
+              "ToolTip": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\Warehousetransferstatus.cs",
+              "RelativeToolTip": "quanlykhodl\\Models\\Warehousetransferstatus.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAMAAAABAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-15T13:16:14.229Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "DBContext.cs",
+              "DocumentMoniker": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\DBContext.cs",
+              "RelativeDocumentMoniker": "quanlykhodl\\Models\\DBContext.cs",
+              "ToolTip": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\DBContext.cs",
+              "RelativeToolTip": "quanlykhodl\\Models\\DBContext.cs",
+              "ViewState": "AQIAABQAAAAAAAAAAAA+wB4AAAARAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-15T11:48:44.754Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "StatusItem.cs",
+              "DocumentMoniker": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\StatusItem.cs",
+              "RelativeDocumentMoniker": "quanlykhodl\\Models\\StatusItem.cs",
+              "ToolTip": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\StatusItem.cs",
+              "RelativeToolTip": "quanlykhodl\\Models\\StatusItem.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAYAAAAkAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-15T13:15:56.893Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "Retailcustomers.cs",
+              "DocumentMoniker": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\Retailcustomers.cs",
+              "RelativeDocumentMoniker": "quanlykhodl\\Models\\Retailcustomers.cs",
+              "ToolTip": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\Retailcustomers.cs",
+              "RelativeToolTip": "quanlykhodl\\Models\\Retailcustomers.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAYAAAAYAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-15T12:02:25.226Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "productImportform.cs",
+              "DocumentMoniker": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\productImportform.cs",
+              "RelativeDocumentMoniker": "quanlykhodl\\Models\\productImportform.cs",
+              "ToolTip": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\productImportform.cs",
+              "RelativeToolTip": "quanlykhodl\\Models\\productImportform.cs",
+              "ViewState": "AQIAAAMAAAAAAAAAAAAAAAYAAAAYAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-15T12:01:45.492Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "productDeliverynote.cs",
+              "DocumentMoniker": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\productDeliverynote.cs",
+              "RelativeDocumentMoniker": "quanlykhodl\\Models\\productDeliverynote.cs",
+              "ToolTip": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\productDeliverynote.cs",
+              "RelativeToolTip": "quanlykhodl\\Models\\productDeliverynote.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAYAAAAoAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-15T12:01:27.859Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "Supplier.cs",
+              "DocumentMoniker": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\Supplier.cs",
+              "RelativeDocumentMoniker": "quanlykhodl\\Models\\Supplier.cs",
+              "ToolTip": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\Supplier.cs",
+              "RelativeToolTip": "quanlykhodl\\Models\\Supplier.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAgAAAAkAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-15T12:03:23.667Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "Warehouse.cs",
+              "DocumentMoniker": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\Warehouse.cs",
+              "RelativeDocumentMoniker": "quanlykhodl\\Models\\Warehouse.cs",
+              "ToolTip": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\Warehouse.cs",
+              "RelativeToolTip": "quanlykhodl\\Models\\Warehouse.cs",
+              "ViewState": "AQIAAAcAAAAAAAAAAAAQwA8AAAAZAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-15T12:03:39.729Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "Plan.cs",
+              "DocumentMoniker": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\Plan.cs",
+              "RelativeDocumentMoniker": "quanlykhodl\\Models\\Plan.cs",
+              "ToolTip": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\Plan.cs",
+              "RelativeToolTip": "quanlykhodl\\Models\\Plan.cs",
+              "ViewState": "AQIAABMAAAAAAAAAAAAcwBQAAAAYAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-15T12:01:00.183Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "Notification.cs",
+              "DocumentMoniker": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\Notification.cs",
+              "RelativeDocumentMoniker": "quanlykhodl\\Models\\Notification.cs",
+              "ToolTip": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\Notification.cs",
+              "RelativeToolTip": "quanlykhodl\\Models\\Notification.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAgAAAAWAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-15T12:00:41.589Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "Importform.cs",
+              "DocumentMoniker": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\Importform.cs",
+              "RelativeDocumentMoniker": "quanlykhodl\\Models\\Importform.cs",
+              "ToolTip": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\Importform.cs",
+              "RelativeToolTip": "quanlykhodl\\Models\\Importform.cs",
+              "ViewState": "AQIAAA0AAAAAAAAAAAAwwBIAAAAjAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-15T12:00:12.823Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "role.cs",
+              "DocumentMoniker": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\role.cs",
+              "RelativeDocumentMoniker": "quanlykhodl\\Models\\role.cs",
+              "ToolTip": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\role.cs",
+              "RelativeToolTip": "quanlykhodl\\Models\\role.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAUAAAACAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-15T12:02:45.308Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "imagestatusitem.cs",
+              "DocumentMoniker": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\imagestatusitem.cs",
+              "RelativeDocumentMoniker": "quanlykhodl\\Models\\imagestatusitem.cs",
+              "ToolTip": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\imagestatusitem.cs",
+              "RelativeToolTip": "quanlykhodl\\Models\\imagestatusitem.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAYAAAApAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-15T11:59:48.962Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "ImageProduct.cs",
+              "DocumentMoniker": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\ImageProduct.cs",
+              "RelativeDocumentMoniker": "quanlykhodl\\Models\\ImageProduct.cs",
+              "ToolTip": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\ImageProduct.cs",
+              "RelativeToolTip": "quanlykhodl\\Models\\ImageProduct.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAuwAYAAAAVAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-15T11:47:13.458Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 21,
+              "Title": "Floor.cs",
+              "DocumentMoniker": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\Floor.cs",
+              "RelativeDocumentMoniker": "quanlykhodl\\Models\\Floor.cs",
+              "ToolTip": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\Floor.cs",
+              "RelativeToolTip": "quanlykhodl\\Models\\Floor.cs",
+              "ViewState": "AQIAAAMAAAAAAAAAAAAAAAgAAAAjAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-15T11:59:19.478Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 22,
+              "Title": "Deliverynote.cs",
+              "DocumentMoniker": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\Deliverynote.cs",
+              "RelativeDocumentMoniker": "quanlykhodl\\Models\\Deliverynote.cs",
+              "ToolTip": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\Deliverynote.cs",
+              "RelativeToolTip": "quanlykhodl\\Models\\Deliverynote.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAgAAAAYAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-15T11:58:56.955Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 23,
+              "Title": "category.cs",
+              "DocumentMoniker": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\category.cs",
+              "RelativeDocumentMoniker": "quanlykhodl\\Models\\category.cs",
+              "ToolTip": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\category.cs",
+              "RelativeToolTip": "quanlykhodl\\Models\\category.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAkAAAAcAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-15T11:58:01.715Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 24,
+              "Title": "Area.cs",
+              "DocumentMoniker": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\Area.cs",
+              "RelativeDocumentMoniker": "quanlykhodl\\Models\\Area.cs",
+              "ToolTip": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Models\\Area.cs",
+              "RelativeToolTip": "quanlykhodl\\Models\\Area.cs",
+              "ViewState": "AQIAAAgAAAAAAAAAAAA3wA0AAAAaAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-15T11:57:31.853Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 25,
+              "Title": "20250115130511_db.cs",
+              "DocumentMoniker": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Migrations\\20250115130511_db.cs",
+              "RelativeDocumentMoniker": "quanlykhodl\\Migrations\\20250115130511_db.cs",
+              "ToolTip": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Migrations\\20250115130511_db.cs",
+              "RelativeToolTip": "quanlykhodl\\Migrations\\20250115130511_db.cs",
+              "ViewState": "AQIAAAoAAAAAAAAAAAAQwBIAAABPAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-15T13:05:11.532Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 26,
+              "Title": "20250115130248_db.cs",
+              "DocumentMoniker": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Migrations\\20250115130248_db.cs",
+              "RelativeDocumentMoniker": "quanlykhodl\\Migrations\\20250115130248_db.cs",
+              "ToolTip": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Migrations\\20250115130248_db.cs",
+              "RelativeToolTip": "quanlykhodl\\Migrations\\20250115130248_db.cs",
+              "ViewState": "AQIAAAgAAAAAAAAAAAAAwBIAAABLAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-15T13:02:48.537Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 27,
+              "Title": "20250115125931_db.cs",
+              "DocumentMoniker": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Migrations\\20250115125931_db.cs",
+              "RelativeDocumentMoniker": "quanlykhodl\\Migrations\\20250115125931_db.cs",
+              "ToolTip": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Migrations\\20250115125931_db.cs",
+              "RelativeToolTip": "quanlykhodl\\Migrations\\20250115125931_db.cs",
+              "ViewState": "AQIAADwCAAAAAAAAAAAIwEICAAAhAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-15T12:59:31.604Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 28,
+              "Title": "20250115115615_db.cs",
+              "DocumentMoniker": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Migrations\\20250115115615_db.cs",
+              "RelativeDocumentMoniker": "quanlykhodl\\Migrations\\20250115115615_db.cs",
+              "ToolTip": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Migrations\\20250115115615_db.cs",
+              "RelativeToolTip": "quanlykhodl\\Migrations\\20250115115615_db.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAABEAAABRAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-15T11:56:15.951Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 29,
+              "Title": "BaseEntity.cs",
+              "DocumentMoniker": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Common\\BaseEntity.cs",
+              "RelativeDocumentMoniker": "quanlykhodl\\Common\\BaseEntity.cs",
+              "ToolTip": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Common\\BaseEntity.cs",
+              "RelativeToolTip": "quanlykhodl\\Common\\BaseEntity.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAsAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-15T11:55:24.036Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 30,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Program.cs",
+              "RelativeDocumentMoniker": "quanlykhodl\\Program.cs",
+              "ToolTip": "D:\\Darkness\\Test\\quanlykhodl\\quanlykhodl\\Program.cs",
+              "RelativeToolTip": "quanlykhodl\\Program.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAA0AAAAyAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-15T11:49:41.298Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{eefa5220-e298-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c64b9c2-e352-428e-a56d-0ace190b99a6}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:129:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:130:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:131:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:133:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:130:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            }
+          ]
+        },
+        {
+          "DockedWidth": 163,
+          "SelectedChildIndex": -1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{004be353-6879-467c-9d1e-9ac23cdf6d49}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
