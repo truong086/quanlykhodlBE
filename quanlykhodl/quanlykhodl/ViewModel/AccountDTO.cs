@@ -1,0 +1,16 @@
+﻿using quanlykhodl.Models;
+
+namespace quanlykhodl.ViewModel
+{
+    public class AccountDTO
+    {
+        public string? username { get; set; }
+        public string? password { get; set; }
+        public IFormFile? image { get; set; }
+        public string? email { get; set; }
+        public string? phone { get; set; }
+        public string? address { get; set; }
+    }
+
+    
+}

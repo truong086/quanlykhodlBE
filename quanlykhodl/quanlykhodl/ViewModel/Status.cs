@@ -1,0 +1,34 @@
+﻿namespace quanlykhodl.ViewModel
+{
+    public static class Status
+    {
+        public static string SUCCESS = "Success";
+        public static string ERROR = "Error";
+        public static string UPDATEPASSWORD = "Update Password";
+        public static string CREATEPASSWORD = "Create Password";
+        public static string DATANULL = "Data Null";
+        public static string PASSWORDFALSE = "Pasword Sai";
+        public static string TOKENFALSE = "Token Fail";
+        public static string RANDOMCODE = "QWERTYUIOPASDFGHJKLZXCVBNM1234567890";
+        public static string TEMPLATEVIEW = "EmailTemplate";
+        public static string DATATONTAI = "Data Tồn tại";
+        public static string DATADANGKYTONTAI = "Data đăng ký Tồn tại";
+        public static string VIDEO = "Video";
+        public static string AUDIO = "Audio";
+        public static string DOCUMENT = "Document";
+        public static string UNKNOWN = "Unknown";
+        public static string IMAGE = "Image";
+        public static string MAXLENG = "Data Vượt quá dữ liệu";
+        public static string XACNHAN = "Chờ xác nhận";
+        public static string DANHAN = "Đã nhận hàng";
+        public static string DANGGIAO = "Đang giao";
+        public static string NHANHANG = "Xác nhận đã nhận hàng";
+        public static string ADD1 = "Add1";
+        public static string GIAM1 = "Giam1";
+        public static string DELETEITEMCART = "DeleteItemCart";
+        public static string VUOTQUA = "Vượt quá số lần sử dụng";
+        public static string DATETIMGFAILD = "Thời gian không hợp lệ";
+        public static string DATAERROR = "Data không hợp lệ";
+        public static string ADDFAILD = "Add Error!";
+    }
+}

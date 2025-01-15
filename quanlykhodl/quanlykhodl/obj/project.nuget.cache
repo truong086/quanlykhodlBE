@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "MXggBU8EBXELs4/Hpad0AO7OMusuyHCjSPgZEUb6D9yZs7JmHjHIItQMyaqScQc1W9vQll8ujMBv5w34CIl9VQ==",
+  "dgSpecHash": "gmCf8wi5DRu9fzwEnvcM8WyWyNveAb3QyX/hc6dqpaNB9t8P373qPJXO0ltGlMw6WuAtVN37u0ec+tpXYLBVDA==",
   "success": true,
-  "projectFilePath": "C:\\Users\\ASUS\\source\\repos\\quanlykhodl\\quanlykhodl\\quanlykhodl.csproj",
+  "projectFilePath": "C:\\Users\\ASUS\\source\\repos\\quanlykhodailoan\\quanlykhodl\\quanlykhodl\\quanlykhodl.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\ASUS\\.nuget\\packages\\automapper\\12.0.1\\automapper.12.0.1.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\automapper.extensions.microsoft.dependencyinjection\\12.0.1\\automapper.extensions.microsoft.dependencyinjection.12.0.1.nupkg.sha512",

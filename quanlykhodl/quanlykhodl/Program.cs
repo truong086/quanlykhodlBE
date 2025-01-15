@@ -1,9 +1,13 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using CloudinaryDotNet;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using quanlykhodl.Clouds;
 using quanlykhodl.Models;
+using quanlykhodl.QuartzService;
+using Quartz;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -93,6 +97,55 @@ builder.Services.AddSwaggerGen(c =>
     //var path = Path.Combine(AppContext.BaseDirectory, xmlFileName);
     //c.IncludeXmlComments(path);
 });
+
+// Đọc cấu hình Cloudinary từ appsettings.json
+var cloudinaryAccount = new CloudinaryDotNet.Account(
+    builder.Configuration["Cloud:Cloudinary_Name"],
+    builder.Configuration["Cloud:Api_Key"],
+    builder.Configuration["Cloud:Serec_Key"]
+);
+var cloudinary = new Cloudinary(cloudinaryAccount);
+
+// Đăng ký Cloudinary làm một dịch vụ Singleton
+builder.Services.AddSingleton(cloudinary);
+
+builder.Services.Configure<Cloud>(builder.Configuration.GetSection("Cloud"));
+
+builder.Services.AddQuartz(q =>
+{
+    q.UseMicrosoftDependencyInjectionJobFactory();
+    var jobKey = new JobKey("TuDongMoiTuan");
+    q.AddJob<TuDongMoiTuan>(Otp => Otp.WithIdentity(jobKey));
+    q.AddTrigger(otps => otps.ForJob(jobKey).WithIdentity("WeeklyTrigger") /* Tên của "Trigger", đặt tên Trigger để dễ dàng quản lý, Ở đây tên Trigger là "WeeklyTrigger"
+    * Tên này sẽ được sử dụng khi bạn cần truy xuất hoặc quản lý trigger (ví dụ: khởi động, dừng hoặc xóa trigger).
+    * Có thể đặt tên Trigger như này: ".WithIdentity("TenSecondTrigger", "Group1")" // Tên của Trigger "TenSecondTrigger" và nhóm của trigger "Group1"
+      Khi cần dừng, xóa hoặc kiểm tra trạng thái của một trigger cụ thể, sẽ sử dụng tên (Name) và nhóm (Group).
+      * Ví dụ: Xóa một trigger theo tên: "var scheduler = await StdSchedulerFactory.GetDefaultScheduler();
+                                          await scheduler.UnscheduleJob(new TriggerKey("TenSecondTrigger", "Group1"));"
+                                                                            */
+    .StartNow()
+    /*
+     * "WithSimpleSchedule": Khoảng thời gian cố định: Bạn chỉ cần chỉ định khoảng thời gian giữa các lần chạy (ví dụ: 10 giây, 5 phút, v.v).
+        Lặp lại liên tục: Công việc sẽ được thực thi với khoảng cách thời gian đều đặn và không cần điều kiện phức tạp.
+        
+     */
+    //.WithSimpleSchedule(x => x.WithIntervalInSeconds(10).RepeatForever()));
+
+    /* "WithCronSchedule": Lịch trình linh hoạt hơn: Có thể định nghĩa lịch trình với Cron expression,
+       cho phép lên lịch theo giây, phút, giờ, ngày trong tuần, ngày tháng, hoặc năm.
+       Cron expression: Là một chuỗi ký tự mô tả một lịch trình cụ thể. Ví dụ:
+        "0/10 * * * * ?": Lặp lại mỗi 10 giây.
+        "0 0 12 * * ?": Chạy vào lúc 12:00 mỗi ngày.
+        "0 0 0 1 * ?": Chạy vào lúc 00:00 ngày đầu tiên của mỗi tháng.
+    */
+    .WithCronSchedule("0/10 * * * * ?"));
+});
+
+// Đăng ký HostedService cho Quartz.NET
+builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
+builder.Services.AddAuthentication(); // Sử dụng phân quyền
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.Configure<Jwt>(builder.Configuration.GetSection("Jwt"));
 var connection = builder.Configuration.GetConnectionString("MyDB");
 builder.Services.AddDbContext<DBContext>(option =>
 {
