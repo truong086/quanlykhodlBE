@@ -30,5 +30,14 @@
         public static string DATETIMGFAILD = "Thời gian không hợp lệ";
         public static string DATAERROR = "Data không hợp lệ";
         public static string ADDFAILD = "Add Error!";
+        public static string TITLEEMAIL = "Mã xác nhận tài khoản";
+        public static string MESSAGEEMAIL = "Thông tin mã xác nhận";
+        public static string PASSWORDOLDFAILD = "Mật khẩu không khớp";
+        public static string ROLENOTFOULD = "Role đã bị xóa hoặc chưa cài đặt";
+        public static string ACCOUNTNOTFOULD = "Account đã bị xóa hoặc chưa cài đặt";
+        public static string WAREHOUSERFOULD = "Warehouser đã bị xóa hoặc chưa cài đặt";
+        public static string IDAUTHENTICATION = "Id";
+        public static string WAREHOUSERFOLDER = "Warehouse ";
+        public static string FULLQUANTITY = "Vượt quá không gian lưu trữ ";
     }
 }

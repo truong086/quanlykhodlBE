@@ -12,5 +12,16 @@ namespace quanlykhodl.ViewModel
         public string? address { get; set; }
     }
 
-    
+    public class AccountUpdate
+    {
+        public string? username { get; set; }
+        public IFormFile? image { get; set; }
+        public string? email { get; set; }
+        public string? phone { get; set; }
+        public string? address { get; set; }
+        public int role_id { get; set; }
+    }
+
+
+
 }

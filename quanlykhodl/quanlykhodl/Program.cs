@@ -5,8 +5,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using quanlykhodl.Clouds;
+using quanlykhodl.EmailConfigs;
+using quanlykhodl.FunctionAuto;
 using quanlykhodl.Models;
 using quanlykhodl.QuartzService;
+using quanlykhodl.Service;
 using Quartz;
 using System.Text;
 
@@ -116,29 +119,16 @@ builder.Services.AddQuartz(q =>
     q.UseMicrosoftDependencyInjectionJobFactory();
     var jobKey = new JobKey("TuDongMoiTuan");
     q.AddJob<TuDongMoiTuan>(Otp => Otp.WithIdentity(jobKey));
-    q.AddTrigger(otps => otps.ForJob(jobKey).WithIdentity("WeeklyTrigger") /* Tên của "Trigger", đặt tên Trigger để dễ dàng quản lý, Ở đây tên Trigger là "WeeklyTrigger"
-    * Tên này sẽ được sử dụng khi bạn cần truy xuất hoặc quản lý trigger (ví dụ: khởi động, dừng hoặc xóa trigger).
-    * Có thể đặt tên Trigger như này: ".WithIdentity("TenSecondTrigger", "Group1")" // Tên của Trigger "TenSecondTrigger" và nhóm của trigger "Group1"
-      Khi cần dừng, xóa hoặc kiểm tra trạng thái của một trigger cụ thể, sẽ sử dụng tên (Name) và nhóm (Group).
-      * Ví dụ: Xóa một trigger theo tên: "var scheduler = await StdSchedulerFactory.GetDefaultScheduler();
-                                          await scheduler.UnscheduleJob(new TriggerKey("TenSecondTrigger", "Group1"));"
-                                                                            */
+    q.AddTrigger(otps => otps.ForJob(jobKey).WithIdentity("WeeklyTrigger")
     .StartNow()
-    /*
-     * "WithSimpleSchedule": Khoảng thời gian cố định: Bạn chỉ cần chỉ định khoảng thời gian giữa các lần chạy (ví dụ: 10 giây, 5 phút, v.v).
-        Lặp lại liên tục: Công việc sẽ được thực thi với khoảng cách thời gian đều đặn và không cần điều kiện phức tạp.
-        
-     */
-    //.WithSimpleSchedule(x => x.WithIntervalInSeconds(10).RepeatForever()));
 
-    /* "WithCronSchedule": Lịch trình linh hoạt hơn: Có thể định nghĩa lịch trình với Cron expression,
-       cho phép lên lịch theo giây, phút, giờ, ngày trong tuần, ngày tháng, hoặc năm.
-       Cron expression: Là một chuỗi ký tự mô tả một lịch trình cụ thể. Ví dụ:
-        "0/10 * * * * ?": Lặp lại mỗi 10 giây.
-        "0 0 12 * * ?": Chạy vào lúc 12:00 mỗi ngày.
-        "0 0 0 1 * ?": Chạy vào lúc 00:00 ngày đầu tiên của mỗi tháng.
-    */
-    .WithCronSchedule("0/10 * * * * ?"));
+    .WithCronSchedule("0 0/1 * * * ?")); // "0/1" là chạy mỗi phút, để "1" là chỉ chạy 1 phút lần đầu
+});
+
+var connection = builder.Configuration.GetConnectionString("MyDB");
+builder.Services.AddDbContext<DBContext>(option =>
+{
+    option.UseSqlServer(connection); // "ThuongMaiDienTu" đây là tên của project, vì tách riêng model khỏi project sang 1 lớp khác nên phải để câu lệnh này "b => b.MigrationsAssembly("ThuongMaiDienTu")"
 });
 
 // Đăng ký HostedService cho Quartz.NET
@@ -146,25 +136,44 @@ builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 builder.Services.AddAuthentication(); // Sử dụng phân quyền
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.Configure<Jwt>(builder.Configuration.GetSection("Jwt"));
-var connection = builder.Configuration.GetConnectionString("MyDB");
-builder.Services.AddDbContext<DBContext>(option =>
-{
-	option.UseSqlServer(connection); // "ThuongMaiDienTu" đây là tên của project, vì tách riêng model khỏi project sang 1 lớp khác nên phải để câu lệnh này "b => b.MigrationsAssembly("ThuongMaiDienTu")"
-});
+builder.Services.Configure<EmailSetting>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddControllersWithViews();
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<IWarehouseService, WarehouseService>();
+builder.Services.AddScoped<IFloorService, FloorService>();
+builder.Services.AddScoped<SendEmais>();
+builder.Services.AddSingleton<VerificationTaskWorker>();
+builder.Services.AddHostedService(p => p.GetRequiredService<VerificationTaskWorker>());
+builder.Services.AddAuthentication(); // Sử dụng phân quyền
+builder.Services.AddMvc();
+builder.Services.AddControllersWithViews();
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<KiemTraBase64>();
 
-
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-	app.UseSwagger();
-	app.UseSwaggerUI();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
 
+app.UseCors("SiteCorsPolicy");
+
+app.UseCookiePolicy();
+app.UseRouting();
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

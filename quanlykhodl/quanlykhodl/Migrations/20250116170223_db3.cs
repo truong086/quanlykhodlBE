@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace quanlykhodl.Migrations
 {
-    public partial class db : Migration
+    public partial class db3 : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -57,6 +57,7 @@ namespace quanlykhodl.Migrations
                     image = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     publicid = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     email = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Action = table.Column<bool>(type: "bit", nullable: false),
                     phone = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     address = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     role_id = table.Column<int>(type: "int", nullable: true),
@@ -144,9 +145,6 @@ namespace quanlykhodl.Migrations
                     account_idMap = table.Column<int>(type: "int", nullable: true),
                     supplier = table.Column<int>(type: "int", nullable: true),
                     isProductNew = table.Column<bool>(type: "bit", nullable: false),
-                    nameProduct = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    image = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    publicId = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     quantity = table.Column<int>(type: "int", nullable: true),
                     price = table.Column<double>(type: "float", nullable: false),
                     total = table.Column<double>(type: "float", nullable: false),
@@ -170,6 +168,31 @@ namespace quanlykhodl.Migrations
                         name: "FK_importforms_suppliers_supplier",
                         column: x => x.supplier,
                         principalTable: "suppliers",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "tokens",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    account_id = table.Column<int>(type: "int", nullable: true),
+                    code = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Deleted = table.Column<bool>(type: "bit", nullable: false),
+                    CretorEdit = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_tokens", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_tokens_accounts_account_id",
+                        column: x => x.account_id,
+                        principalTable: "accounts",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -304,7 +327,6 @@ namespace quanlykhodl.Migrations
                     DonViTinh = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     quantity = table.Column<int>(type: "int", nullable: false),
                     star = table.Column<int>(type: "int", nullable: false),
-                    location = table.Column<int>(type: "int", nullable: false),
                     code = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     category_map = table.Column<int>(type: "int", nullable: true),
                     account_map = table.Column<int>(type: "int", nullable: true),
@@ -439,6 +461,7 @@ namespace quanlykhodl.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     deliverynote = table.Column<int>(type: "int", nullable: true),
                     product_map = table.Column<int>(type: "int", nullable: true),
+                    quantity = table.Column<int>(type: "int", nullable: false),
                     Deleted = table.Column<bool>(type: "bit", nullable: false),
                     CretorEdit = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
@@ -469,6 +492,7 @@ namespace quanlykhodl.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     importform = table.Column<int>(type: "int", nullable: true),
                     product = table.Column<int>(type: "int", nullable: true),
+                    quantity = table.Column<int>(type: "int", nullable: false),
                     Deleted = table.Column<bool>(type: "bit", nullable: false),
                     CretorEdit = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
@@ -489,6 +513,31 @@ namespace quanlykhodl.Migrations
                         principalTable: "products1",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "productlocation",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    location = table.Column<int>(type: "int", nullable: false),
+                    id_product = table.Column<int>(type: "int", nullable: false),
+                    productsid = table.Column<int>(type: "int", nullable: true),
+                    quantity = table.Column<int>(type: "int", nullable: false),
+                    Deleted = table.Column<bool>(type: "bit", nullable: false),
+                    CretorEdit = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_productlocation", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_productlocation_products1_productsid",
+                        column: x => x.productsid,
+                        principalTable: "products1",
+                        principalColumn: "id");
                 });
 
             migrationBuilder.CreateTable(
@@ -691,6 +740,11 @@ namespace quanlykhodl.Migrations
                 column: "product");
 
             migrationBuilder.CreateIndex(
+                name: "IX_productlocation_productsid",
+                table: "productlocation",
+                column: "productsid");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_products1_account_map",
                 table: "products1",
                 column: "account_map");
@@ -726,6 +780,11 @@ namespace quanlykhodl.Migrations
                 column: "warehousetransferstatus");
 
             migrationBuilder.CreateIndex(
+                name: "IX_tokens_account_id",
+                table: "tokens",
+                column: "account_id");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_warehouses_accountid",
                 table: "warehouses",
                 column: "accountid");
@@ -754,7 +813,13 @@ namespace quanlykhodl.Migrations
                 name: "productImportforms");
 
             migrationBuilder.DropTable(
+                name: "productlocation");
+
+            migrationBuilder.DropTable(
                 name: "Retailcustomers");
+
+            migrationBuilder.DropTable(
+                name: "tokens");
 
             migrationBuilder.DropTable(
                 name: "statusItems");

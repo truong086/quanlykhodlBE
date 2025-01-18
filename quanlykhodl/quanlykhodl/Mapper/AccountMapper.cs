@@ -9,6 +9,9 @@ namespace quanlykhodl.Mapper
         public AccountMapper()
         {
             CreateMap<AccountDTO, Account>();
+            CreateMap<RoleDTO, role>();
+            CreateMap<Account, AccountgetAll>();
+            CreateMap<AccountgetAll, Account>();
         }
     }
 }

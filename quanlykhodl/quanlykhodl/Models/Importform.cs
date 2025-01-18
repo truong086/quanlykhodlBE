@@ -11,9 +11,6 @@ namespace quanlykhodl.Models
 		public Account? account_id { get; set; }
 		public Supplier? supplier_id { get; set; }
 		public bool isProductNew { get; set; }
-		public string? nameProduct { get; set; }
-		public string? image { get; set; }
-		public string? publicId { get; set; }
 		public int? quantity { get; set; }
 		public double price { get; set; }
 		public double total { get; set; }

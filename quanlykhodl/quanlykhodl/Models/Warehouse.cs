@@ -12,6 +12,8 @@ namespace quanlykhodl.Models
 		public string? Country { get; set; }
 		public string? address { get; set; }
 		public string? code { get; set; }
+		public string? image { get; set; }
+		public string? publicid { get; set; }
 
 		public int? account_map { get; set; }
 		public Account? account { get; set; }

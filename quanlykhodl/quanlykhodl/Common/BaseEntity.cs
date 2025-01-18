@@ -10,6 +10,6 @@ namespace quanlykhodl.Common
         public bool Deleted { get; set; }
         public string? CretorEdit { get; set; }
         public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
-        public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
+        public DateTimeOffset UpdatedAt { get; set; }
     }
 }

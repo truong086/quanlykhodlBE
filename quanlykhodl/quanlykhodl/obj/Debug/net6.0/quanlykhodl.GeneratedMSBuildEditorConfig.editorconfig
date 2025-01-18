@@ -17,3 +17,7 @@ build_property.SupportLocalizedComponentNames =
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
 build_property.MSBuildProjectDirectory = C:\Users\ASUS\source\repos\quanlykhodailoan\quanlykhodl\quanlykhodl
 build_property._RazorSourceGeneratorDebug = 
+
+[C:/Users/ASUS/source/repos/quanlykhodailoan/quanlykhodl/quanlykhodl/Views/Shared/EmailTemplate.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVtYWlsVGVtcGxhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 

@@ -12,7 +12,7 @@ namespace quanlykhodl.Models
 		public string? DonViTinh { get; set; }
 		public int quantity { get; set; }
 		public int star { get; set; }
-		public int location { get; set; }
+		//public int location { get; set; }
 		public string? code { get; set; }
 
 		public int? category_map { get; set; }
@@ -30,6 +30,7 @@ namespace quanlykhodl.Models
 		public virtual ICollection<productDeliverynote>? productDeliverynotes { get; set; }
 		public virtual ICollection<productImportform>? productImportforms { get; set; }
 		public virtual ICollection<Plan>? plans { get; set; }
+		public virtual ICollection<productlocation>? Productlocations { get; set; }
 
 	}
 }

@@ -285,5 +285,57 @@ namespace quanlykhodl.Clouds
             var deleteCloudImage = new DeletionParams(publicIdImage);
             await _cloudinary.DestroyAsync(deleteCloudImage);
         }
+
+        // Xóa toàn bộ ảnh trong Folder và xóa folder
+        public static async void DeleteAllImageAndFolder(string folder, Cloud _cloud)
+        {
+            
+            try
+            {
+                Account account = new Account(_cloud.Cloudinary_Name, _cloud.Api_Key, _cloud.Serec_Key);
+                _cloudinary = new Cloudinary(account);
+
+
+                // Lấy danh sách tất cả tài nguyên
+                var listResourcesParams = new ListResourcesParams()
+                {
+                    Type = "upload",  // Chỉ lấy tài nguyên upload
+                    MaxResults = 500  // Số lượng tối đa mỗi lần
+                };
+
+                var resources = _cloudinary.ListResources(listResourcesParams);
+
+                // Lọc tài nguyên trong folder cần xóa
+                var publicIds = new List<string>();
+                foreach (var resource in resources.Resources)
+                {
+                    if (resource.PublicId.StartsWith(folder + "/")) // Kiểm tra xem tài nguyên thuộc folder hay không
+                    {
+                        publicIds.Add(resource.PublicId);
+                    }
+                }
+
+                // Xóa tất cả tài nguyên trong folder
+                if (publicIds.Count > 0)
+                {
+                    var deletionParams = new DelResParams()
+                    {
+                        PublicIds = publicIds,
+                        All = false,
+                        Invalidate = true // Làm mới CDN cache
+                    };
+
+                    var deletionResult = _cloudinary.DeleteResources(deletionParams);
+                    Console.WriteLine($"Đã xóa {deletionResult.Deleted.Count} tài nguyên trong folder '{folder}'.");
+                }
+
+                // Sau khi xóa toàn bộ tài nguyên, folder sẽ tự động bị loại bỏ
+                Console.WriteLine($"Folder '{folder}' sẽ tự động bị xóa sau khi trống.");
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine($"Error {ex.Message}");
+            }
+        }
     }
 }

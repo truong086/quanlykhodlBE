@@ -7,10 +7,14 @@ namespace quanlykhodl.Models
 		public string? name { get; set; }
 		public int? quantityarea { get; set; }
 		public string? code { get; set; }
-		public int? warehouse { get; set; }
-		public Warehouse? warehouse_id { get; set; }
+        public string? image { get; set; }
+        public string? publicid { get; set; }
+        public int? warehouse { get; set; }
+        public int? account_id { get; set; }
+        public Warehouse? warehouse_id { get; set; }
+        public Account? accounts { get; set; }
 
-		public ICollection<Area>? areas { get; set; }
+        public ICollection<Area>? areas { get; set; }
 		public ICollection<product>? products { get; set; }
 	}
 }
