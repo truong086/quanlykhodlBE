@@ -228,6 +228,9 @@ namespace quanlykhodl.Service
             {
                 var checkArea = _context.areas.Where(x => x.id == id && !x.Deleted).FirstOrDefault();
 
+                if (checkArea == null)
+                    return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+
                 return await Task.FromResult(PayLoad<object>.Successfully(findAreaproduct(checkArea)));
             }catch(Exception ex)
             {
@@ -242,10 +245,29 @@ namespace quanlykhodl.Service
                 Id = area.id,
                 quantity = area.quantity.Value,
                 productLocationAreas = productLocationAreas(area.id),
-                productPlans = productLocationAreasPlan(area.id)
+                productPlans = productLocationAreasPlan(area.id),
+               locationTotal = checkLocation(area.id)
             };
 
             return data;
+        }
+
+        private Dictionary<int, int> checkLocation(int id)
+        {
+            var dictionary = new Dictionary<int, int>();
+            var checkPlan = _context.plans.Where(x => x.area == id).ToList();
+            if (checkPlan != null && checkPlan.Any())
+            {
+                foreach(var item in checkPlan)
+                {
+                    if (!dictionary.ContainsKey(item.localtionNew.Value))
+                    {
+                        var checkLocation = _context.plans.Where(x => x.area == id && x.localtionNew == item.localtionNew).Count();
+                        dictionary.Add(item.localtionNew.Value, checkLocation);
+                    }
+                }
+            }
+            return dictionary;
         }
 
         private List<productLocationArea> productLocationAreas(int id)
@@ -354,7 +376,13 @@ namespace quanlykhodl.Service
                 if (checkId == null)
                     return await Task.FromResult(PayLoad<ProductGetAll>.CreatedFail(Status.DATANULL));
 
+                var checkCategory = _context.categories.Where(x => x.id == checkId.category_map && !x.Deleted).FirstOrDefault();
                 var mapData = _mapper.Map<ProductGetAll>(checkId);
+                if(checkCategory != null)
+                {
+                    mapData.categoryImage = checkCategory.image;
+                    mapData.categoryName= checkCategory.name;
+                }
                 mapData.images = ListImage(checkId.id);
                 mapData.listAreaOfproducts = loadDataAreaAndFloorAndWerahourse(checkId.id);
 
@@ -601,6 +629,32 @@ namespace quanlykhodl.Service
                 }
             }
             return list;
+        }
+
+        public async Task<PayLoad<object>> FindCode(string code)
+        {
+            try
+            {
+                var checkCode = _context.products1.Where(x => x.code == code && !x.Deleted).FirstOrDefault();
+                if (checkCode == null)
+                    return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+
+                var checkCategory = _context.categories.Where(x => x.id == checkCode.category_map && !x.Deleted).FirstOrDefault();
+                var mapData = _mapper.Map<ProductGetAll>(checkCode);
+                if (checkCategory != null)
+                {
+                    mapData.categoryImage = checkCategory.image;
+                    mapData.categoryName = checkCategory.name;
+                }
+                mapData.images = ListImage(checkCode.id);
+                mapData.listAreaOfproducts = loadDataAreaAndFloorAndWerahourse(checkCode.id);
+
+                return await Task.FromResult(PayLoad<object>.Successfully(mapData));
+            }
+            catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
         }
     }
 }

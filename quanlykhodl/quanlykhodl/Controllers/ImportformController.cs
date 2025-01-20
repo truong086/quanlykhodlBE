@@ -33,6 +33,13 @@ namespace quanlykhodl.Controllers
             return await _importformService.FindOneId(id);
         }
 
+        [HttpGet]
+        [Route(nameof(FindOneCode))]
+        public async Task<PayLoad<object>> FindOneCode(string code)
+        {
+            return await _importformService.FindCode(code);
+        }
+
         [HttpPost]
         [Route(nameof(Add))]
         public async Task<PayLoad<ImportformDTO>> Add(ImportformDTO data)

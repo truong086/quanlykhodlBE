@@ -17,6 +17,8 @@
         public string? DeliveryAddress { get; set; }
         public string? code { get; set; }
         public int? Tax { get; set; }
+        public int? TotalProduct { get; set; }
+        public int? TotalQuantity { get; set; }
         public bool? isPercentage { get; set; }
         public List<productImportformAndDeliveerrynote>? products { get; set; }
     }

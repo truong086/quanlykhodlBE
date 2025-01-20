@@ -202,6 +202,8 @@ namespace quanlykhodl.Service
             mapData.EmailAccountBy = checkRetaiCustomer == null ? Status.ACCOUNTNOTFOULD : checkRetaiCustomer.email;
             mapData.AddressAccountBy = checkRetaiCustomer == null ? Status.ACCOUNTNOTFOULD : checkRetaiCustomer.address;
             mapData.products = loadProductImportData(id.id);
+            mapData.TotalProduct = _context.productDeliverynotes.Where(x => x.deliverynote == id.id && !x.Deleted).Count();
+            mapData.TotalQuantity = _context.productDeliverynotes.Where(x => x.deliverynote == id.id && !x.Deleted).Sum(x => x.quantity);
 
             return mapData;
         }
@@ -307,6 +309,21 @@ namespace quanlykhodl.Service
             }catch(Exception ex )
             {
                 return await Task.FromResult(PayLoad<ImportformUpdate>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<object>> FindOneCode(string code)
+        {
+            try
+            {
+                var checkData = _context.deliverynotes.Where(x => x.code == code && !x.Deleted).FirstOrDefault();
+                if (checkData == null)
+                    return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+
+                return await Task.FromResult(PayLoad<object>.Successfully(loadFindOneData(checkData)));
+            }catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
             }
         }
     }
