@@ -6,7 +6,9 @@ namespace quanlykhodl.Models
 	{
 		public string? title { get; set; }
 		public string? description { get; set; }
-		public int? accountmap { get; set; }
+        public int? retailcustomers { get; set; }
+        public Retailcustomers? retailcustomers_id { get; set; }
+        public int? accountmap { get; set; }
 		public Account? account { get; set; }
 		public bool isRetailcustomers { get; set; }
 		public double price { get; set; }
@@ -14,7 +16,8 @@ namespace quanlykhodl.Models
 		public double total { get; set; }
 		public string? DeliveryAddress { get; set; }
 		public string? code { get; set; }
-		public ICollection<productDeliverynote>? productDeliverynotes { get; set; }
-		public ICollection<Retailcustomers>? retailcustomers { get; set; }
+        public int? Tax { get; set; }
+        public bool? isPercentage { get; set; }
+        public ICollection<productDeliverynote>? productDeliverynotes { get; set; }
 	}
 }

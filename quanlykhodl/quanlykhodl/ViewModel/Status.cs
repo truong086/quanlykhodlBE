@@ -20,9 +20,10 @@
         public static string IMAGE = "Image";
         public static string MAXLENG = "Data Vượt quá dữ liệu";
         public static string XACNHAN = "Chờ xác nhận";
-        public static string DANHAN = "Đã nhận hàng";
+        public static string DANHAN = "Đã nhận";
         public static string DANGGIAO = "Đang giao";
         public static string NHANHANG = "Xác nhận đã nhận hàng";
+        public static string DONE = "DONE";
         public static string ADD1 = "Add1";
         public static string GIAM1 = "Giam1";
         public static string DELETEITEMCART = "DeleteItemCart";
@@ -39,5 +40,10 @@
         public static string IDAUTHENTICATION = "Id";
         public static string WAREHOUSERFOLDER = "Warehouse ";
         public static string FULLQUANTITY = "Vượt quá không gian lưu trữ ";
+        public static string NOCATEGORY = "Không cùng loại ";
+        public static string NOWAREHOURSE = "Kho đã bị xóa hoặc chưa cài đặt ";
+        public static string NOFLOOR = "Tầng đã bị xóa hoặc chưa cài đặt";
+        public static string NOAREA = "Khu đã bị xóa hoặc chưa cài đặt ";
+        public static string TODAYFULL = "Vượt quá số lượt chuyển của loại ngày hôm nay ";
     }
 }

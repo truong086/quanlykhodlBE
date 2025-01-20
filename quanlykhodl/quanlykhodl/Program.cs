@@ -121,8 +121,8 @@ builder.Services.AddQuartz(q =>
     q.AddJob<TuDongMoiTuan>(Otp => Otp.WithIdentity(jobKey));
     q.AddTrigger(otps => otps.ForJob(jobKey).WithIdentity("WeeklyTrigger")
     .StartNow()
-
-    .WithCronSchedule("0 0/1 * * * ?")); // "0/1" là chạy mỗi phút, để "1" là chỉ chạy 1 phút lần đầu
+    .WithCronSchedule("0/1 * * * * ?"));
+    //.WithCronSchedule("0 0/1 * * * ?")); // "0/1" là chạy mỗi phút, để "1" là chỉ chạy 1 phút lần đầu
 });
 
 var connection = builder.Configuration.GetConnectionString("MyDB");
@@ -146,6 +146,14 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IWarehouseService, WarehouseService>();
 builder.Services.AddScoped<IFloorService, FloorService>();
+builder.Services.AddScoped<IAreaService, AreaService>();
+builder.Services.AddScoped<ISupplierService, SupplierService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IPlanService, PlanService>();
+builder.Services.AddScoped<IStatusService, StatusService>();
+builder.Services.AddScoped<IImportformService, ImportformService>();
+builder.Services.AddScoped<IDeliverynoteService, DeliverynoteService>();
 builder.Services.AddScoped<SendEmais>();
 builder.Services.AddSingleton<VerificationTaskWorker>();
 builder.Services.AddHostedService(p => p.GetRequiredService<VerificationTaskWorker>());

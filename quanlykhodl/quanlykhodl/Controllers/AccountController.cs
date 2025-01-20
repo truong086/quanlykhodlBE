@@ -56,6 +56,19 @@ namespace quanlykhodl.Controllers
         {
             return await _accountService.FindAll(name, page, pageSize);
         }
+        [HttpGet]
+        [Route(nameof(Showrofile))]
+        public async Task<PayLoad<object>> Showrofile()
+        {
+            return await _accountService.Showrofile();
+        }
+
+        [HttpPut]
+        [Route(nameof(UpdateRole))]
+        public async Task<PayLoad<AccountUpdateRole>> UpdateRole(AccountUpdateRole data)
+        {
+            return await _accountService.UpdateRole(data);
+        }
 
         [HttpPost]
         [Route(nameof(checkCode))]

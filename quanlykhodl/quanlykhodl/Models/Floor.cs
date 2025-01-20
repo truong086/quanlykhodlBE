@@ -15,6 +15,5 @@ namespace quanlykhodl.Models
         public Account? accounts { get; set; }
 
         public ICollection<Area>? areas { get; set; }
-		public ICollection<product>? products { get; set; }
 	}
 }

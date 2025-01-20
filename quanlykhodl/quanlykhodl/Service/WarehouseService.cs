@@ -37,7 +37,7 @@ namespace quanlykhodl.Service
 
                 var mapData = _mapper.Map<Warehouse>(data);
 
-                mapData.code = geneAction(8);
+                mapData.code = RanDomCode.geneAction(8);
                 mapData.account = checkAccount;
                 mapData.account_map = checkAccount.id;
 
@@ -61,14 +61,6 @@ namespace quanlykhodl.Service
             {
                 return await Task.FromResult(PayLoad<WarehouseDTO>.CreatedFail(ex.Message));
             }
-        }
-
-        private string geneAction(int length)
-        {
-            var random = new Random();
-            string code = Status.RANDOMCODE;
-            var geneCode = new string(Enumerable.Repeat(code, length).Select(s => s[random.Next(s.Length)]).ToArray());
-            return geneCode;
         }
 
         public async Task<PayLoad<string>> Delete(int id)
@@ -121,11 +113,12 @@ namespace quanlykhodl.Service
             foreach(var item in data)
             {
                 var checkAccountId = checkAccount(item.account_map);
+                var checkFloorTotal = _context.floors.Where(x => x.warehouse == item.id && !x.Deleted).Count();
                 var mapData = _mapper.Map<WarehouseGetAll>(item);
                 mapData.account_name = checkAccountId == null ? Status.ACCOUNTNOTFOULD : checkAccountId.username;
                 mapData.Id = item.id;
                 mapData.account_image = checkAccountId == null ? Status.ACCOUNTNOTFOULD : checkAccountId.image;
-
+                mapData.NumberoffloorsEmty = item.Numberoffloors - checkFloorTotal;
                 list.Add(mapData);
             }
 

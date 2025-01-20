@@ -41,6 +41,7 @@ namespace quanlykhodl.Service
                 mapData.warehouse = checkWarehouse.id;
                 mapData.accounts = checkAccount;
                 mapData.account_id = checkAccount.id;
+                mapData.code = RanDomCode.geneAction(8);
 
                 _context.floors.Add(mapData);
                 _context.SaveChanges();
@@ -120,13 +121,14 @@ namespace quanlykhodl.Service
             {
                 var checkAccount = _context.accounts.Where(x => x.id == item.account_id && !x.Deleted).FirstOrDefault();
                 var checkWareHouser = _context.warehouses.Where(x => x.id == item.warehouse).FirstOrDefault();
-
+                var checkArea = _context.areas.Where(x => x.floor == item.id && !x.Deleted).Count();
                 var mapData = _mapper.Map<FloorGetAll>(item);
                 mapData.Id = item.id;
                 mapData.account_name = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.username;
                 mapData.account_image = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.image;
                 mapData.warehouse_name = checkWareHouser == null ? Status.WAREHOUSERFOLDER : checkWareHouser.name;
                 mapData.warehouse_image = checkWareHouser == null ? Status.WAREHOUSERFOLDER : checkWareHouser.image;
+                mapData.locationEmty = item.quantityarea - checkArea;
 
                 list.Add(mapData);
             }
@@ -138,6 +140,7 @@ namespace quanlykhodl.Service
             try
             {
                 var data = _context.floors.Where(x => x.warehouse == id && !x.Deleted).ToList();
+
 
                 var pageList = new PageList<object>(LoadData(data), page - 1, pageSize);
 

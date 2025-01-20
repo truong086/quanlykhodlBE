@@ -51,12 +51,16 @@ namespace quanlykhodl.Service
                 if (checkData != null)
                     return await Task.FromResult(PayLoad<AccountDTO>.CreatedFail(Status.DATATONTAI));
 
-                uploadCloud.CloudInaryIFromAccount(accountDTO.image, accountDTO.email, _cloud);
+                
                 var mapData = _mapper.Map<Account>(accountDTO);
+                if (accountDTO.image != null)
+                {
+                    uploadCloud.CloudInaryIFromAccount(accountDTO.image, accountDTO.email, _cloud);
+                    mapData.image = uploadCloud.Link;
+                    mapData.publicid = uploadCloud.publicId;
+                }
                 mapData.password = EncryptionHelper.CreatePasswordHash(accountDTO.password, _jwt.Key);
                 mapData.Action = false;
-                mapData.image = uploadCloud.Link;
-                mapData.publicid = uploadCloud.publicId;
                 mapData.Deleted = false;
                 mapData.role = checkRole;
                 mapData.role_id = checkRole.id;
@@ -453,12 +457,22 @@ namespace quanlykhodl.Service
                 if (checkData == null)
                     return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
 
+                var checkToken = _context.tokens.Where(x => x.account_id == checkData.id && x.code == data.code
+                && x.Status == Status.UPDATEPASSWORD).OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+
+                if(checkToken == null)
+                    return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
+
+                if (checkDateChenhLech(checkToken.CreatedAt) > 20)
+                    return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
+
                 if (checkData.password != EncryptionHelper.CreatePasswordHash(data.passwordOld, _jwt.Key))
                     return await Task.FromResult(PayLoad<string>.CreatedFail(Status.PASSWORDOLDFAILD));
 
                 checkData.password = EncryptionHelper.CreatePasswordHash(data.passwordNew, _jwt.Key);
                 checkData.UpdatedAt = DateTimeOffset.UtcNow;
 
+                _context.tokens.Remove(checkToken);
                 _context.accounts.Update(checkData);
 
                 await _context.SaveChangesAsync();
@@ -481,6 +495,9 @@ namespace quanlykhodl.Service
 
                 var checkToken = checkTokenAccount(checkEmail.id, data.code, Status.CREATEPASSWORD);
                 if (checkToken == null)
+                    return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
+
+                if (checkDateChenhLech(checkToken.CreatedAt) > 1)
                     return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
 
                 var deleteToken = _context.tokens.Include(a => a.account).Where(x => x.account_id == checkEmail.id).ToList();
@@ -509,10 +526,8 @@ namespace quanlykhodl.Service
                 if (checkToken == null)
                     return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
 
-                var deleteToken = _context.tokens.Include(a => a.account).Where(x => x.account_id == checkEmail.id).ToList();
-                _context.tokens.RemoveRange(deleteToken);
-
-                _context.SaveChanges();
+                if (checkDateChenhLech(checkToken.CreatedAt) > 1)
+                    return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
 
                 return await Task.FromResult(PayLoad<string>.Successfully(Status.SUCCESS));
             }catch(Exception ex)
@@ -540,12 +555,19 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var checkEmail = _context.accounts.Where(x => x.email == data.email).FirstOrDefault();
+                var checkEmail = _context.accounts.Where(x => x.email == data.email && !x.Deleted).FirstOrDefault();
                 if (checkEmail == null)
                     return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
 
+                var checkToken = checkTokenAccount(checkEmail.id, data.code, Status.UPDATEPASSWORD);
+                if(checkToken == null)
+                    return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
+
+                if(checkDateChenhLech(checkToken.CreatedAt) > 20)
+                    return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
                 checkEmail.password = EncryptionHelper.CreatePasswordHash(data.passwordNew, _jwt.Key);
 
+                _context.tokens.Remove(checkToken);
                 _context.accounts.Update(checkEmail);
 
                 _context.SaveChanges();
@@ -554,6 +576,55 @@ namespace quanlykhodl.Service
             }catch(Exception ex )
             {
                 return await Task.FromResult(PayLoad<string>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<object>> Showrofile()
+        {
+            try
+            {
+                var user = _userService.name();
+                var checkAccount = _context.accounts.Where(x => x.id == int.Parse(user) && !x.Deleted).FirstOrDefault();
+                if (checkAccount == null)
+                    return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+
+                var mapData = _mapper.Map<AccountgetAll>(checkAccount);
+                mapData.Id = checkAccount.id;
+                mapData.roleName = checkRole(checkAccount.role_id.Value).name;
+
+                return await Task.FromResult(PayLoad<object>.Successfully(mapData));
+            }
+            catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<AccountUpdateRole>> UpdateRole(AccountUpdateRole data)
+        {
+            try
+            {
+                var user = _userService.name();
+                var checkAccount = _context.accounts.Where(x => x.id == data.account_id && !x.Deleted).FirstOrDefault();
+                var checkAccountEdit = _context.accounts.FirstOrDefault(x => x.id == Convert.ToInt32(user) && !x.Deleted);
+                var checkRole = _context.roles.Where(x => x.id == data.role_id).FirstOrDefault();
+
+                if (checkAccount == null || checkAccountEdit == null || checkRole == null)
+                    return await Task.FromResult(PayLoad<AccountUpdateRole>.CreatedFail(Status.DATANULL));
+
+                checkAccount.role = checkRole;
+                checkAccount.role_id = data.role_id;
+                checkAccount.CretorEdit = checkAccountEdit.username + " Đã sửa bán ghi vào lúc " + DateTimeOffset.UtcNow;
+                checkAccount.UpdatedAt = DateTimeOffset.UtcNow;
+
+                _context.accounts.Update(checkAccount);
+                _context.SaveChanges();
+
+                return await Task.FromResult(PayLoad<AccountUpdateRole>.Successfully(data));
+            }
+            catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<AccountUpdateRole>.CreatedFail(ex.Message));
             }
         }
     }

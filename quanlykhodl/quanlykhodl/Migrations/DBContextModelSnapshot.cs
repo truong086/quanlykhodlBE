@@ -188,6 +188,9 @@ namespace quanlykhodl.Migrations
                     b.Property<string>("DeliveryAddress")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("Tax")
+                        .HasColumnType("int");
+
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -200,6 +203,9 @@ namespace quanlykhodl.Migrations
                     b.Property<string>("description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool?>("isPercentage")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("isRetailcustomers")
                         .HasColumnType("bit");
 
@@ -207,6 +213,9 @@ namespace quanlykhodl.Migrations
                         .HasColumnType("float");
 
                     b.Property<int>("quantity")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("retailcustomers")
                         .HasColumnType("int");
 
                     b.Property<string>("title")
@@ -218,6 +227,8 @@ namespace quanlykhodl.Migrations
                     b.HasKey("id");
 
                     b.HasIndex("accountmap");
+
+                    b.HasIndex("retailcustomers");
 
                     b.ToTable("deliverynotes");
                 });
@@ -367,6 +378,9 @@ namespace quanlykhodl.Migrations
                     b.Property<string>("DeliveryAddress")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("Tax")
+                        .HasColumnType("int");
+
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -379,6 +393,9 @@ namespace quanlykhodl.Migrations
                     b.Property<string>("description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool?>("isPercentage")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("isProductNew")
                         .HasColumnType("bit");
 
@@ -386,9 +403,6 @@ namespace quanlykhodl.Migrations
                         .HasColumnType("float");
 
                     b.Property<int?>("quantity")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("supplier")
                         .HasColumnType("int");
 
                     b.Property<string>("tite")
@@ -400,8 +414,6 @@ namespace quanlykhodl.Migrations
                     b.HasKey("id");
 
                     b.HasIndex("account_idMap");
-
-                    b.HasIndex("supplier");
 
                     b.ToTable("importforms");
                 });
@@ -432,6 +444,9 @@ namespace quanlykhodl.Migrations
                     b.Property<int?>("area")
                         .HasColumnType("int");
 
+                    b.Property<int?>("areaOld")
+                        .HasColumnType("int");
+
                     b.Property<int?>("areaidid")
                         .HasColumnType("int");
 
@@ -439,6 +454,9 @@ namespace quanlykhodl.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("floor")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("floorOld")
                         .HasColumnType("int");
 
                     b.Property<int?>("floor_idid")
@@ -450,10 +468,13 @@ namespace quanlykhodl.Migrations
                     b.Property<bool>("isConsent")
                         .HasColumnType("bit");
 
-                    b.Property<string>("localtionnew")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("localtionNew")
+                        .HasColumnType("int");
 
-                    b.Property<int?>("product_map")
+                    b.Property<int?>("localtionOld")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("productlocation_map")
                         .HasColumnType("int");
 
                     b.Property<string>("status")
@@ -463,6 +484,9 @@ namespace quanlykhodl.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("warehouse")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("warehouseOld")
                         .HasColumnType("int");
 
                     b.Property<int?>("warehouse_idid")
@@ -476,7 +500,7 @@ namespace quanlykhodl.Migrations
 
                     b.HasIndex("floor_idid");
 
-                    b.HasIndex("product_map");
+                    b.HasIndex("productlocation_map");
 
                     b.HasIndex("warehouse_idid");
 
@@ -509,9 +533,6 @@ namespace quanlykhodl.Migrations
                     b.Property<int?>("account_map")
                         .HasColumnType("int");
 
-                    b.Property<int?>("area_map")
-                        .HasColumnType("int");
-
                     b.Property<int?>("category_map")
                         .HasColumnType("int");
 
@@ -520,9 +541,6 @@ namespace quanlykhodl.Migrations
 
                     b.Property<string>("description")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("floor_map")
-                        .HasColumnType("int");
 
                     b.Property<double>("price")
                         .HasColumnType("float");
@@ -543,11 +561,7 @@ namespace quanlykhodl.Migrations
 
                     b.HasIndex("account_map");
 
-                    b.HasIndex("area_map");
-
                     b.HasIndex("category_map");
-
-                    b.HasIndex("floor_map");
 
                     b.HasIndex("suppliers");
 
@@ -621,11 +635,16 @@ namespace quanlykhodl.Migrations
                     b.Property<int>("quantity")
                         .HasColumnType("int");
 
+                    b.Property<int?>("supplier")
+                        .HasColumnType("int");
+
                     b.HasKey("id");
 
                     b.HasIndex("importform");
 
                     b.HasIndex("product");
+
+                    b.HasIndex("supplier");
 
                     b.ToTable("productImportforms");
                 });
@@ -650,13 +669,13 @@ namespace quanlykhodl.Migrations
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<int>("id_area")
+                        .HasColumnType("int");
+
                     b.Property<int>("id_product")
                         .HasColumnType("int");
 
                     b.Property<int>("location")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("productsid")
                         .HasColumnType("int");
 
                     b.Property<int>("quantity")
@@ -664,9 +683,11 @@ namespace quanlykhodl.Migrations
 
                     b.HasKey("id");
 
-                    b.HasIndex("productsid");
+                    b.HasIndex("id_area");
 
-                    b.ToTable("productlocation");
+                    b.HasIndex("id_product");
+
+                    b.ToTable("productlocations");
                 });
 
             modelBuilder.Entity("quanlykhodl.Models.Retailcustomers", b =>
@@ -692,9 +713,6 @@ namespace quanlykhodl.Migrations
                     b.Property<string>("address")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("deliverynote")
-                        .HasColumnType("int");
-
                     b.Property<string>("email")
                         .HasColumnType("nvarchar(max)");
 
@@ -705,8 +723,6 @@ namespace quanlykhodl.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("id");
-
-                    b.HasIndex("deliverynote");
 
                     b.ToTable("Retailcustomers");
                 });
@@ -804,10 +820,16 @@ namespace quanlykhodl.Migrations
                     b.Property<string>("email")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("image")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("name")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("phone")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("publicid")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("id");
@@ -990,7 +1012,14 @@ namespace quanlykhodl.Migrations
                         .HasForeignKey("accountmap")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("quanlykhodl.Models.Retailcustomers", "retailcustomers_id")
+                        .WithMany("deliverynotes")
+                        .HasForeignKey("retailcustomers")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("account");
+
+                    b.Navigation("retailcustomers_id");
                 });
 
             modelBuilder.Entity("quanlykhodl.Models.Floor", b =>
@@ -1036,14 +1065,7 @@ namespace quanlykhodl.Migrations
                         .HasForeignKey("account_idMap")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("quanlykhodl.Models.Supplier", "supplier_id")
-                        .WithMany("importforms")
-                        .HasForeignKey("supplier")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.Navigation("account_id");
-
-                    b.Navigation("supplier_id");
                 });
 
             modelBuilder.Entity("quanlykhodl.Models.Plan", b =>
@@ -1061,9 +1083,9 @@ namespace quanlykhodl.Migrations
                         .WithMany()
                         .HasForeignKey("floor_idid");
 
-                    b.HasOne("quanlykhodl.Models.product", "productid123")
+                    b.HasOne("quanlykhodl.Models.productlocation", "productidlocation")
                         .WithMany("plans")
-                        .HasForeignKey("product_map")
+                        .HasForeignKey("productlocation_map")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("quanlykhodl.Models.Warehouse", "warehouse_id")
@@ -1076,7 +1098,7 @@ namespace quanlykhodl.Migrations
 
                     b.Navigation("floor_id");
 
-                    b.Navigation("productid123");
+                    b.Navigation("productidlocation");
 
                     b.Navigation("warehouse_id");
                 });
@@ -1088,19 +1110,9 @@ namespace quanlykhodl.Migrations
                         .HasForeignKey("account_map")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("quanlykhodl.Models.Area", "area_id")
-                        .WithMany("products")
-                        .HasForeignKey("area_map")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("quanlykhodl.Models.category", "categoryid123")
                         .WithMany("products")
                         .HasForeignKey("category_map")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("quanlykhodl.Models.Floor", "floor_id1")
-                        .WithMany("products")
-                        .HasForeignKey("floor_map")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("quanlykhodl.Models.Supplier", "supplier_id")
@@ -1110,11 +1122,7 @@ namespace quanlykhodl.Migrations
 
                     b.Navigation("account");
 
-                    b.Navigation("area_id");
-
                     b.Navigation("categoryid123");
-
-                    b.Navigation("floor_id1");
 
                     b.Navigation("supplier_id");
                 });
@@ -1148,28 +1156,35 @@ namespace quanlykhodl.Migrations
                         .HasForeignKey("product")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("quanlykhodl.Models.Supplier", "supplier_id")
+                        .WithMany("productimportforms")
+                        .HasForeignKey("supplier")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("importform_id1");
 
                     b.Navigation("products");
+
+                    b.Navigation("supplier_id");
                 });
 
             modelBuilder.Entity("quanlykhodl.Models.productlocation", b =>
                 {
+                    b.HasOne("quanlykhodl.Models.Area", "areas")
+                        .WithMany("Productlocations")
+                        .HasForeignKey("id_area")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("quanlykhodl.Models.product", "products")
                         .WithMany("Productlocations")
-                        .HasForeignKey("productsid");
+                        .HasForeignKey("id_product")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("areas");
 
                     b.Navigation("products");
-                });
-
-            modelBuilder.Entity("quanlykhodl.Models.Retailcustomers", b =>
-                {
-                    b.HasOne("quanlykhodl.Models.Deliverynote", "deliverynote_id1")
-                        .WithMany("retailcustomers")
-                        .HasForeignKey("deliverynote")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("deliverynote_id1");
                 });
 
             modelBuilder.Entity("quanlykhodl.Models.StatusItem", b =>
@@ -1247,7 +1262,7 @@ namespace quanlykhodl.Migrations
 
             modelBuilder.Entity("quanlykhodl.Models.Area", b =>
                 {
-                    b.Navigation("products");
+                    b.Navigation("Productlocations");
                 });
 
             modelBuilder.Entity("quanlykhodl.Models.category", b =>
@@ -1258,15 +1273,11 @@ namespace quanlykhodl.Migrations
             modelBuilder.Entity("quanlykhodl.Models.Deliverynote", b =>
                 {
                     b.Navigation("productDeliverynotes");
-
-                    b.Navigation("retailcustomers");
                 });
 
             modelBuilder.Entity("quanlykhodl.Models.Floor", b =>
                 {
                     b.Navigation("areas");
-
-                    b.Navigation("products");
                 });
 
             modelBuilder.Entity("quanlykhodl.Models.Importform", b =>
@@ -1285,11 +1296,19 @@ namespace quanlykhodl.Migrations
 
                     b.Navigation("imageProducts");
 
-                    b.Navigation("plans");
-
                     b.Navigation("productDeliverynotes");
 
                     b.Navigation("productImportforms");
+                });
+
+            modelBuilder.Entity("quanlykhodl.Models.productlocation", b =>
+                {
+                    b.Navigation("plans");
+                });
+
+            modelBuilder.Entity("quanlykhodl.Models.Retailcustomers", b =>
+                {
+                    b.Navigation("deliverynotes");
                 });
 
             modelBuilder.Entity("quanlykhodl.Models.role", b =>
@@ -1304,7 +1323,7 @@ namespace quanlykhodl.Migrations
 
             modelBuilder.Entity("quanlykhodl.Models.Supplier", b =>
                 {
-                    b.Navigation("importforms");
+                    b.Navigation("productimportforms");
 
                     b.Navigation("products");
                 });

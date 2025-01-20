@@ -7,6 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Email Message Component</title>
     <style>
+        *{
+            font-weight: bold;
+            color: #fffbfb;
+            text-shadow: #000000 1px 1px;
+        }
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -42,7 +47,7 @@
         }
 
         .email-footer {
-            background-color: #f4f4f4;
+            background-color: #2e2c2c;
             color: #888;
             font-size: 12px;
             text-align: center;
@@ -77,7 +82,7 @@
             background-color: #3367d6;
         }
 
-       media (max-width: 480px) {
+        media (max-width: 480px) {
             .email-header {
                 font-size: 16px;
                 padding: 12px;
@@ -99,10 +104,15 @@
             }
         }
         
+    .email-container{
+        background-image: url(https://img.freepik.com/premium-photo/3d-render-twilight-summer-landscape-background_893012-9797.jpg);
+        background-size: cover;
+        background-repeat: no-repeat;
+    }
     </style>
 </head>
 <body>
-    <div class="email-container" style="background: url(https://tse4.mm.bing.net/th?id=OIP.Xn7vlgvT8Y2eBUhzQlgSCQHaEK&pid=Api&P=0&h=220); background-size: cover; background-repeat: no-repeat">
+    <div class="email-container" style="background: url(https://img.freepik.com/premium-photo/3d-render-twilight-summer-landscape-background_893012-9797.jpg); background-repeat: no-repeat; background-size: cover;">
         <div class="email-header">
             Mã OTP Gửi đến @Model.name
         </div>
@@ -110,15 +120,15 @@
             <div style="text-align: center; width: 100%;">
                 <img src="@Model.iamge" alt="Logo" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid #ccc;">
               </div>
-            <p>Chào Bạn @Model.name</p>
+            <p>Chào Bạn vantruong@gmail.com</p>
             <p>Đây là mã OTP của bạn:</p>
-            <blockquote style="margin: 10px 0; padding: 10px; border-left: 4px solid #ddd; background: #f9f9f9;">
+            <blockquote style="margin: 10px 0; padding: 10px; border-left: 4px solid #ddd; background: #f9f9f9; border-radius: 5px; color: red;text-align: center;">
                 @Model.active
             </blockquote>
-            <p>Vui lòng xác thực mã trong 50 phút:</p>
+            <p style="text-align: center;">Vui lòng xác thực mã trong 10 phút:</p>
             <a href="#" class="button">Nút bấm để to do something....</a>
             <p>Nếu bạn có bất kỳ thắc mắc nào, vui lòng trả lời email này.</p>
-            <p>Trân trọng,<br>@Model.name</p>
+            <p>Trân trọng,<br> @Model.name</p>
         </div>
         <div class="email-footer">
             <p>&copy; 2025 Gmail. All rights reserved. <a href="#">Privacy Policy</a></p>

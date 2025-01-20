@@ -15,6 +15,6 @@ namespace quanlykhodl.Models
 		public int? floor { get; set; }
 		public Account? account_id { get; set; }
 		public Floor? floor_id { get; set; }
-		public ICollection<product>? products { get; set; }
+		public virtual ICollection<productlocation>? Productlocations { get; set; }
 	}
 }

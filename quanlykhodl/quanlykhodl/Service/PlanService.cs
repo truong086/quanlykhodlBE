@@ -1,0 +1,554 @@
+﻿using AutoMapper;
+using Microsoft.Extensions.Options;
+using Org.BouncyCastle.Asn1.Pkcs;
+using quanlykhodl.Clouds;
+using quanlykhodl.Common;
+using quanlykhodl.Models;
+using quanlykhodl.ViewModel;
+using Twilio.Rest.Trunking.V1;
+using Vonage.Users;
+
+namespace quanlykhodl.Service
+{
+    public class PlanService : IPlanService
+    {
+        private readonly DBContext _context;
+        private readonly IMapper _mapper;
+        private readonly Cloud _cloud;
+        private readonly IUserService _userService;
+        public PlanService(DBContext context, IOptions<Cloud> cloud, IMapper mapper, IUserService userService)
+        {
+            _context = context;
+            _cloud = cloud.Value;
+            _mapper = mapper;
+            _userService = userService;
+        }
+        public async Task<PayLoad<PlanDTO>> Add(PlanDTO planDTO)
+        {
+            try
+            {
+                if (!checkAddToday())
+                    return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.TODAYFULL));
+
+                var user = _userService.name();
+                var checkLocationProductOld = _context.productlocations.Where(x => x.id == planDTO.productlocation_map && !x.Deleted).FirstOrDefault();
+                if (checkLocationProductOld == null)
+                    return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATANULL));
+
+                var checkArea = _context.areas.Where(x => x.id == checkLocationProductOld.id_area && !x.Deleted).FirstOrDefault();
+                if (checkArea == null)
+                    return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATANULL));
+
+                var checkFloor = _context.floors.Where(x => x.id == checkArea.floor && !x.Deleted).FirstOrDefault();
+                if (checkFloor == null)
+                    return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATANULL));
+
+                var checkWarehourse = _context.warehouses.Where(x => x.id == checkFloor.warehouse && !x.Deleted).FirstOrDefault();
+                if (checkWarehourse == null)
+                    return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATANULL));
+                
+                var checkAreaNew = _context.areas.Where(x => x.id == planDTO.area && !x.Deleted).FirstOrDefault();
+                var chechFloorNew = _context.floors.Where(x => x.id == planDTO.floor && !x.Deleted).FirstOrDefault();
+                var checkWarehourseNew = _context.warehouses.Where(x => x.id == planDTO.warehouse && !x.Deleted).FirstOrDefault();
+                var checkAccount = _context.accounts.Where(x => x.id == Convert.ToInt32(user) && !x.Deleted).FirstOrDefault();
+                var checkReceiver = _context.accounts.Where(x => x.id == planDTO.Receiver && !x.Deleted).FirstOrDefault();
+                var checkProductExsis = _context.productlocations.Where(x => x.id_product == checkLocationProductOld.id_product
+                                        && x.id_area == checkAreaNew.id && x.location == planDTO.localtionNew && !x.Deleted).FirstOrDefault();
+
+                if (checkLocationProductOld.location == planDTO.localtionNew &&
+                    checkArea.id == checkAreaNew.id && checkFloor.id == chechFloorNew.id
+                    && checkWarehourse.id == checkWarehourseNew.id)
+                    return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATATONTAI));
+
+                if(checkProductExsis != null)
+                {
+                    checkProductExsis.quantity += checkLocationProductOld.quantity;
+                    checkLocationProductOld.Deleted = true;
+                    //var list = new List<productlocation>()
+                    //{
+                    //    checkProductExsis,
+                    //    checkLocationProductOld
+                    //};
+                    _context.productlocations.UpdateRange(checkLocationProductOld, checkProductExsis);
+                    _context.SaveChanges();
+                    
+                    return await Task.FromResult(PayLoad<PlanDTO>.Successfully(planDTO));
+                }
+                var mapData = _mapper.Map<Plan>(planDTO);
+                mapData.areaOld = checkArea.id;
+                mapData.floorOld = checkFloor.id;
+                mapData.warehouseOld = checkWarehourse.id;
+                mapData.warehouse = checkWarehourseNew.id;
+                mapData.warehouse_id = checkWarehourseNew;
+                mapData.floor = chechFloorNew.id;
+                mapData.floor_id = chechFloorNew;
+                mapData.area = checkArea.id;
+                mapData.areaid = checkArea;
+                mapData.isConfirmation = false;
+                mapData.isConsent = false;
+                mapData.Receiver = checkReceiver.id;
+                mapData.Receiver_id = checkReceiver;
+                mapData.productidlocation = checkLocationProductOld;
+                mapData.productlocation_map = checkLocationProductOld.id;
+                mapData.localtionOld = checkLocationProductOld.location;
+                mapData.status = Status.XACNHAN;
+                mapData.CretorEdit = checkAccount.username + " đã tạo Plan vào lúc " + DateTimeOffset.UtcNow;
+
+                _context.plans.Add(mapData);
+                _context.SaveChanges();
+
+                return await Task.FromResult(PayLoad<PlanDTO>.Successfully(planDTO));
+            }
+            catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(ex.Message));
+            }
+        }
+
+        private bool checkAddToday()
+        {
+            var list = new List<int>();
+            // Lấy múi giờ từ Local
+            TimeZoneInfo timeZone = TimeZoneInfo.Local;
+
+            // Lấy ngày bắt đầu và ngày kết thúc (local time)
+            DateTimeOffset startDate = new DateTimeOffset(DateTime.Today, timeZone.GetUtcOffset(DateTime.Now));
+            DateTimeOffset endDate = startDate.AddDays(1);
+            var checkPlan = _context.plans.Where(x => !x.Deleted && x.CreatedAt >= startDate && x.CreatedAt < endDate).ToList();
+            if(checkPlan.Any())
+            {
+                foreach(var item in checkPlan)
+                {
+                    if(list.Count() <= 2)
+                    {
+                        var checkLocationProduct = _context.productlocations.Where(x => x.id == item.productlocation_map && !x.Deleted).FirstOrDefault();
+                        if(checkLocationProduct != null)
+                        {
+                            var checkProduct = _context.products1.Where(x => x.id == checkLocationProduct.id_product && !x.Deleted).FirstOrDefault();
+                            if(checkProduct != null)
+                                if (!list.Contains(checkProduct.category_map.Value))
+                                    list.Add(checkProduct.category_map.Value);
+                        }
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        public async Task<PayLoad<string>> Delete(int id)
+        {
+            try
+            {
+                var checkId = _context.plans.Where(x => x.id == id && !x.Deleted).FirstOrDefault();
+                if (checkId == null)
+                    return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
+
+                checkId.Deleted = true;
+
+                _context.plans.Update(checkId);
+                _context.SaveChanges();
+
+                return await Task.FromResult(PayLoad<string>.Successfully(Status.SUCCESS));
+            }catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<string>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<object>> FindAll(string? name, int page = 1, int pageSize = 20)
+        {
+            try { 
+                var data = _context.plans.Where(x => !x.Deleted).ToList();
+
+                if (!string.IsNullOrEmpty(name))
+                    data = data.Where(x => x.title.Contains(name)).ToList();
+
+                var pageList = new PageList<object>(LoadData(data), page - 1, pageSize);
+                return await Task.FromResult(PayLoad<object>.Successfully(new
+                {
+                    data = pageList,
+                    page,
+                    pageList.pageSize,
+                    pageList.totalCounts,
+                    pageList.totalPages
+                }));
+            }catch(Exception ex) {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
+
+        private List<PlanGetAll> LoadData(List<Plan> data)
+        {
+            var list = new List<PlanGetAll>();
+
+            if (data.Any())
+            {
+                foreach(var item in data)
+                {
+                    var checkProductLocation = _context.productlocations.Where(x => x.id == item.productlocation_map && !x.Deleted).FirstOrDefault();
+                    var checkProduct = _context.products1.Where(x => x.id == checkProductLocation.id_product && !x.Deleted).FirstOrDefault();
+                    var checkImageProduct = _context.imageProducts.Where(x => x.productMap == checkProduct.id).FirstOrDefault();
+                    var checkAccount = _context.accounts.Where(x => x.id == item.Receiver && !x.Deleted).FirstOrDefault();
+                    var checkAreaOld = _context.areas.Where(x => x.id == item.areaOld && !x.Deleted).FirstOrDefault();
+                    var checkFloorOld = _context.floors.Where(x => x.id == item.floorOld && !x.Deleted).FirstOrDefault();
+                    var checkWarehourseOld = _context.warehouses.Where(x => x.id == item.warehouseOld && !x.Deleted).FirstOrDefault();
+
+                    var checkAreaNew = _context.areas.Where(x => x.id == item.area && !x.Deleted).FirstOrDefault();
+                    var checkFloorNew = _context.floors.Where(x => x.id == item.floor && !x.Deleted).FirstOrDefault();
+                    var checkWarehourseNew = _context.warehouses.Where(x => x.id == item.warehouse && !x.Deleted).FirstOrDefault();
+
+                    var mapData = _mapper.Map<PlanGetAll>(item);
+                    mapData.floor = checkFloorNew == null ? Status.NOFLOOR : checkFloorNew.name;
+                    mapData.area = checkAreaNew == null ? Status.NOAREA : checkAreaNew.name;
+                    mapData.warehouse = checkWarehourseNew == null ? Status.NOWAREHOURSE : checkWarehourseNew.name;
+                    mapData.floorOld = checkFloorOld == null ? Status.NOFLOOR : checkFloorOld.name;
+                    mapData.areaOld = checkAreaOld == null ? Status.NOAREA : checkAreaOld.name;
+                    mapData.warehouseOld = checkWarehourseOld == null ? Status.NOWAREHOURSE : checkWarehourseOld.name;
+                    mapData.Receiver_name = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.username;
+                    mapData.productName = checkProduct == null ? Status.DATANULL : checkProduct.title;
+                    mapData.productImage = checkImageProduct == null ? Status.DATANULL : checkImageProduct.Link;
+                    mapData.Account_creatPlan = item.CretorEdit;
+
+                    list.Add(mapData);
+
+                }
+            }
+
+            return list;
+        }
+
+        public async Task<PayLoad<object>> FindConfirmationAndConsentAdmin(string? name, int page = 1, int pageSize = 20)
+        {
+            try
+            {
+                var data = _context.plans.Where(x => !x.Deleted && x.isConfirmation == true && x.isConsent == true).ToList();
+
+                if(!string.IsNullOrEmpty(name))
+                    data = data.Where(x => x.title.Contains(name)).ToList();
+
+                var pageList = new PageList<object>(LoadData(data), page - 1, pageSize);
+
+                return await Task.FromResult(PayLoad<object>.Successfully(new
+                {
+                    data = pageList,
+                    page,
+                    pageList.pageSize,
+                    pageList.totalCounts,
+                    pageList.totalPages
+                }));
+            }catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<object>> FindConfirmationAndConsentByAccount(string? name, int page = 1, int pageSize = 20)
+        {
+            try
+            {
+                var user = _userService.name();
+                var checkAccount = _context.accounts.Where(x => x.id == Convert.ToInt32(user) && !x.Deleted).FirstOrDefault();
+                var checkPlan = _context.plans.Where(x => x.Receiver == checkAccount.id && !x.Deleted && x.isConfirmation == true && x.isConsent == true).ToList();
+
+                if (!string.IsNullOrEmpty(name))
+                    checkPlan = checkPlan.Where(x => x.title.Contains(name)).ToList();
+
+                var pageList = new PageList<object>(checkPlan, page - 1, pageSize);
+
+                return await Task.FromResult(PayLoad<object>.Successfully(new
+                {
+                    data = pageList,
+                    page,
+                    pageList.pageSize,
+                    pageList.totalCounts,
+                    pageList.totalPages
+                }));
+            }catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<object>> FindConfirmationAndNoConsentAdmin(string? name, int page = 1, int pageSize = 20)
+        {
+            try
+            {
+                var data = _context.plans.Where(x => x.isConfirmation == true && x.isConsent == false && !x.Deleted).ToList();
+
+                if (!string.IsNullOrEmpty(name))
+                    data = data.Where(x => x.title.Contains(name)).ToList();
+
+                var pageList = new PageList<object>(LoadData(data), page - 1, pageSize);
+
+                return await Task.FromResult(PayLoad<object>.Successfully(new
+                {
+                    data = pageList,
+                    page,
+                    pageList.pageSize,
+                    pageList.totalCounts,
+                    pageList.totalPages
+                }));
+            }catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<object>> FindConfirmationAndNoConsentByAccount(string? name, int page = 1, int pageSize = 20)
+        {
+            try
+            {
+                var user = _userService.name();
+                var checkPlan = _context.plans.Where(x => x.Receiver == Convert.ToInt32(user) 
+                && !x.Deleted && x.isConsent == false 
+                && x.isConfirmation == true).ToList();
+
+                if (!string.IsNullOrEmpty(name))
+                    checkPlan = checkPlan.Where(x => x.title.Contains(name)).ToList();
+
+                var pageList = new PageList<object>(LoadData(checkPlan), page - 1, pageSize);
+
+                return await Task.FromResult(PayLoad<object>.Successfully(new
+                {
+                    data = pageList,
+                    page,
+                    pageList.pageSize,
+                    pageList.totalCounts,
+                    pageList.totalPages
+                }));
+            }catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<object>> FindNoConfirmationAdmin(string? name, int page = 1, int pageSize = 20)
+        {
+            try
+            {
+                var data = _context.plans.Where(x => x.isConfirmation == false && x.isConsent == false && !x.Deleted).ToList();
+
+                if (!string.IsNullOrEmpty(name))
+                    data = data.Where(x => x.title.Contains(name)).ToList();
+
+                var pageList = new PageList<object>(LoadData(data), page - 1, pageSize);
+
+                return await Task.FromResult(PayLoad<object>.Successfully(new
+                {
+                    data = pageList,
+                    page,
+                    pageList.pageSize,
+                    pageList.totalCounts,
+                    pageList.totalPages
+                }));
+            }catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<object>> FindNoConfirmationByAccount(string? name, int page = 1, int pageSize = 20)
+        {
+            try
+            {
+                var user = _userService.name();
+                var checkPlan = _context.plans.Where(x => x.isConsent == false && x.isConfirmation == false 
+                && !x.Deleted && x.Receiver == int.Parse(user)).ToList();
+
+                if (!string.IsNullOrEmpty(name))
+                    checkPlan = checkPlan.Where(x => x.title.Contains(name)).ToList();
+
+                var pageList = new PageList<object>(LoadData(checkPlan), page - 1, pageSize);
+
+                return await Task.FromResult(PayLoad<object>.Successfully(new
+                {
+                    data = pageList,
+                    page,
+                    pageList.pageSize,
+                    pageList.totalCounts,
+                    pageList.totalPages
+                }));
+
+            }catch(Exception ex )
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<PlanGetAll>> FindOne(int id)
+        {
+            try
+            {
+                var checkId = _context.plans.Where(x => x.id == id && !x.Deleted).FirstOrDefault();
+                if (checkId == null)
+                    return await Task.FromResult(PayLoad<PlanGetAll>.CreatedFail(Status.DATANULL));
+
+                return await Task.FromResult(PayLoad<PlanGetAll>.Successfully(loadDataFindOne(checkId)));
+            }catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<PlanGetAll>.CreatedFail(ex.Message));
+            }
+        }
+
+        private PlanGetAll loadDataFindOne(Plan item)
+        {
+            var checkProductLocation = _context.productlocations.Where(x => x.id == item.productlocation_map && !x.Deleted).FirstOrDefault();
+            var checkProduct = _context.products1.Where(x => x.id == checkProductLocation.id_product && !x.Deleted).FirstOrDefault();
+            var checkImageProduct = _context.imageProducts.Where(x => x.productMap == checkProduct.id).FirstOrDefault();
+            var checkAccount = _context.accounts.Where(x => x.id == item.Receiver && !x.Deleted).FirstOrDefault();
+            var checkAreaOld = _context.areas.Where(x => x.id == item.areaOld && !x.Deleted).FirstOrDefault();
+            var checkFloorOld = _context.floors.Where(x => x.id == item.floorOld && !x.Deleted).FirstOrDefault();
+            var checkWarehourseOld = _context.warehouses.Where(x => x.id == item.warehouseOld && !x.Deleted).FirstOrDefault();
+
+            var checkAreaNew = _context.areas.Where(x => x.id == item.area && !x.Deleted).FirstOrDefault();
+            var checkFloorNew = _context.floors.Where(x => x.id == item.floor && !x.Deleted).FirstOrDefault();
+            var checkWarehourseNew = _context.warehouses.Where(x => x.id == item.warehouse && !x.Deleted).FirstOrDefault();
+
+            var mapData = _mapper.Map<PlanGetAll>(item);
+            mapData.floor = checkFloorNew == null ? Status.NOFLOOR : checkFloorNew.name;
+            mapData.area = checkAreaNew == null ? Status.NOAREA : checkAreaNew.name;
+            mapData.warehouse = checkWarehourseNew == null ? Status.NOWAREHOURSE : checkWarehourseNew.name;
+            mapData.floorOld = checkFloorOld == null ? Status.NOFLOOR : checkFloorOld.name;
+            mapData.areaOld = checkAreaOld == null ? Status.NOAREA : checkAreaOld.name;
+            mapData.warehouseOld = checkWarehourseOld == null ? Status.NOWAREHOURSE : checkWarehourseOld.name;
+            mapData.Receiver_name = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.username;
+            mapData.productName = checkProduct == null ? Status.DATANULL : checkProduct.title;
+            mapData.productImage = checkImageProduct == null ? Status.DATANULL : checkImageProduct.Link;
+            mapData.Account_creatPlan = item.CretorEdit;
+
+            return mapData;
+        }
+
+        public async Task<PayLoad<PlanDTO>> Update(int id, PlanDTO planDTO)
+        {
+            try
+            {
+                var user = _userService.name();
+
+                var checkId = _context.plans.Where(x => x.id == id && !x.Deleted).FirstOrDefault();
+                if(checkId == null)
+                    return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATANULL));
+
+                
+
+                var checkAreaNew = _context.areas.Where(x => x.id == planDTO.area && !x.Deleted).FirstOrDefault();
+                var chechFloorNew = _context.floors.Where(x => x.id == planDTO.floor && !x.Deleted).FirstOrDefault();
+                var checkWarehourseNew = _context.warehouses.Where(x => x.id == planDTO.warehouse && !x.Deleted).FirstOrDefault();
+                var checkAccount = _context.accounts.Where(x => x.id == Convert.ToInt32(user) && !x.Deleted).FirstOrDefault();
+                
+                if (checkId.Receiver != planDTO.Receiver)
+                {
+                    var checkAccountUpdate = _context.accounts.Where(x => x.id == planDTO.Receiver && !x.Deleted).FirstOrDefault();
+                    checkId.Receiver = checkAccountUpdate.id;
+                    checkId.Receiver_id = checkAccountUpdate;
+
+                    var checkStatusPlanWarehourse = _context.warehousetransferstatuses.Where(x => x.plan == checkId.id && !x.Deleted).FirstOrDefault();
+                    if(checkStatusPlanWarehourse != null)
+                    {
+                        checkStatusPlanWarehourse.Deleted = true;
+                        _context.warehousetransferstatuses.Update(checkStatusPlanWarehourse);
+                        _context.SaveChanges();
+                    }
+                }
+
+                var mapDataUpdate = MapperData.GanData(checkId, planDTO);
+                mapDataUpdate.area = checkAreaNew.id;
+                mapDataUpdate.areaid = checkAreaNew;
+                mapDataUpdate.floor = chechFloorNew.id;
+                mapDataUpdate.floor_id = chechFloorNew;
+                mapDataUpdate.warehouse = checkWarehourseNew.id;
+                mapDataUpdate.warehouse_id = checkWarehourseNew;
+
+                if (checkId.productlocation_map != planDTO.productlocation_map)
+                {
+                    var checkLocationProductOld = _context.productlocations.Where(x => x.id == planDTO.productlocation_map && !x.Deleted).FirstOrDefault();
+                    if (checkLocationProductOld == null)
+                        return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATANULL));
+
+                    mapDataUpdate.productlocation_map = checkLocationProductOld.id;
+                    mapDataUpdate.productidlocation = checkLocationProductOld;
+                    mapDataUpdate.localtionOld = checkLocationProductOld.location;
+                }
+                
+                _context.plans.Update(mapDataUpdate);
+                _context.SaveChanges();
+
+                return await Task.FromResult(PayLoad<PlanDTO>.Successfully(planDTO));
+
+            }
+            catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<bool>> UpdatePlanConfirmation(ConfirmationPlan data)
+        {
+            try
+            {
+                var checkId = _context.plans.Where(x => x.id == data.id && !x.isConfirmation && !x.isConsent && !x.Deleted).FirstOrDefault();
+                if (checkId == null)
+                    return await Task.FromResult(PayLoad<bool>.CreatedFail(Status.DATANULL));
+                
+                checkId.isConfirmation = true;
+                if (data.isConfirmation == true)
+                {
+                    checkId.isConsent = true;
+                    checkId.status = Status.DANHAN;
+                    var warehourseStarus = new Warehousetransferstatus
+                    {
+                        plan_id = checkId,
+                        plan = checkId.id,
+                        status = Status.DANHAN,
+                        Deleted = false
+                    };
+
+                    _context.warehousetransferstatuses.Add(warehourseStarus);
+                }
+                else
+                {
+                    checkId.isConsent = false;
+                }
+
+                _context.plans.Update(checkId);
+                _context.SaveChanges();
+
+
+                return await Task.FromResult(PayLoad<bool>.Successfully(true));
+            }
+            catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<bool>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<object>> FindAllByAccountPlanNoConfirmByDate()
+        {
+            try
+            {
+                var user = _userService.name();
+                // Lấy múi giờ từ Local
+                TimeZoneInfo timeZone = TimeZoneInfo.Local;
+
+                // Lấy ngày bắt đầu và ngày kết thúc (local time)
+                DateTimeOffset startDate = new DateTimeOffset(DateTime.Today, timeZone.GetUtcOffset(DateTime.Now));
+                DateTimeOffset endDate = startDate.AddDays(1);
+
+                // Lọc những bản ghi trong khoảng thời gian
+                var checkData = _context.plans.Where(x => x.Receiver == int.Parse(user) && x.CreatedAt >= startDate && x.CreatedAt < endDate && !x.Deleted).Count();
+
+                return await Task.FromResult(PayLoad<object>.Successfully(new
+                {
+                    data = checkData
+                }));
+            }catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
+    }
+}

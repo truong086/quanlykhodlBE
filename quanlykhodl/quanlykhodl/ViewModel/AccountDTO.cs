@@ -23,5 +23,9 @@ namespace quanlykhodl.ViewModel
     }
 
 
-
+    public class AccountUpdateRole
+    {
+        public int role_id { get; set; }
+        public int account_id { get; set; }
+    }
 }
