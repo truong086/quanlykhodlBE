@@ -111,6 +111,9 @@ namespace quanlykhodl.Migrations
                     b.Property<string>("image")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("max")
+                        .HasColumnType("int");
+
                     b.Property<string>("name")
                         .HasColumnType("nvarchar(max)");
 
@@ -416,6 +419,42 @@ namespace quanlykhodl.Migrations
                     b.HasIndex("account_idMap");
 
                     b.ToTable("importforms");
+                });
+
+            modelBuilder.Entity("quanlykhodl.Models.LocationException", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"), 1L, 1);
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CretorEdit")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("id_area")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("location")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("max")
+                        .HasColumnType("int");
+
+                    b.HasKey("id");
+
+                    b.HasIndex("id_area");
+
+                    b.ToTable("locationExceptions");
                 });
 
             modelBuilder.Entity("quanlykhodl.Models.Plan", b =>
@@ -1068,6 +1107,17 @@ namespace quanlykhodl.Migrations
                     b.Navigation("account_id");
                 });
 
+            modelBuilder.Entity("quanlykhodl.Models.LocationException", b =>
+                {
+                    b.HasOne("quanlykhodl.Models.Area", "area")
+                        .WithMany("LocationExceptions")
+                        .HasForeignKey("id_area")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("area");
+                });
+
             modelBuilder.Entity("quanlykhodl.Models.Plan", b =>
                 {
                     b.HasOne("quanlykhodl.Models.Account", "Receiver_id")
@@ -1262,6 +1312,8 @@ namespace quanlykhodl.Migrations
 
             modelBuilder.Entity("quanlykhodl.Models.Area", b =>
                 {
+                    b.Navigation("LocationExceptions");
+
                     b.Navigation("Productlocations");
                 });
 

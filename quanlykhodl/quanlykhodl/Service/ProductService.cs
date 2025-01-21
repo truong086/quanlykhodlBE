@@ -4,6 +4,7 @@ using quanlykhodl.Clouds;
 using quanlykhodl.Common;
 using quanlykhodl.Models;
 using quanlykhodl.ViewModel;
+using Twilio.Rest.Trunking.V1;
 
 namespace quanlykhodl.Service
 {
@@ -38,6 +39,9 @@ namespace quanlykhodl.Service
 
                 if (!checkLocationExsis(checkCategory.id, checkArea.id, productDTO.location))
                     return await Task.FromResult(PayLoad<ProductDTO>.CreatedFail(Status.NOCATEGORY));
+
+                if (!checkLocalFull(checkArea, productDTO.location.Value, productDTO.quantityArea.Value))
+                    return await Task.FromResult(PayLoad<ProductDTO>.CreatedFail(Status.DATANULL));
 
                 var mapData = _mapper.Map<product>(productDTO);
                 mapData.account = checkAccount;
@@ -76,6 +80,32 @@ namespace quanlykhodl.Service
             {
                 return await Task.FromResult(PayLoad<ProductDTO>.CreatedFail(ex.Message));
             }
+        }
+
+        private bool checkLocalFull(Area area, int localtion, int quantity)
+        {
+            var checkLocation = _context.locationExceptions.Where(x => x.id_area == area.id && x.location == localtion && !x.Deleted).FirstOrDefault();
+            var checkProductLocation = _context.productlocations.Where(x => x.id_area == area.id && x.location == localtion && !x.Deleted).Sum(x => x.quantity);
+            if (checkLocation != null)
+            {
+                
+                if(checkLocation.max < checkProductLocation + quantity)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                var checkArea = _context.areas.Where(x => x.id == area.id && !x.Deleted).FirstOrDefault();
+                if(checkArea != null)
+                {
+                    if (checkArea.max < checkProductLocation + quantity)
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
         }
 
         private bool  checkLocationExsis(int idCategory, int area, int? location)
@@ -119,6 +149,11 @@ namespace quanlykhodl.Service
                 var checkProduct = _context.products1.Where(x => x.id == productDTO.id_product && !x.Deleted).FirstOrDefault();
                 var checkArea = _context.areas.Where(x => x.id == productDTO.id_area && !x.Deleted).FirstOrDefault();
                 var totalQuantityProduct = _context.productlocations.Where(x => x.id_product == checkProduct.id && !x.Deleted).Sum(x => x.quantity);
+
+                if(checkArea == null)
+                    return await Task.FromResult(PayLoad<ProductAddAreas>.CreatedFail(Status.DATANULL));
+                if (checkArea.quantity < productDTO.location)
+                    return await Task.FromResult(PayLoad<ProductAddAreas>.CreatedFail(Status.ERRORLOCATION));
 
                 if (checkProduct == null && checkArea == null)
                     return await Task.FromResult(PayLoad<ProductAddAreas>.CreatedFail(Status.DATANULL));
@@ -244,14 +279,77 @@ namespace quanlykhodl.Service
             {
                 Id = area.id,
                 quantity = area.quantity.Value,
+                totalLocation = totalQuantityLocation(area),
+                totalLocationEmpty = checkQuantityEmty(area).Value,
+                totalLocatiEmpty = totalQuantityLocation(area) - checkQuantityEmty(area).Value,
                 productLocationAreas = productLocationAreas(area.id),
                 productPlans = productLocationAreasPlan(area.id),
-               locationTotal = checkLocation(area.id)
+                locationTotal = checkLocation(area.id)
             };
 
             return data;
         }
 
+        private int totalLocationEmty(Area area)
+        {
+            var checkTotal = _context.productlocations.Where(x => x.id_area == area.id && !x.Deleted).Sum(x => x.quantity);
+
+            return checkTotal;
+        }
+        private int? checkQuantityEmty(Area area)
+        {
+            int? sum = 0;
+            
+            for(var i = 1; i <= area.quantity; i++)
+            {
+                if(checkAreaLocationExsis(area, i))
+                {
+                    sum += quantityArea(area, i);
+                }
+            }
+            return sum;
+        }
+
+        private bool checkAreaLocationExsis(Area area, int location)
+        {
+            var checkDataProductLocation = _context.productlocations.Where(x => x.id_area == area.id && x.location == location && !x.Deleted).FirstOrDefault();
+            if (checkDataProductLocation != null)
+                return false;
+            return true;
+        }
+
+        private int? quantityArea(Area area, int location)
+        {
+            var checkLocation = _context.locationExceptions.Where(x => x.id_area == area.id && x.location == location && !x.Deleted).FirstOrDefault();
+            if (checkLocation != null)
+            {
+                return checkLocation.max;
+            }
+            else
+            {
+                var checkLocationArea = _context.areas.Where(x => x.id == area.id && !x.Deleted).FirstOrDefault();
+                if(checkLocationArea != null)
+                    return checkLocationArea.max;
+            }
+            return 0;
+        }
+
+        private int totalQuantityLocation(Area data)
+        {
+            var checkLocationExceps = _context.locationExceptions.Where(x => x.id_area == data.id && !x.Deleted).Count();
+            var total = data.quantity - checkLocationExceps;
+
+            var totalNoExCeps = (total * data.max) + totalLocal(data.id);
+
+            return totalNoExCeps.Value;
+        }
+
+        private int totalLocal(int id)
+        {
+            var checkArea = _context.locationExceptions.Where(x => x.id_area == id && !x.Deleted).Sum(x => x.max);
+
+            return checkArea.Value;
+        }
         private Dictionary<int, int> checkLocation(int id)
         {
             var dictionary = new Dictionary<int, int>();
@@ -420,7 +518,9 @@ namespace quanlykhodl.Service
                         area_name = checkArea == null ? Status.NOAREA : checkArea.name,
                         quantity = item.quantity,
                         Id_productlocation = item.id,
-                        location = item.location
+                        location = item.location,
+                        MaxlocationExceps = QuantityAreaMax(checkArea.id, item.location),
+                        MaxlocationArea = checkArea.max
 
                     };
 
@@ -429,6 +529,22 @@ namespace quanlykhodl.Service
             }
 
             return list;
+        }
+
+        private int QuantityAreaMax(int id, int location)
+        {
+            var checkProductExceps = _context.locationExceptions.Where(x => x.id_area == id && !x.Deleted && x.location == location).FirstOrDefault();
+            if(checkProductExceps != null)
+            {
+                return checkProductExceps.max.Value;
+            }
+            else
+            {
+                var checkArea = _context.areas.Where(x => x.id == id && !x.Deleted).FirstOrDefault();
+                if (checkArea != null)
+                    return checkArea.max.Value;
+            }
+            return 0;
         }
         private List<string> ListImage(int id)
         {
@@ -553,6 +669,9 @@ namespace quanlykhodl.Service
                 var checkWarehourse = _context.warehouses.Where(x => x.id == checkFloor.warehouse && !x.Deleted).FirstOrDefault();
                 var checkAccount = _context.accounts.Where(x => x.id == checkProduct.account_map && !x.Deleted).FirstOrDefault();
 
+                if (checkArea == null || checkFloor == null || checkWarehourse == null)
+                    return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+
                 var mapData = _mapper.Map<ProductOneLocation>(checkProduct);
                 mapData.Id = checkId.id;
                 mapData.Id_product = checkProduct.id;
@@ -565,7 +684,7 @@ namespace quanlykhodl.Service
                 mapData.floor_image = checkFloor == null ? Status.NOFLOOR : checkFloor.image;
                 mapData.area_image = checkArea == null ? Status.NOAREA : checkArea.image;
                 mapData.area_name = checkArea == null ? Status.NOAREA : checkArea.image;
-
+                mapData.TotalLocationEmty = checkQuantityEmty(checkArea);
                 return await Task.FromResult(PayLoad<object>.Successfully(mapData));
                 
             }

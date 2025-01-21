@@ -4,6 +4,9 @@
     {
         public int Id { get; set; }
         public int quantity {  get; set; }
+        public int totalLocation {  get; set; }
+        public int totalLocationEmpty {  get; set; }
+        public int totalLocatiEmpty {  get; set; }
         public List<productLocationArea>? productLocationAreas { get; set; }
         public List<productLocationArea>? productPlans { get; set; }
         public Dictionary<int, int>? locationTotal {  get; set; }

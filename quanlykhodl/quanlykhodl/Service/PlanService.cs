@@ -55,10 +55,14 @@ namespace quanlykhodl.Service
                 var checkProductExsis = _context.productlocations.Where(x => x.id_product == checkLocationProductOld.id_product
                                         && x.id_area == checkAreaNew.id && x.location == planDTO.localtionNew && !x.Deleted).FirstOrDefault();
 
+                
                 if (checkLocationProductOld.location == planDTO.localtionNew &&
                     checkArea.id == checkAreaNew.id && checkFloor.id == chechFloorNew.id
                     && checkWarehourse.id == checkWarehourseNew.id)
                     return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATATONTAI));
+
+                if (!checkLocationQuantity(checkAreaNew, planDTO.localtionNew.Value, checkLocationProductOld.quantity))
+                    return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.FULLQUANTITY));
 
                 if(checkProductExsis != null)
                 {
@@ -103,6 +107,27 @@ namespace quanlykhodl.Service
             {
                 return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(ex.Message));
             }
+        }
+
+        private bool checkLocationQuantity(Area area, int location, int quantity)
+        {
+            var checkQuantityLocation = _context.locationExceptions.Where(x => x.id_area == area.id && x.location == location && !x.Deleted).FirstOrDefault();
+            var checkTotal = _context.productlocations.Where(x => x.id_area == area.id && x.location == location && !x.Deleted).Sum(x => x.quantity);
+            if (checkQuantityLocation != null)
+            {
+                if (checkQuantityLocation.max < checkTotal + quantity)
+                    return false;
+            }
+            else
+            {
+                var checkArea = _context.areas.Where(x => x.id == area.id && !x.Deleted).FirstOrDefault();
+                if(checkArea != null)
+                {
+                    if(checkArea.max < checkTotal + quantity) return false;
+                }
+            }
+
+            return true;
         }
 
         private bool checkAddToday()

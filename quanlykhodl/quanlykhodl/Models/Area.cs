@@ -6,6 +6,7 @@ namespace quanlykhodl.Models
 	{
 		public string? name { get; set; }
 		public int? quantity { get; set; }
+		public int? max { get; set; }
 		public string? Status { get; set; }
 		public string? code { get; set; }
         public string? image { get; set; }
@@ -16,5 +17,6 @@ namespace quanlykhodl.Models
 		public Account? account_id { get; set; }
 		public Floor? floor_id { get; set; }
 		public virtual ICollection<productlocation>? Productlocations { get; set; }
+		public virtual ICollection<LocationException>? LocationExceptions { get; set; }
 	}
 }

@@ -48,15 +48,20 @@ namespace quanlykhodl.Service
                 _context.areas.Add(mapData);
                 _context.SaveChanges();
 
-                if(areaDTO.image != null)
+                var dataNew = _context.areas.Where(x => !x.Deleted).OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+                if (areaDTO.image != null)
                 {
-                    var dataNew = _context.areas.Where(x => !x.Deleted).OrderByDescending(x => x.CreatedAt).FirstOrDefault();
                     uploadCloud.CloudInaryIFromAccount(areaDTO.image, TokenViewModel.AREA + dataNew.id.ToString(), _cloud);
                     dataNew.image = uploadCloud.Link;
                     dataNew.publicid = uploadCloud.publicId;
 
                     _context.areas.Update(dataNew);
                     _context.SaveChanges();
+                }
+
+                if(areaDTO.locationExceptionsDTOs != null)
+                {
+                    updateLocationExcep(areaDTO.locationExceptionsDTOs, dataNew);
                 }
 
                 return await Task.FromResult(PayLoad<AreaDTO>.Successfully(areaDTO));
@@ -68,6 +73,31 @@ namespace quanlykhodl.Service
             }
         }
 
+        private void updateLocationExcep(List<locationExceptionsDTO> data, Area area)
+        {
+            var list = new List<int>();
+            foreach (var item in data)
+            {
+                if (!list.Contains(item.location))
+                {
+                    if (item.location < area.quantity)
+                    {
+                        var localExceps = new LocationException
+                        {
+                            area = area,
+                            id_area = area.id,
+                            location = item.location,
+                            max = item.quantity
+                        };
+
+                        _context.locationExceptions.Add(localExceps);
+                        _context.SaveChanges();
+
+                        list.Add(item.location);
+                    }
+                }
+            }
+        }
         private bool checkFullQuantity(Floor floor, int id)
         {
             var checkAreaQuantity = _context.areas.Where(x => x.floor == id && !x.Deleted).Count();
@@ -215,6 +245,18 @@ namespace quanlykhodl.Service
                     checkId.publicid = uploadCloud.publicId;
                 }
 
+                if(areaDTO.locationExceptionsDTOs != null)
+                {
+                    var checkLocationExcep = _context.locationExceptions.Where(x => x.id_area == checkId.id && !x.Deleted).ToList();
+                    if(checkLocationExcep.Count > 0 && checkLocationExcep != null)
+                    {
+                        _context.locationExceptions.RemoveRange(checkLocationExcep);
+                        _context.SaveChanges();
+                    }
+
+                    updateLocationExcep(areaDTO.locationExceptionsDTOs, checkId);
+
+                }
                 checkId.quantity = areaDTO.quantity;
                 checkId.Status = areaDTO.Status;
                 checkId.floor = checkFloor.id;

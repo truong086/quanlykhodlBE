@@ -29,6 +29,8 @@
         public int? quantity { get; set; }
         public int? Id_productlocation { get; set; }
         public int? location { get; set; }
+        public int? MaxlocationExceps { get; set; }
+        public int? MaxlocationArea { get; set; }
     }
 
     public class ProductOneLocation
@@ -52,6 +54,7 @@
         public string? area_name { get; set; }
         public string? area_image { get; set; }
         public int? quantityArea { get; set; }
+        public int? TotalLocationEmty { get; set; }
     }
 
     public class checkLocation

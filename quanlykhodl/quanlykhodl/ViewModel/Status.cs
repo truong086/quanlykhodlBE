@@ -45,5 +45,6 @@
         public static string NOFLOOR = "Tầng đã bị xóa hoặc chưa cài đặt";
         public static string NOAREA = "Khu đã bị xóa hoặc chưa cài đặt ";
         public static string TODAYFULL = "Vượt quá số lượt chuyển của loại ngày hôm nay ";
+        public static string ERRORLOCATION = "Không có vị trí này";
     }
 }

@@ -16,6 +16,7 @@ namespace quanlykhodl.Models
 		public DbSet<Deliverynote> deliverynotes { get; set; }
 		public DbSet<Floor> floors { get; set; }
 		public DbSet<ImageProduct> imageProducts { get; set; }
+		public DbSet<LocationException> locationExceptions { get; set; }
 		public DbSet<imagestatusitem> imagestatusitems { get; set; }
 		public DbSet<Importform> importforms { get; set; }
 		public DbSet<Plan> plans { get; set; }
@@ -130,7 +131,13 @@ namespace quanlykhodl.Models
 				.HasForeignKey(p => p.id_area)
 				 .OnDelete(DeleteBehavior.Restrict);// Map cho trường "categoryId" trong product
 
-			modelBuilder.Entity<Deliverynote>()
+            modelBuilder.Entity<Area>()
+                .HasMany(c => c.LocationExceptions)
+                .WithOne(p => p.area) // Trường "categoryid" trong product liên kết đến id của category
+                .HasForeignKey(p => p.id_area)
+                 .OnDelete(DeleteBehavior.Restrict);// Map cho trường "categoryId" trong product
+
+            modelBuilder.Entity<Deliverynote>()
 				.HasMany(c => c.productDeliverynotes)
 				.WithOne(p => p.deliverynote_id1) // Trường "categoryid" trong product liên kết đến id của category
 				.HasForeignKey(p => p.deliverynote)

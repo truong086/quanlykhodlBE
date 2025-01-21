@@ -46,7 +46,8 @@ namespace quanlykhodl.Service
                         if (!checkCategoryProduct(data.productNew))
                             return await Task.FromResult(PayLoad<ImportformDTO>.CreatedFail(Status.NOCATEGORY));
 
-                        AddProductLocation(data.productNew, checkAccount, dataNew);
+                        if (!AddProductLocation(data.productNew, checkAccount, dataNew))
+                            return await Task.FromResult(PayLoad<ImportformDTO>.CreatedFail(Status.FULLQUANTITY));
                     }
                 }
                 else
@@ -90,7 +91,7 @@ namespace quanlykhodl.Service
             }
         }
 
-        private void AddProductLocation(List<productNew> data, Account account, Importform importform)
+        private bool AddProductLocation(List<productNew> data, Account account, Importform importform)
         {
             foreach(var item in data)
             {
@@ -98,6 +99,8 @@ namespace quanlykhodl.Service
                 var checkSupplier = _context.suppliers.Where(x => x.id == item.suppliers && !x.Deleted).FirstOrDefault();
                 var checkCategory = _context.categories.Where(x => x.id == item.category_map && !x.Deleted).FirstOrDefault();
 
+                if (!CheckQuantity.checkLocationQuantity(checkArea, item.location.Value, item.quantityLocation, _context))
+                    return false;
                 var mapData = _mapper.Map<product>(item);
                 mapData.code = RanDomCode.geneAction(8);
                 mapData.account_map = account.id;
@@ -153,6 +156,8 @@ namespace quanlykhodl.Service
                 _context.SaveChanges();
                 
             }
+
+            return true;
         }
 
         private void AddImageProduct(List<IFormFile> data, product dataPr)
