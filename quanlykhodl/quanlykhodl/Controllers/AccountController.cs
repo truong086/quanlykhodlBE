@@ -56,6 +56,13 @@ namespace quanlykhodl.Controllers
         {
             return await _accountService.FindAll(name, page, pageSize);
         }
+        
+        [HttpGet]
+        [Route(nameof(FindAllAccountOnline))]
+        public async Task<PayLoad<object>> FindAllAccountOnline()
+        {
+            return await _accountService.FindAllAccountOnline();
+        }
         [HttpGet]
         [Route(nameof(Showrofile))]
         public async Task<PayLoad<object>> Showrofile()

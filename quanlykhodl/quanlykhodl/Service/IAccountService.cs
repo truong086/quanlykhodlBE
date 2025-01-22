@@ -14,6 +14,7 @@ namespace quanlykhodl.Service
         Task<PayLoad<object>> Showrofile();
         Task<PayLoad<AccountUpdateRole>> UpdateRole(AccountUpdateRole data);
         Task<PayLoad<object>> FindOne(int id);
+        Task<PayLoad<object>> FindAllAccountOnline();
         Task<PayLoad<string>> DeleteToken(Token token, string? status);
         Task<PayLoad<string>> DeleteAccountNoAction();
         Task<PayLoad<string>> ReloadOTP(reLoadOtp data);

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Org.BouncyCastle.Asn1.Pkcs;
+using quanlykhodl.ChatHub;
 using quanlykhodl.Clouds;
 using quanlykhodl.Common;
 using quanlykhodl.EmailConfigs;
@@ -25,9 +26,10 @@ namespace quanlykhodl.Service
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IRoleService _roleService;
         private readonly IUserService _userService;
+        private readonly onlineUser _onlineuser;
         public AccountService(DBContext context, IMapper mapper, IOptionsMonitor<Jwt> jwt, IOptions<Cloud> cloud,
             SendEmais emails, IHttpContextAccessor httpContextAccessor, IRoleService roleService,
-            IUserService userService)
+            IUserService userService, onlineUser onlineuser)
         {
             _context = context;
             _mapper = mapper;
@@ -37,6 +39,7 @@ namespace quanlykhodl.Service
             _httpContextAccessor = httpContextAccessor;
             _roleService = roleService;
             _userService = userService;
+            _onlineuser = onlineuser;
 
         }
         public async Task<PayLoad<AccountDTO>> Add(AccountDTO accountDTO)
@@ -227,6 +230,7 @@ namespace quanlykhodl.Service
 
                 };
 
+                _onlineuser.AddUser(checkAccount.id, checkAccount.username, checkAccount.image);
                 return await Task.FromResult(PayLoad<ReturnLogin>.Successfully(new ReturnLogin
                 {
                     id = checkAccount.id,
@@ -625,6 +629,17 @@ namespace quanlykhodl.Service
             catch(Exception ex)
             {
                 return await Task.FromResult(PayLoad<AccountUpdateRole>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<object>> FindAllAccountOnline()
+        {
+            try
+            {
+                return await Task.FromResult(PayLoad<object>.Successfully(_onlineuser.GetOnlineUsers()));
+            }catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
             }
         }
     }

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using quanlykhodl.ChatHub;
 using quanlykhodl.Clouds;
 using quanlykhodl.EmailConfigs;
 using quanlykhodl.FunctionAuto;
@@ -101,6 +102,7 @@ builder.Services.AddSwaggerGen(c =>
     //c.IncludeXmlComments(path);
 });
 
+builder.Services.AddSignalR();
 // Đọc cấu hình Cloudinary từ appsettings.json
 var cloudinaryAccount = new CloudinaryDotNet.Account(
     builder.Configuration["Cloud:Cloudinary_Name"],
@@ -185,5 +187,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapHub<NotificationHub>("/notificationHub");
 
 app.Run();
