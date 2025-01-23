@@ -4,6 +4,7 @@ using quanlykhodl.Clouds;
 using quanlykhodl.Common;
 using quanlykhodl.Models;
 using quanlykhodl.ViewModel;
+using System.Net.NetworkInformation;
 
 namespace quanlykhodl.Service
 {
@@ -148,36 +149,52 @@ namespace quanlykhodl.Service
 
         private StatusGetAll FindOneData(Warehousetransferstatus item)
         {
+            var dataItem = new StatusGetAll();
             var checkPlan = _context.plans.Where(x => x.id == item.plan && !x.Deleted).FirstOrDefault();
-            var checkLocationProduct = _context.productlocations.Where(x => x.id == checkPlan.productlocation_map && !x.Deleted).FirstOrDefault();
-            var checkProduct = _context.products1.Where(x => x.id == checkLocationProduct.id_product && !x.Deleted).FirstOrDefault();
-            var checkAreaOld = _context.areas.Where(x => x.id == checkPlan.areaOld && !x.Deleted).FirstOrDefault();
-            var checkFloorOld = _context.floors.Where(x => x.id == checkAreaOld.floor && !x.Deleted).FirstOrDefault();
-            var checkWarehourseOld = _context.warehouses.Where(x => x.id == checkFloorOld.warehouse && !x.Deleted).FirstOrDefault();
-            var checkAreaNew = _context.areas.Where(x => x.id == checkPlan.area && !x.Deleted).FirstOrDefault();
-            var checkFloorNew = _context.floors.Where(x => x.id == checkAreaNew.floor && !x.Deleted).FirstOrDefault();
-            var checkWarehourseNew = _context.warehouses.Where(x => x.id == checkFloorNew.warehouse && !x.Deleted).FirstOrDefault();
-            var checkAccount = _context.accounts.Where(x => x.id == checkPlan.Receiver && !x.Deleted).FirstOrDefault();
-            var checkImageProduct = _context.imageProducts.Where(x => x.productMap == checkProduct.id).FirstOrDefault();
-            var dataItem = new StatusGetAll
+            if(checkPlan != null )
             {
-                id_status = item.id,
-                id_plan = checkPlan.id,
-                plan_tile = checkPlan.title,
-                id_product = checkProduct.id,
-                product_iamge = checkImageProduct == null ? "Không có ảnh" : checkImageProduct.Link,
-                product_name = checkProduct.title,
-                areaNew = checkAreaNew.name,
-                areaOld = checkAreaOld.name,
-                FloorNew = checkFloorNew.name,
-                FloorOld = checkFloorOld.name,
-                WarehourseNew = checkWarehourseNew.name,
-                WarehourseOld = checkWarehourseOld.name,
-                StatusPlan = item.status,
-                Account_image = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.image,
-                Account_name = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.username,
-                statusItemPlans = loadDataStatusItemImage(item.id)
-            };
+                if (!checkPlan.isWarehourse)
+                {
+                    var checkLocationProduct = _context.productlocations.Where(x => x.id == checkPlan.productlocation_map && !x.Deleted).FirstOrDefault();
+                    if (checkLocationProduct != null)
+                    {
+                        var checkProduct = _context.products1.Where(x => x.id == checkLocationProduct.id_product && !x.Deleted).FirstOrDefault();
+                        if (checkProduct != null)
+                        {
+                            var checkImageProduct = _context.imageProducts.Where(x => x.productMap == checkProduct.id).FirstOrDefault();
+                            if (checkImageProduct != null)
+                            {
+                                dataItem.id_product = checkProduct.id;
+                                dataItem.product_iamge = checkImageProduct == null ? "Không có ảnh" : checkImageProduct.Link;
+                                dataItem.product_name = checkProduct.title;
+                            }
+                        }
+                    }
+
+                }
+
+                var checkAreaOld = _context.areas.Where(x => x.id == checkPlan.areaOld && !x.Deleted).FirstOrDefault();
+                var checkFloorOld = _context.floors.Where(x => x.id == checkAreaOld.floor && !x.Deleted).FirstOrDefault();
+                var checkWarehourseOld = _context.warehouses.Where(x => x.id == checkFloorOld.warehouse && !x.Deleted).FirstOrDefault();
+                var checkAreaNew = _context.areas.Where(x => x.id == checkPlan.area && !x.Deleted).FirstOrDefault();
+                var checkFloorNew = _context.floors.Where(x => x.id == checkAreaNew.floor && !x.Deleted).FirstOrDefault();
+                var checkWarehourseNew = _context.warehouses.Where(x => x.id == checkFloorNew.warehouse && !x.Deleted).FirstOrDefault();
+                var checkAccount = _context.accounts.Where(x => x.id == checkPlan.Receiver && !x.Deleted).FirstOrDefault();
+
+                dataItem.id_status = item.id;
+                dataItem.id_plan = checkPlan.id;
+                dataItem.plan_tile = checkPlan.title;
+                dataItem.areaNew = checkAreaNew.name;
+                dataItem.areaOld = checkAreaOld.name;
+                dataItem.FloorNew = checkFloorNew.name;
+                dataItem.FloorOld = checkFloorOld.name;
+                dataItem.WarehourseNew = checkWarehourseNew.name;
+                dataItem.WarehourseOld = checkWarehourseOld.name;
+                dataItem.StatusPlan = item.status;
+                dataItem.Account_image = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.image;
+                dataItem.Account_name = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.username;
+                dataItem.statusItemPlans = loadDataStatusItemImage(item.id);
+            }
 
             return dataItem;
         }
@@ -196,34 +213,47 @@ namespace quanlykhodl.Service
 
                 if (statusItemDTO.title.ToLower() == Status.DONE.ToLower())
                 {
-                    
                     var checkAreaNew = _context.areas.Where(x => x.id == checkPlan.area && !x.Deleted).FirstOrDefault();
-                    var checkLocationProduct = _context.productlocations.Where(x => x.id == checkPlan.productlocation_map && !x.Deleted).FirstOrDefault();
-                    var checkProductExxsis = _context.productlocations.Where(x => x.id_product == checkLocationProduct.id_product 
-                    && x.id_area == checkAreaNew.id && x.location == checkPlan.localtionNew && !x.Deleted && x.id != checkLocationProduct.id).FirstOrDefault();
-
-                    if (checkProductExxsis != null)
+                    var checkAreaOld = _context.areas.Where(x => x.id == checkPlan.areaOld && !x.Deleted).FirstOrDefault();
+                    if (!checkPlan.isWarehourse)
                     {
-                        var checkLocationNew = _context.productlocations.Where(x => x.id == checkProductExxsis.id && !x.Deleted).FirstOrDefault();
-                        checkLocationNew.quantity += checkLocationProduct.quantity;
-                        checkLocationProduct.Deleted = true;
+                        var checkLocationProduct = _context.productlocations.Where(x => x.id == checkPlan.productlocation_map && !x.Deleted).FirstOrDefault();
+                        var checkProductExxsis = _context.productlocations.Where(x => x.id_product == checkLocationProduct.id_product
+                        && x.id_area == checkAreaNew.id && x.location == checkPlan.localtionNew && !x.Deleted && x.id != checkLocationProduct.id).FirstOrDefault();
 
-                        _context.productlocations.Update(checkLocationNew);
-                        _context.SaveChanges();
+                        if (checkProductExxsis != null)
+                        {
+                            var checkLocationNew = _context.productlocations.Where(x => x.id == checkProductExxsis.id && !x.Deleted).FirstOrDefault();
+                            checkLocationNew.quantity += checkLocationProduct.quantity;
+                            checkLocationProduct.Deleted = true;
+
+                            _context.productlocations.Update(checkLocationNew);
+                            _context.SaveChanges();
+                        }
+                        else
+                        {
+                            checkLocationProduct.location = checkPlan.localtionNew.Value;
+                            checkLocationProduct.areas = checkAreaNew;
+                            checkLocationProduct.id_area = checkAreaNew.id;
+                        }
+
+                        _context.productlocations.Update(checkLocationProduct);
                     }
                     else
                     {
-                        checkLocationProduct.location = checkPlan.localtionNew.Value;
-                        checkLocationProduct.areas = checkAreaNew;
-                        checkLocationProduct.id_area = checkAreaNew.id;
+                        var checkProductLocationOld = _context.productlocations.Where(x => x.id_area == checkAreaOld.id && !x.Deleted).ToList();
+                        var checkProductLocationNew = _context.productlocations.Where(x => x.id_area == checkAreaNew.id && !x.Deleted).ToList();
+                        if (checkProductLocationOld != null && checkAreaNew != null)
+                            updateAreaNew(checkAreaNew, checkProductLocationOld);
+
+                        if(checkProductLocationNew != null && checkAreaOld != null)
+                            updateAreaNew(checkAreaOld, checkProductLocationNew);
                     }
-                    
+
                     checkPlan.status = Status.DONE.ToLower();
                     checkId.status = Status.DONE.ToLower();
                     checkId.Deleted = true;
                     checkPlan.Deleted = true;
-
-                    _context.productlocations.Update(checkLocationProduct);
                 }
                 else
                 {
@@ -239,6 +269,28 @@ namespace quanlykhodl.Service
             }catch(Exception ex)
             {
                 return await Task.FromResult(PayLoad<StatusWarehours>.CreatedFail(ex.Message));
+            }
+        }
+
+        private void updateAreaNew(Area areaNew, List<productlocation> data)
+        {
+            foreach(var item in data)
+            {
+                if(areaNew.quantity < item.location)
+                {
+                    item.location = areaNew.quantity.Value;
+                    item.areas = areaNew;
+                    item.id_area = areaNew.id;
+
+                }
+                else
+                {
+                    item.areas = areaNew;
+                    item.id_area = areaNew.id;
+                }
+
+                _context.productlocations.Update(item);
+                _context.SaveChanges();
             }
         }
 

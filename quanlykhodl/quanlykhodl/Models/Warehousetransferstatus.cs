@@ -6,6 +6,7 @@ namespace quanlykhodl.Models
 	{
 		public int? plan { get; set; }
 		public Plan? plan_id;
+		//public Planwarehouse? plan_id;
 		public string? status { get; set; }
 		public ICollection<StatusItem>? statusItems { get; set; }
 	}

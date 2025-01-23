@@ -27,7 +27,7 @@ namespace quanlykhodl.ChatHub
             _onlineUserService.AddUser(Context.ConnectionId, 1, name ?? "Guest", avatarUrl ?? "/images/default-avatar.png");
 
             // Gửi danh sách người dùng mới cho tất cả client
-            await Clients.All.SendAsync("UpdateOnlineUsers", _onlineUserService.GetOnlineUsers());
+            //await Clients.All.SendAsync("UpdateOnlineUsers", _onlineUserService.GetOnlineUsers());
             await Clients.Caller.SendAsync("getProfileInfo", "Test");
             await base.OnConnectedAsync();
         }

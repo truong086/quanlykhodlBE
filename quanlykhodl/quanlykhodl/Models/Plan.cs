@@ -10,6 +10,7 @@ namespace quanlykhodl.Models
 		public int? localtionNew { get; set; }
         public bool isConfirmation { get; set; }
         public bool isConsent { get; set; }
+        public bool isWarehourse { get; set; }
         public int? productlocation_map { get; set; }
 		public int? Receiver { get; set; }
         public int? localtionOld { get; set; }

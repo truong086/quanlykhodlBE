@@ -26,6 +26,7 @@
         public string? floor_image { get; set; }
         public string? area_name { get; set; }
         public string? area_image { get; set; }
+        public string? code { get; set; }
         public int? quantity { get; set; }
         public int? Id_productlocation { get; set; }
         public int? location { get; set; }
@@ -53,6 +54,7 @@
         public string? floor_image { get; set; }
         public string? area_name { get; set; }
         public string? area_image { get; set; }
+        public string? code { get; set; }
         public int? quantityArea { get; set; }
         public int? TotalLocationEmty { get; set; }
     }

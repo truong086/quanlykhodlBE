@@ -29,6 +29,7 @@ namespace quanlykhodl.ViewModel
         public string? description { get; set; }
         public double price { get; set; }
         public string? DonViTinh { get; set; }
+        public List<string>? image { get; set; }
         public int quantity { get; set; }
         public int star { get; set; }
         public string? code { get; set; }
@@ -38,6 +39,7 @@ namespace quanlykhodl.ViewModel
         public string? account_image { get; set; }
         public string? suppliers { get; set; }
         public string? suppliersImage { get; set; }
+        public listArea? dataItem { get; set; }
         public List<listArea>? data { get; set; }
         
     }
@@ -47,6 +49,7 @@ namespace quanlykhodl.ViewModel
         public string? area { get; set; }
         public string? floor { get; set; }
         public string? warehourse { get; set; }
+        public string? code { get; set; }
         public int? location { get; set; }
     }
 }

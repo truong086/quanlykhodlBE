@@ -27,6 +27,13 @@ namespace quanlykhodl.Controllers
         }
 
         [HttpGet]
+        [Route(nameof(FindCodeLocation))]
+        public async Task<PayLoad<object>> FindCodeLocation(string code)
+        {
+            return await _productService.FindCodeLocation(code);
+        }
+
+        [HttpGet]
         [Route(nameof(FindOneByCategory))]
         public async Task<PayLoad<object>> FindOneByCategory(int id, int page = 1, int pageSize = 20)
         {

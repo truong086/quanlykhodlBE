@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
 using Org.BouncyCastle.Asn1.Pkcs;
+using quanlykhodl.ChatHub;
 using quanlykhodl.Clouds;
 using quanlykhodl.Common;
 using quanlykhodl.Models;
@@ -16,12 +18,14 @@ namespace quanlykhodl.Service
         private readonly IMapper _mapper;
         private readonly Cloud _cloud;
         private readonly IUserService _userService;
-        public PlanService(DBContext context, IOptions<Cloud> cloud, IMapper mapper, IUserService userService)
+        private readonly IHubContext<NotificationHub> _hubContext;
+        public PlanService(DBContext context, IOptions<Cloud> cloud, IMapper mapper, IUserService userService, IHubContext<NotificationHub> hubContext)
         {
             _context = context;
             _cloud = cloud.Value;
             _mapper = mapper;
             _userService = userService;
+            _hubContext = hubContext;
         }
         public async Task<PayLoad<PlanDTO>> Add(PlanDTO planDTO)
         {
@@ -31,11 +35,8 @@ namespace quanlykhodl.Service
                     return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.TODAYFULL));
 
                 var user = _userService.name();
-                var checkLocationProductOld = _context.productlocations.Where(x => x.id == planDTO.productlocation_map && !x.Deleted).FirstOrDefault();
-                if (checkLocationProductOld == null)
-                    return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATANULL));
-
-                var checkArea = _context.areas.Where(x => x.id == checkLocationProductOld.id_area && !x.Deleted).FirstOrDefault();
+                
+                var checkArea = _context.areas.Where(x => x.id == planDTO.areaOld && !x.Deleted).FirstOrDefault();
                 if (checkArea == null)
                     return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATANULL));
 
@@ -51,33 +52,7 @@ namespace quanlykhodl.Service
                 var chechFloorNew = _context.floors.Where(x => x.id == planDTO.floor && !x.Deleted).FirstOrDefault();
                 var checkWarehourseNew = _context.warehouses.Where(x => x.id == planDTO.warehouse && !x.Deleted).FirstOrDefault();
                 var checkAccount = _context.accounts.Where(x => x.id == Convert.ToInt32(user) && !x.Deleted).FirstOrDefault();
-                var checkReceiver = _context.accounts.Where(x => x.id == planDTO.Receiver && !x.Deleted).FirstOrDefault();
-                var checkProductExsis = _context.productlocations.Where(x => x.id_product == checkLocationProductOld.id_product
-                                        && x.id_area == checkAreaNew.id && x.location == planDTO.localtionNew && !x.Deleted).FirstOrDefault();
-
                 
-                if (checkLocationProductOld.location == planDTO.localtionNew &&
-                    checkArea.id == checkAreaNew.id && checkFloor.id == chechFloorNew.id
-                    && checkWarehourse.id == checkWarehourseNew.id)
-                    return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATATONTAI));
-
-                if (!checkLocationQuantity(checkAreaNew, planDTO.localtionNew.Value, checkLocationProductOld.quantity))
-                    return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.FULLQUANTITY));
-
-                if(checkProductExsis != null)
-                {
-                    checkProductExsis.quantity += checkLocationProductOld.quantity;
-                    checkLocationProductOld.Deleted = true;
-                    //var list = new List<productlocation>()
-                    //{
-                    //    checkProductExsis,
-                    //    checkLocationProductOld
-                    //};
-                    _context.productlocations.UpdateRange(checkLocationProductOld, checkProductExsis);
-                    _context.SaveChanges();
-                    
-                    return await Task.FromResult(PayLoad<PlanDTO>.Successfully(planDTO));
-                }
                 var mapData = _mapper.Map<Plan>(planDTO);
                 mapData.areaOld = checkArea.id;
                 mapData.floorOld = checkFloor.id;
@@ -86,21 +61,68 @@ namespace quanlykhodl.Service
                 mapData.warehouse_id = checkWarehourseNew;
                 mapData.floor = chechFloorNew.id;
                 mapData.floor_id = chechFloorNew;
-                mapData.area = checkArea.id;
-                mapData.areaid = checkArea;
+                mapData.area = checkAreaNew.id;
+                mapData.areaid = checkAreaNew;
                 mapData.isConfirmation = false;
                 mapData.isConsent = false;
-                mapData.Receiver = checkReceiver.id;
-                mapData.Receiver_id = checkReceiver;
-                mapData.productidlocation = checkLocationProductOld;
-                mapData.productlocation_map = checkLocationProductOld.id;
-                mapData.localtionOld = checkLocationProductOld.location;
                 mapData.status = Status.XACNHAN;
                 mapData.CretorEdit = checkAccount.username + " đã tạo Plan vào lúc " + DateTimeOffset.UtcNow;
+
+                if (!planDTO.isWarehourse)
+                {
+                    var checkLocationProductOld = _context.productlocations.Where(x => x.id == planDTO.productlocation_map && !x.Deleted).FirstOrDefault();
+                    if (checkLocationProductOld == null)
+                        return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATANULL));
+
+                    var checkReceiver = _context.accounts.Where(x => x.id == planDTO.Receiver && !x.Deleted).FirstOrDefault();
+                    var checkProductExsis = _context.productlocations.Where(x => x.id_product == checkLocationProductOld.id_product
+                                            && x.id_area == checkAreaNew.id && x.location == planDTO.localtionNew && !x.Deleted).FirstOrDefault();
+
+                    if (checkLocationProductOld.location == planDTO.localtionNew &&
+                    checkArea.id == checkAreaNew.id && checkFloor.id == chechFloorNew.id
+                    && checkWarehourse.id == checkWarehourseNew.id)
+                        return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATATONTAI));
+
+                    if (!checkLocationQuantity(checkAreaNew, planDTO.localtionNew.Value, checkLocationProductOld.quantity))
+                        return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.FULLQUANTITY));
+
+                    if (checkProductExsis != null)
+                    {
+                        checkProductExsis.quantity += checkLocationProductOld.quantity;
+                        checkLocationProductOld.Deleted = true;
+                        //var list = new List<productlocation>()
+                        //{
+                        //    checkProductExsis,
+                        //    checkLocationProductOld
+                        //};
+                        _context.productlocations.UpdateRange(checkLocationProductOld, checkProductExsis);
+                        _context.SaveChanges();
+
+                        return await Task.FromResult(PayLoad<PlanDTO>.Successfully(planDTO));
+                    }
+                    
+                    mapData.Receiver = checkReceiver.id;
+                    mapData.Receiver_id = checkReceiver;
+                    mapData.productidlocation = checkLocationProductOld;
+                    mapData.productlocation_map = checkLocationProductOld.id;
+                    mapData.localtionOld = checkLocationProductOld.location;
+                    mapData.isWarehourse = planDTO.isWarehourse;
+                }
+                else
+                {
+                    mapData.Receiver = null;
+                    mapData.Receiver_id = null;
+                    mapData.localtionNew = null;
+                    mapData.localtionOld = null;
+                    mapData.productidlocation = null;
+                    mapData.productlocation_map = null;
+                    mapData.isWarehourse = planDTO.isWarehourse;
+                }
 
                 _context.plans.Add(mapData);
                 _context.SaveChanges();
 
+                await _hubContext.Clients.All.SendAsync("thongbao", mapData.title);
                 return await Task.FromResult(PayLoad<PlanDTO>.Successfully(planDTO));
             }
             catch(Exception ex)
@@ -214,9 +236,28 @@ namespace quanlykhodl.Service
             {
                 foreach(var item in data)
                 {
-                    var checkProductLocation = _context.productlocations.Where(x => x.id == item.productlocation_map && !x.Deleted).FirstOrDefault();
-                    var checkProduct = _context.products1.Where(x => x.id == checkProductLocation.id_product && !x.Deleted).FirstOrDefault();
-                    var checkImageProduct = _context.imageProducts.Where(x => x.productMap == checkProduct.id).FirstOrDefault();
+                    var mapData = _mapper.Map<PlanGetAll>(item);
+
+                    if (!item.isWarehourse)
+                    {
+                        var checkProductLocation = _context.productlocations.Where(x => x.id == item.productlocation_map && !x.Deleted).FirstOrDefault();
+                        if(checkProductLocation != null)
+                        {
+                            var checkProduct = _context.products1.Where(x => x.id == checkProductLocation.id_product && !x.Deleted).FirstOrDefault();
+                            if(checkProduct != null)
+                            {
+                                var checkImageProduct = _context.imageProducts.Where(x => x.productMap == checkProduct.id).FirstOrDefault();
+                                if(checkImageProduct != null)
+                                {
+                                    mapData.productName = checkProduct == null ? Status.DATANULL : checkProduct.title;
+                                    mapData.productImage = checkImageProduct == null ? Status.DATANULL : checkImageProduct.Link;
+                                }
+                                
+                            }
+                            
+                        }
+                        
+                    }
                     var checkAccount = _context.accounts.Where(x => x.id == item.Receiver && !x.Deleted).FirstOrDefault();
                     var checkAreaOld = _context.areas.Where(x => x.id == item.areaOld && !x.Deleted).FirstOrDefault();
                     var checkFloorOld = _context.floors.Where(x => x.id == item.floorOld && !x.Deleted).FirstOrDefault();
@@ -226,7 +267,7 @@ namespace quanlykhodl.Service
                     var checkFloorNew = _context.floors.Where(x => x.id == item.floor && !x.Deleted).FirstOrDefault();
                     var checkWarehourseNew = _context.warehouses.Where(x => x.id == item.warehouse && !x.Deleted).FirstOrDefault();
 
-                    var mapData = _mapper.Map<PlanGetAll>(item);
+                    
                     mapData.floor = checkFloorNew == null ? Status.NOFLOOR : checkFloorNew.name;
                     mapData.area = checkAreaNew == null ? Status.NOAREA : checkAreaNew.name;
                     mapData.warehouse = checkWarehourseNew == null ? Status.NOWAREHOURSE : checkWarehourseNew.name;
@@ -234,8 +275,6 @@ namespace quanlykhodl.Service
                     mapData.areaOld = checkAreaOld == null ? Status.NOAREA : checkAreaOld.name;
                     mapData.warehouseOld = checkWarehourseOld == null ? Status.NOWAREHOURSE : checkWarehourseOld.name;
                     mapData.Receiver_name = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.username;
-                    mapData.productName = checkProduct == null ? Status.DATANULL : checkProduct.title;
-                    mapData.productImage = checkImageProduct == null ? Status.DATANULL : checkImageProduct.Link;
                     mapData.Account_creatPlan = item.CretorEdit;
 
                     list.Add(mapData);
@@ -458,28 +497,28 @@ namespace quanlykhodl.Service
                 if(checkId == null)
                     return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATANULL));
 
-                
-
                 var checkAreaNew = _context.areas.Where(x => x.id == planDTO.area && !x.Deleted).FirstOrDefault();
                 var chechFloorNew = _context.floors.Where(x => x.id == planDTO.floor && !x.Deleted).FirstOrDefault();
                 var checkWarehourseNew = _context.warehouses.Where(x => x.id == planDTO.warehouse && !x.Deleted).FirstOrDefault();
                 var checkAccount = _context.accounts.Where(x => x.id == Convert.ToInt32(user) && !x.Deleted).FirstOrDefault();
-                
-                if (checkId.Receiver != planDTO.Receiver)
-                {
-                    var checkAccountUpdate = _context.accounts.Where(x => x.id == planDTO.Receiver && !x.Deleted).FirstOrDefault();
-                    checkId.Receiver = checkAccountUpdate.id;
-                    checkId.Receiver_id = checkAccountUpdate;
 
-                    var checkStatusPlanWarehourse = _context.warehousetransferstatuses.Where(x => x.plan == checkId.id && !x.Deleted).FirstOrDefault();
-                    if(checkStatusPlanWarehourse != null)
+                if(planDTO.Receiver != 0 && planDTO.Receiver != null)
+                {
+                    if (checkId.Receiver != planDTO.Receiver)
                     {
-                        checkStatusPlanWarehourse.Deleted = true;
-                        _context.warehousetransferstatuses.Update(checkStatusPlanWarehourse);
-                        _context.SaveChanges();
+                        var checkAccountUpdate = _context.accounts.Where(x => x.id == planDTO.Receiver && !x.Deleted).FirstOrDefault();
+                        checkId.Receiver = checkAccountUpdate.id;
+                        checkId.Receiver_id = checkAccountUpdate;
+
+                        var checkStatusPlanWarehourse = _context.warehousetransferstatuses.Where(x => x.plan == checkId.id && !x.Deleted).FirstOrDefault();
+                        if (checkStatusPlanWarehourse != null)
+                        {
+                            checkStatusPlanWarehourse.Deleted = true;
+                            _context.warehousetransferstatuses.Update(checkStatusPlanWarehourse);
+                            _context.SaveChanges();
+                        }
                     }
                 }
-
                 var mapDataUpdate = MapperData.GanData(checkId, planDTO);
                 mapDataUpdate.area = checkAreaNew.id;
                 mapDataUpdate.areaid = checkAreaNew;
@@ -488,15 +527,40 @@ namespace quanlykhodl.Service
                 mapDataUpdate.warehouse = checkWarehourseNew.id;
                 mapDataUpdate.warehouse_id = checkWarehourseNew;
 
-                if (checkId.productlocation_map != planDTO.productlocation_map)
+                if (!planDTO.isWarehourse)
                 {
-                    var checkLocationProductOld = _context.productlocations.Where(x => x.id == planDTO.productlocation_map && !x.Deleted).FirstOrDefault();
-                    if (checkLocationProductOld == null)
+                    if (checkId.productlocation_map != planDTO.productlocation_map)
+                    {
+                        var checkLocationProductOld = _context.productlocations.Where(x => x.id == planDTO.productlocation_map && !x.Deleted).FirstOrDefault();
+                        if (checkLocationProductOld == null)
+                            return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATANULL));
+
+                        mapDataUpdate.productlocation_map = checkLocationProductOld.id;
+                        mapDataUpdate.productidlocation = checkLocationProductOld;
+                        mapDataUpdate.localtionOld = checkLocationProductOld.location;
+                    }
+                }
+                else
+                {
+                    var checkAreaOld = _context.areas.Where(x => x.id == planDTO.areaOld && !x.Deleted).FirstOrDefault();
+                    if (checkAreaOld == null)
                         return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATANULL));
 
-                    mapDataUpdate.productlocation_map = checkLocationProductOld.id;
-                    mapDataUpdate.productidlocation = checkLocationProductOld;
-                    mapDataUpdate.localtionOld = checkLocationProductOld.location;
+                    var checkFloorOld = _context.floors.Where(x => x.id == checkAreaOld.floor && !x.Deleted).FirstOrDefault();
+                    if (checkFloorOld == null)
+                        return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATANULL));
+
+                    var checkWarehourseOla = _context.warehouses.Where(x => x.id == checkFloorOld.warehouse && !x.Deleted).FirstOrDefault();
+                    if (checkWarehourseOla == null)
+                        return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATANULL));
+                  
+                    mapDataUpdate.areaOld = checkAreaOld.id;
+                    mapDataUpdate.floorOld = checkFloorOld.id;
+                    mapDataUpdate.warehouseOld = checkWarehourseOla.id;
+                    mapDataUpdate.localtionNew = null;
+                    mapDataUpdate.localtionOld = null;
+                    mapDataUpdate.productidlocation = null;
+                    mapDataUpdate.productlocation_map = null;
                 }
                 
                 _context.plans.Update(mapDataUpdate);
@@ -515,34 +579,42 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var checkId = _context.plans.Where(x => x.id == data.id && !x.isConfirmation && !x.isConsent && !x.Deleted).FirstOrDefault();
-                if (checkId == null)
-                    return await Task.FromResult(PayLoad<bool>.CreatedFail(Status.DATANULL));
-                
-                checkId.isConfirmation = true;
-                if (data.isConfirmation == true)
+                if(data.id != null && data.id != null)
                 {
-                    checkId.isConsent = true;
-                    checkId.status = Status.DANHAN;
-                    var warehourseStarus = new Warehousetransferstatus
+                    var user = _userService.name();
+                    var checkAccount = _context.accounts.Where(x => x.id == int.Parse(user) && !x.Deleted).FirstOrDefault();
+                    foreach(var item in data.id)
                     {
-                        plan_id = checkId,
-                        plan = checkId.id,
-                        status = Status.DANHAN,
-                        Deleted = false
-                    };
+                        var checkId = _context.plans.Where(x => x.id == item && !x.isConfirmation && !x.isConsent && !x.Deleted).FirstOrDefault();
+                        if (checkId == null)
+                            return await Task.FromResult(PayLoad<bool>.CreatedFail(Status.DATANULL));
 
-                    _context.warehousetransferstatuses.Add(warehourseStarus);
+                        checkId.isConfirmation = true;
+                        if (data.isConfirmation == true)
+                        {
+                            checkId.isConsent = true;
+                            checkId.status = Status.DANHAN;
+                            checkId.Receiver = checkAccount == null ? null : checkAccount.id;
+                            checkId.Receiver_id = checkAccount == null ? null : checkAccount;
+                            var warehourseStarus = new Warehousetransferstatus
+                            {
+                                plan_id = checkId,
+                                plan = checkId.id,
+                                status = Status.DANHAN,
+                                Deleted = false
+                            };
+
+                            _context.warehousetransferstatuses.Add(warehourseStarus);
+                        }
+                        else
+                        {
+                            checkId.isConsent = false;
+                        }
+
+                        _context.plans.Update(checkId);
+                        _context.SaveChanges();
+                    }
                 }
-                else
-                {
-                    checkId.isConsent = false;
-                }
-
-                _context.plans.Update(checkId);
-                _context.SaveChanges();
-
-
                 return await Task.FromResult(PayLoad<bool>.Successfully(true));
             }
             catch(Exception ex)
@@ -573,6 +645,25 @@ namespace quanlykhodl.Service
             }catch(Exception ex)
             {
                 return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<PlanAllWarehoursDTO>> AddAllWarehours(PlanAllWarehoursDTO planDTO)
+        {
+            try
+            {
+                var checkWarehoure = _context.warehouses.Where(x => x.id == planDTO.warehouse && !x.Deleted).FirstOrDefault();
+                var checkFloor = _context.floors.Where(x => x.id == planDTO.floor && !x.Deleted).FirstOrDefault();
+                var checkArea = _context.areas.Where(x => x.id == planDTO.area && !x.Deleted).FirstOrDefault();
+                if (checkWarehoure == null || checkFloor == null || checkArea == null)
+                    return await Task.FromResult(PayLoad<PlanAllWarehoursDTO>.CreatedFail(Status.DATANULL));
+
+                var mapData = _mapper.Map<Plan>(planDTO);
+
+                return await Task.FromResult(PayLoad<PlanAllWarehoursDTO>.Successfully(planDTO));
+            }catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<PlanAllWarehoursDTO>.CreatedFail(ex.Message));
             }
         }
     }

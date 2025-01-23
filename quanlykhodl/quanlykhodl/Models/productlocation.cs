@@ -10,6 +10,7 @@ namespace quanlykhodl.Models
         public product? products { get; set; }
         public Area? areas { get; set; }
         public int quantity { get; set; }
+        public string? codelocation { get; set; }
         public virtual ICollection<Plan>? plans { get; set; }
     }
 }

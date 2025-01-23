@@ -5,6 +5,7 @@ namespace quanlykhodl.ChatHub
     public class onlineUser
     {
         private readonly ConcurrentDictionary<string, UserInfo> _onlineUsers = new ConcurrentDictionary<string, UserInfo>();
+        private readonly Dictionary<string, UserInfo> _onlineUsersDiraction = new Dictionary<string, UserInfo>();
 
         public class UserInfo
         {
@@ -26,12 +27,13 @@ namespace quanlykhodl.ChatHub
 
         public void AddUser(int id, string name, string avatarUrl)
         {
-            _onlineUsers[id.ToString()] = new UserInfo
+
+            _onlineUsersDiraction.Add(id.ToString(), new UserInfo
             {
                 id = id,
                 Name = name,
                 AvatarUrl = avatarUrl
-            };
+            });
         }
 
         // Xóa người dùng
@@ -43,7 +45,7 @@ namespace quanlykhodl.ChatHub
         // Lấy danh sách người dùng
         public List<UserInfo> GetOnlineUsers()
         {
-            return _onlineUsers.Values.ToList();
+            return _onlineUsersDiraction.Values.ToList();
         }
     }
 }

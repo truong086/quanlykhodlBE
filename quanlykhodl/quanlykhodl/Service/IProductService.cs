@@ -19,6 +19,7 @@ namespace quanlykhodl.Service
         Task<PayLoad<object>> FindOneProductInWarehourse(int id);
         Task<PayLoad<object>> FindAllProductInWarehourse(string? name, int page = 1, int pageSize = 20);
         Task<PayLoad<object>> FindCode(string code);
+        Task<PayLoad<object>> FindCodeLocation(string code);
 
 
     }

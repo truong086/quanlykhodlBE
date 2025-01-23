@@ -18,5 +18,7 @@ namespace quanlykhodl.Models
 		public Floor? floor_id { get; set; }
 		public virtual ICollection<productlocation>? Productlocations { get; set; }
 		public virtual ICollection<LocationException>? LocationExceptions { get; set; }
+		public virtual ICollection<Codelocation>? Codelocations { get; set; }
+		public virtual ICollection<productImportform>? ProductImportforms { get; set; }
 	}
 }

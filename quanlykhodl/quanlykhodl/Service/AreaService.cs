@@ -64,6 +64,7 @@ namespace quanlykhodl.Service
                     updateLocationExcep(areaDTO.locationExceptionsDTOs, dataNew);
                 }
 
+                addCodeLocation(dataNew, dataNew.quantity.Value);
                 return await Task.FromResult(PayLoad<AreaDTO>.Successfully(areaDTO));
 
 
@@ -73,6 +74,22 @@ namespace quanlykhodl.Service
             }
         }
 
+        private void addCodeLocation(Area area, int location)
+        {
+            for(var i = 1; i <= location; i++)
+            {
+                var dataItem = new Codelocation
+                {
+                    area = area,
+                    code = RanDomCode.geneAction(8) + area.id.ToString(),
+                    id_area = area.id,
+                    location = i
+                };
+
+                _context.codelocations.Add(dataItem);
+                _context.SaveChanges();
+            }
+        }
         private void updateLocationExcep(List<locationExceptionsDTO> data, Area area)
         {
             var list = new List<int>();
@@ -257,6 +274,13 @@ namespace quanlykhodl.Service
                     updateLocationExcep(areaDTO.locationExceptionsDTOs, checkId);
 
                 }
+
+                if(areaDTO.quantity != null && areaDTO.quantity != 0)
+                {
+                    var checkTotal = _context.codelocations.Where(x => x.id_area == checkId.id && !x.Deleted).Count();
+                    updateLocationCode(checkId, checkTotal, areaDTO.quantity.Value);
+                }
+
                 checkId.quantity = areaDTO.quantity;
                 checkId.Status = areaDTO.Status;
                 checkId.floor = checkFloor.id;
@@ -270,6 +294,24 @@ namespace quanlykhodl.Service
             }catch(Exception ex)
             {
                 return await Task.FromResult(PayLoad<AreaDTO>.CreatedFail(ex.Message));
+            }
+        }
+
+        private void updateLocationCode(Area area, int totalLocation, int quantity)
+        {
+            for(var i = 1; i <= quantity; i++)
+            {
+                totalLocation++;
+                var dataItem = new Codelocation
+                {
+                    area = area,
+                    id_area = area.id,
+                    location = totalLocation,
+                    code = RanDomCode.geneAction(8) + area.id.ToString()
+                };
+
+                _context.codelocations.Add(dataItem); 
+                _context.SaveChanges();
             }
         }
 

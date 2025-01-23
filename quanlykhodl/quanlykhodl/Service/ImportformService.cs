@@ -5,6 +5,8 @@ using quanlykhodl.Clouds;
 using quanlykhodl.Common;
 using quanlykhodl.Models;
 using quanlykhodl.ViewModel;
+using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
+using System.Drawing;
 
 namespace quanlykhodl.Service
 {
@@ -70,7 +72,9 @@ namespace quanlykhodl.Service
             foreach(var item in data)
             {
                 var checkProduct = _context.products1.Where(x => x.id == item.id_product && !x.Deleted).FirstOrDefault();
-                if(checkProduct != null)
+                var checkArea = _context.areas.Where(x => x.id == item.areaId && !x.Deleted).FirstOrDefault();
+                var checkLocationArea = _context.productlocations.Where(x => x.location == item.location && x.id_area == checkArea.id && !x.Deleted).FirstOrDefault();
+                if(checkProduct != null && checkLocationArea != null)
                 {
                     checkProduct.quantity += item.quantity;
                     _context.products1.Update(checkProduct);
@@ -82,7 +86,13 @@ namespace quanlykhodl.Service
                         product = checkProduct.id,
                         products = checkProduct,
                         quantity = item.quantity,
+                        area = checkArea,
+                        area_id = checkArea.id,
+                        location = item.location
                     };
+
+                    checkLocationArea.quantity += item.quantity;
+                    _context.productlocations.Update(checkLocationArea);
 
                     _context.productImportforms.Add(importProductData);
 
@@ -148,7 +158,10 @@ namespace quanlykhodl.Service
                     products = dataNew,
                     quantity = item.quantity,
                     supplier = checkSupplier.id,
-                    supplier_id = checkSupplier
+                    supplier_id = checkSupplier,
+                    area = checkArea,
+                    area_id = checkArea.id,
+                    location = item.location
                 };
 
                 _context.productImportforms.Add(productImportData);
@@ -308,13 +321,13 @@ namespace quanlykhodl.Service
                     var checkProduct = _context.products1.Where(x => x.id == item.product && !x.Deleted).FirstOrDefault();
                     if(checkProduct != null)
                     {
-                        
                         var checkCategory = _context.categories.Where(x => x.id == checkProduct.category_map && !x.Deleted).FirstOrDefault();
                         var checkSupplier = _context.suppliers.Where(x => x.id == checkProduct.suppliers && !x.Deleted).FirstOrDefault();
                         var checkAccount = _context.accounts.Where(x => x.id == checkProduct.account_map && !x.Deleted).FirstOrDefault();
 
                         var dataItem = _mapper.Map<productImportformAndDeliveerrynote>(checkProduct);
                         dataItem.id = checkProduct.id;
+                        dataItem.image = loadImageProduct(checkProduct.id);
                         dataItem.account_name = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.username;
                         dataItem.account_image = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.image;
                         dataItem.category_map = checkCategory == null ? Status.ACCOUNTNOTFOULD : checkCategory.name;
@@ -322,6 +335,7 @@ namespace quanlykhodl.Service
                         dataItem.suppliers = checkSupplier == null ? Status.DATANULL : checkSupplier.name;
                         dataItem.suppliersImage = checkSupplier == null ? Status.ACCOUNTNOTFOULD : checkSupplier.image;
                         dataItem.data = loadDataAreaProduct(checkProduct.id);
+                        dataItem.dataItem = loadDataAreaProductAreaLocation(item);
 
                         list.Add(dataItem);
                     }
@@ -330,6 +344,51 @@ namespace quanlykhodl.Service
             return list;
         }
 
+        private List<string> loadImageProduct(int id)
+        {
+            var list = new List<string>();
+
+            var checkImageProduct = _context.imageProducts.Where(x => x.productMap == id && !x.Deleted).ToList();
+            if(checkImageProduct.Count > 0)
+            {
+                foreach(var item in checkImageProduct)
+                {
+                    list.Add(item.Link);
+                }
+            }
+
+            return list;
+        }
+
+        private listArea loadDataAreaProductAreaLocation(productImportform data)
+        {
+            var dataItem = new listArea();
+            var checkproductLocationData = _context.productlocations.Where(x => x.id_product == data.product && x.id_area == data.area_id && x.location == data.location && !x.Deleted).FirstOrDefault();
+            if (checkproductLocationData != null)
+            {
+                var checkArea = _context.areas.Include(f => f.floor_id).Where(x => x.id == checkproductLocationData.id_area && !x.Deleted).FirstOrDefault();
+                if (checkArea != null)
+                {
+                    var checkCodeArea = _context.codelocations.Where(x => x.id_area == checkArea.id && x.location == checkproductLocationData.location && !x.Deleted).FirstOrDefault();
+                    if (checkArea.floor_id != null)
+                    {
+                        var checkWarehourse = _context.warehouses.Where(x => x.id == checkArea.floor_id.warehouse && !x.Deleted).FirstOrDefault();
+                        if (checkWarehourse != null)
+                        {
+
+                            dataItem.location = checkproductLocationData.location;
+                            dataItem.area = checkArea.name;
+                            dataItem.floor = checkArea.floor_id.name;
+                            dataItem.warehourse = checkWarehourse.name;
+                            dataItem.code = checkCodeArea == null ? Status.CODEFAILD : checkCodeArea.code;
+                        }
+                    }
+
+                }
+            }
+
+            return dataItem;
+        }
         private List<listArea> loadDataAreaProduct(int id)
         {
             var list = new List<listArea>();

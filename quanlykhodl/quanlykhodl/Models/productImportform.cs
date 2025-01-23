@@ -8,6 +8,9 @@ namespace quanlykhodl.Models
 		public int? product { get; set; }
 		public int quantity { get; set; }
         public int? supplier { get; set; }
+		public int? location { get; set; }
+		public int? area_id { get; set; }
+		public Area? area { get; set; }
         public Supplier? supplier_id { get; set; }
         public Importform? importform_id1 { get; set; }
 		public product? products { get; set; }

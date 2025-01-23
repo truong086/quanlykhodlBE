@@ -88,25 +88,25 @@ namespace quanlykhodl.Service
 
         private void addDeliverynoteItem(List<productDeliverynoteDTO> data, Deliverynote deliverynote)
         {
-            foreach(var item in data)
+            foreach (var item in data)
             {
-                var checkProduct = _context.products1.Where(x => x.id == item.id_product && !x.Deleted).FirstOrDefault();
-                if(checkProduct != null)
+                var checkProduct = _context.prepareToExports.Where(x => x.id == item.id_product && !x.Deleted).FirstOrDefault();
+                if (checkProduct != null)
                 {
-                    checkProduct.quantity -= item.quantity;
-                    _context.products1.Update(checkProduct);
-
-                    var productDelyvi = new productDeliverynote
+                    var addDataItem = new DeliverynotePrepareToExport
                     {
-                        quantity = item.quantity,
-                        product = checkProduct,
-                        product_map = checkProduct.id,
-                        deliverynote_id1 = deliverynote,
-                        deliverynote = deliverynote.id
+                       id_delivenote = deliverynote.id,
+                       deliverynotes = deliverynote,
+                       id_PrepareToExport = checkProduct.id,
+                       PreparetoExports = checkProduct,
+                       
                     };
 
-                    _context.productDeliverynotes.Add(productDelyvi);
+                    checkProduct.Deleted = true;
+                    _context.prepareToExports.Update(checkProduct);
+                    _context.SaveChanges();
 
+                    _context.deliverynotePrepareToEs.Add(addDataItem);
                     _context.SaveChanges();
                 }
             }
@@ -195,6 +195,8 @@ namespace quanlykhodl.Service
             var checkAccount = _context.accounts.Where(x => x.id == id.accountmap && !x.Deleted).FirstOrDefault();
             var checkRetaiCustomer = _context.Retailcustomers.Where(x => x.id == id.retailcustomers && !x.Deleted).FirstOrDefault();
 
+            var checkTotalQuantityProduct = _context.deliverynotePrepareToEs.Where(x => x.id_delivenote == id.id && !x.Deleted).ToList();
+
             var mapData = _mapper.Map<DeliverynoteGetAll>(id);
             mapData.nameAccountCreat = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.username;
             mapData.ImageAccountCreat = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.image;
@@ -202,40 +204,61 @@ namespace quanlykhodl.Service
             mapData.EmailAccountBy = checkRetaiCustomer == null ? Status.ACCOUNTNOTFOULD : checkRetaiCustomer.email;
             mapData.AddressAccountBy = checkRetaiCustomer == null ? Status.ACCOUNTNOTFOULD : checkRetaiCustomer.address;
             mapData.products = loadProductImportData(id.id);
-            mapData.TotalProduct = _context.productDeliverynotes.Where(x => x.deliverynote == id.id && !x.Deleted).Count();
-            mapData.TotalQuantity = _context.productDeliverynotes.Where(x => x.deliverynote == id.id && !x.Deleted).Sum(x => x.quantity);
+            mapData.TotalProduct = _context.deliverynotePrepareToEs.Where(x => x.id_delivenote == id.id && !x.Deleted).Count();
+            mapData.TotalQuantity = sumTotal(checkTotalQuantityProduct);
 
             return mapData;
+        }
+
+        private long sumTotal(List<DeliverynotePrepareToExport> data)
+        {
+            long sum = 0;
+            var list = new List<DeliverynotePrepareToExport>();
+
+            foreach(var item in data)
+            {
+                var checkQuantity = _context.prepareToExports.Where(x => x.id == item.id && !x.Deleted).FirstOrDefault();
+                if (checkQuantity != null)
+                    sum += checkQuantity.quantity;
+            }
+
+            return sum;
         }
 
         private List<productImportformAndDeliveerrynote> loadProductImportData(int id)
         {
             var list = new List<productImportformAndDeliveerrynote>();
-            var checkProductImport = _context.productDeliverynotes.Where(x => x.deliverynote == id && !x.Deleted).ToList();
+            //var checkProductImport = _context.productDeliverynotes.Where(x => x.deliverynote == id && !x.Deleted).ToList();
+            var checkProductImport = _context.deliverynotePrepareToEs.Where(x => x.id_delivenote == id && !x.Deleted).ToList();
             if (checkProductImport != null)
             {
                 foreach (var item in checkProductImport)
                 {
-                    var checkProduct = _context.products1.Where(x => x.id == item.product_map && !x.Deleted).FirstOrDefault();
-                    if (checkProduct != null)
+                    var checkDelivenoteProduct = _context.prepareToExports.Where(x => x.id == item.id_PrepareToExport).FirstOrDefault();
+                    if(checkDelivenoteProduct != null)
                     {
+                        var checkProduct = _context.products1.Where(x => x.id == checkDelivenoteProduct.id_product && !x.Deleted).FirstOrDefault();
+                        if (checkProduct != null)
+                        {
 
-                        var checkCategory = _context.categories.Where(x => x.id == checkProduct.category_map && !x.Deleted).FirstOrDefault();
-                        var checkSupplier = _context.suppliers.Where(x => x.id == checkProduct.suppliers && !x.Deleted).FirstOrDefault();
-                        var checkAccount = _context.accounts.Where(x => x.id == checkProduct.account_map && !x.Deleted).FirstOrDefault();
+                            var checkCategory = _context.categories.Where(x => x.id == checkProduct.category_map && !x.Deleted).FirstOrDefault();
+                            var checkSupplier = _context.suppliers.Where(x => x.id == checkProduct.suppliers && !x.Deleted).FirstOrDefault();
+                            var checkAccount = _context.accounts.Where(x => x.id == checkProduct.account_map && !x.Deleted).FirstOrDefault();
 
-                        var dataItem = _mapper.Map<productImportformAndDeliveerrynote>(checkProduct);
-                        dataItem.id = checkProduct.id;
-                        dataItem.account_name = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.username;
-                        dataItem.account_image = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.image;
-                        dataItem.category_map = checkCategory == null ? Status.ACCOUNTNOTFOULD : checkCategory.name;
-                        dataItem.category_image = checkCategory == null ? Status.NOCATEGORY : checkCategory.image;
-                        dataItem.suppliers = checkSupplier == null ? Status.DATANULL : checkSupplier.name;
-                        dataItem.suppliersImage = checkSupplier == null ? Status.ACCOUNTNOTFOULD : checkSupplier.image;
-                        dataItem.data = loadDataAreaProduct(checkProduct.id);
+                            var dataItem = _mapper.Map<productImportformAndDeliveerrynote>(checkProduct);
+                            dataItem.id = checkProduct.id;
+                            dataItem.account_name = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.username;
+                            dataItem.account_image = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.image;
+                            dataItem.category_map = checkCategory == null ? Status.ACCOUNTNOTFOULD : checkCategory.name;
+                            dataItem.category_image = checkCategory == null ? Status.NOCATEGORY : checkCategory.image;
+                            dataItem.suppliers = checkSupplier == null ? Status.DATANULL : checkSupplier.name;
+                            dataItem.suppliersImage = checkSupplier == null ? Status.ACCOUNTNOTFOULD : checkSupplier.image;
+                            dataItem.data = loadDataAreaProduct(checkProduct.id);
 
-                        list.Add(dataItem);
+                            list.Add(dataItem);
+                        }
                     }
+                    
                 }
             }
             return list;

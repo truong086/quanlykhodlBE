@@ -156,6 +156,8 @@ builder.Services.AddScoped<IPlanService, PlanService>();
 builder.Services.AddScoped<IStatusService, StatusService>();
 builder.Services.AddScoped<IImportformService, ImportformService>();
 builder.Services.AddScoped<IDeliverynoteService, DeliverynoteService>();
+builder.Services.AddScoped<IPrepareToExportService, PrepareToExportService>();
+builder.Services.AddScoped<onlineUser>();
 builder.Services.AddScoped<SendEmais>();
 builder.Services.AddSingleton<VerificationTaskWorker>();
 builder.Services.AddHostedService(p => p.GetRequiredService<VerificationTaskWorker>());

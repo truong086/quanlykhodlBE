@@ -46,5 +46,6 @@
         public static string NOAREA = "Khu đã bị xóa hoặc chưa cài đặt ";
         public static string TODAYFULL = "Vượt quá số lượt chuyển của loại ngày hôm nay ";
         public static string ERRORLOCATION = "Không có vị trí này";
+        public static string CODEFAILD = "Chưa có Code";
     }
 }

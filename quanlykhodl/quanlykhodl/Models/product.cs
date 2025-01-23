@@ -23,9 +23,10 @@ namespace quanlykhodl.Models
 		public Account? account { get; set; }
 
 		public virtual ICollection<ImageProduct>? imageProducts { get; set; }
-		public virtual ICollection<productDeliverynote>? productDeliverynotes { get; set; }
+		//public virtual ICollection<productDeliverynote>? productDeliverynotes { get; set; }
 		public virtual ICollection<productImportform>? productImportforms { get; set; }
 		public virtual ICollection<productlocation>? Productlocations { get; set; }
+		public virtual ICollection<PrepareToExport>? PrepareToExports { get; set; }
 
 	}
 }

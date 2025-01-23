@@ -21,6 +21,8 @@ namespace quanlykhodl.ViewModel
     {
         public int id_product { get; set; }
         public int quantity { get; set; }
+        public int? areaId { get; set; }
+        public int? location { get; set; }
     }
     public class productNew
     {

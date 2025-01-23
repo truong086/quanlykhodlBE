@@ -6,6 +6,7 @@ namespace quanlykhodl.Service
     public interface IPlanService
     {
         Task<PayLoad<PlanDTO>> Add(PlanDTO planDTO);
+        Task<PayLoad<PlanAllWarehoursDTO>> AddAllWarehours(PlanAllWarehoursDTO planDTO);
         Task<PayLoad<PlanDTO>> Update(int id, PlanDTO planDTO);
         Task<PayLoad<object>> FindAll(string? name, int page = 1, int pageSize = 20);
         Task<PayLoad<object>> FindConfirmationAndConsentByAccount(string? name, int page = 1, int pageSize = 20);

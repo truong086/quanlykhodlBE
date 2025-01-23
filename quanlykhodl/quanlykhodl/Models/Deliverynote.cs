@@ -18,6 +18,7 @@ namespace quanlykhodl.Models
 		public string? code { get; set; }
         public int? Tax { get; set; }
         public bool? isPercentage { get; set; }
-        public ICollection<productDeliverynote>? productDeliverynotes { get; set; }
+        //public ICollection<productDeliverynote>? productDeliverynotes { get; set; }
+        public ICollection<DeliverynotePrepareToExport>? deliverynotePrepareToExports { get; set; }
 	}
 }

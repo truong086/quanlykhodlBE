@@ -11,6 +11,7 @@ namespace quanlykhodl.Mapper
             CreateMap<PlanDTO, Plan>();
             CreateMap<Plan, PlanDTO>();
             CreateMap<Plan, PlanGetAll>();
+            CreateMap<Plan, PlanAllWarehoursDTO>();
         }
     }
 }

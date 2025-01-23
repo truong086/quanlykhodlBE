@@ -13,6 +13,7 @@ using quanlykhodl.ViewModel;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.SignalR;
 
 namespace quanlykhodl.Service
 {
@@ -26,10 +27,11 @@ namespace quanlykhodl.Service
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IRoleService _roleService;
         private readonly IUserService _userService;
-        private readonly onlineUser _onlineuser;
+        private readonly onlineUser _onlineuser = new onlineUser();
+        private readonly IHubContext<NotificationHub> _hubContext;
         public AccountService(DBContext context, IMapper mapper, IOptionsMonitor<Jwt> jwt, IOptions<Cloud> cloud,
             SendEmais emails, IHttpContextAccessor httpContextAccessor, IRoleService roleService,
-            IUserService userService, onlineUser onlineuser)
+            IUserService userService, IHubContext<NotificationHub> hubContext)
         {
             _context = context;
             _mapper = mapper;
@@ -39,8 +41,7 @@ namespace quanlykhodl.Service
             _httpContextAccessor = httpContextAccessor;
             _roleService = roleService;
             _userService = userService;
-            _onlineuser = onlineuser;
-
+            _hubContext = hubContext;
         }
         public async Task<PayLoad<AccountDTO>> Add(AccountDTO accountDTO)
         {
@@ -231,6 +232,8 @@ namespace quanlykhodl.Service
                 };
 
                 _onlineuser.AddUser(checkAccount.id, checkAccount.username, checkAccount.image);
+                //await _hubContext.Clients.All.SendAsync("UpdateOnlineUsersList", _onlineuser.GetOnlineUsers());
+                await _hubContext.Clients.All.SendAsync("UpdateOnlineUsers", checkAccount.username);
                 return await Task.FromResult(PayLoad<ReturnLogin>.Successfully(new ReturnLogin
                 {
                     id = checkAccount.id,
