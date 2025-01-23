@@ -47,8 +47,8 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var checkData = _context.accounts.Where(x => x.email == accountDTO.email || 
-                x.phone == accountDTO.phone || x.username == accountDTO.username && !x.Deleted).FirstOrDefault();
+                var checkData = _context.accounts.Where(x => (x.email == accountDTO.email ||
+                x.phone == accountDTO.phone || x.username == accountDTO.username) && !x.Deleted && x.Action).FirstOrDefault();
 
                 var checkRole = _context.roles.Where(x => x.name.ToLower() == TokenViewModel.USER.ToLower() 
                 && !x.Deleted).FirstOrDefault();

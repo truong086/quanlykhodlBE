@@ -106,22 +106,16 @@
         }
 
         }
-
-        .email-container {
-            background-image: url(https://img.freepik.com/premium-photo/3d-render-twilight-summer-landscape-background_893012-9797.jpg);
-            background-size: cover;
-            background-repeat: no-repeat;
-        }
     </style>
 </head>
 <body>
-    <div class="email-container">
+    <div class="email-container" style="background-image: url(https://img.freepik.com/premium-photo/3d-render-twilight-summer-landscape-background_893012-9797.jpg); background-size: cover; background-repeat: no-repeat;">
         <div class="email-header">
             Mã OTP Gửi đến @Model.name
         </div>
         <div class="email-body">
             <div style="text-align: center; width: 100%;">
-                <img src=@Model.iamge alt="Logo" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid #ccc;">
+                <img src="@Model.iamge" style="width: 80px; height: 80px; border-radius: 50%;">
             </div>
             <p>Chào Bạn  @Model.name</p>
             <p>Đây là mã OTP của bạn:</p>

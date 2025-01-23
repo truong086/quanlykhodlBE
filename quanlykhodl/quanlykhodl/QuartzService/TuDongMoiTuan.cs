@@ -29,27 +29,53 @@ namespace quanlykhodl.QuartzService
         {
             if(accounts.Any())
             {
+                var listAccount = new List<Account>();
                 foreach(var item in accounts)
                 {
                     var checkTokenCreate = _dbContext.tokens.Include(a => a.account).Where(x => x.account_id == item.id && x.Status == Status.CREATEPASSWORD)
                         .OrderByDescending(x => x.CreatedAt).FirstOrDefault();
 
+                    var checkDateAccount = checkDateChenhLech(item.CreatedAt);
                     if (checkTokenCreate != null)
                     {
                         var checkDate = checkDateChenhLech(checkTokenCreate.CreatedAt);
-                        if(checkDate >= 1)
+                        
+                        if (checkDate >= 1)
                         {
-                            var deleteToken = _dbContext.tokens.Include(a => a.account)
+                            var deleteTokens = _dbContext.tokens.Include(a => a.account)
                                 .Where(x => x.account_id == item.id && x.Status == Status.CREATEPASSWORD).ToList();
 
                             uploadCloud.DeleteAllImageAndFolder(item.email, _cloud);
-                            _dbContext.tokens.RemoveRange(deleteToken);
-                            _dbContext.accounts.Remove(item);
-
-                            _dbContext.SaveChanges();
+                            if (deleteTokens.Count > 0)
+                                deleteToken(deleteTokens);
+                            
                         }
                     }
+                    if (checkDateAccount >= 5)
+                    {
+                        if (item != null)
+                            deleteAccount(item);
+                    }
                 }
+            }
+        }
+
+        private void deleteAccount(Account account)
+        {
+            if(account != null)
+            {
+                _dbContext.accounts.Remove(account);
+                _dbContext.SaveChanges();
+            }
+            
+        }
+
+        private void deleteToken(List<Token> tokens)
+        {
+            if(tokens.Count > 0 && tokens != null && tokens.Any())
+            {
+                _dbContext.tokens.RemoveRange(tokens);
+                _dbContext.SaveChanges();
             }
         }
         private void LoadAccountActionUpdatePassword(List<Account> data)
