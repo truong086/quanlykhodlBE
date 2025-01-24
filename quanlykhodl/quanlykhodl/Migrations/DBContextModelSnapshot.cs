@@ -640,8 +640,14 @@ namespace quanlykhodl.Migrations
                     b.Property<int?>("account_id")
                         .HasColumnType("int");
 
+                    b.Property<string>("code")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int?>("id_product")
                         .HasColumnType("int");
+
+                    b.Property<bool>("isCheck")
+                        .HasColumnType("bit");
 
                     b.Property<int>("quantity")
                         .HasColumnType("int");

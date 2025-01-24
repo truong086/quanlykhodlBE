@@ -27,6 +27,13 @@ namespace quanlykhodl.Controllers
         }
 
         [HttpGet]
+        [Route(nameof(FindOneCode))]
+        public async Task<PayLoad<object>> FindOneCode(string code)
+        {
+            return await _prepareToExportService.FindOneCode(code);
+        }
+
+        [HttpGet]
         [Route(nameof(FindOneId))]
         public async Task<PayLoad<object>> FindOneId(int id)
         {
@@ -45,6 +52,13 @@ namespace quanlykhodl.Controllers
         public async Task<PayLoad<PrepareToExportDTO>> Update(int id, PrepareToExportDTO data)
         {
             return await _prepareToExportService.Udpate(id, data);
+        }
+
+        [HttpPut]
+        [Route(nameof(UdpateCheck))]
+        public async Task<PayLoad<string>> UdpateCheck(int id)
+        {
+            return await _prepareToExportService.UdpateCheck(id);
         }
 
         [HttpDelete]

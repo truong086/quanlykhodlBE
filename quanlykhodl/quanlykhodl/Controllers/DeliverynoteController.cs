@@ -27,6 +27,13 @@ namespace quanlykhodl.Controllers
         }
 
         [HttpGet]
+        [Route(nameof(FindOneCodeProduct))]
+        public async Task<PayLoad<object>> FindOneCodeProduct(string code)
+        {
+            return await _deliverynoteService.FindOneCodeProduct(code);
+        }
+
+        [HttpGet]
         [Route(nameof(FindOneCode))]
         public async Task<PayLoad<object>> FindOneCode(string code)
         {

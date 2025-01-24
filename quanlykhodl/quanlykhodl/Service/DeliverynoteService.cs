@@ -349,5 +349,39 @@ namespace quanlykhodl.Service
                 return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
             }
         }
+        public async Task<PayLoad<object>> FindOneCodeProduct(string code)
+        {
+            try
+            {
+                var checkData = _context.prepareToExports.Where(x => x.code == code).FirstOrDefault();
+                if (checkData == null)
+                    return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+
+                var checkdelive = _context.deliverynotePrepareToEs.Where(x => x.id_PrepareToExport == checkData.id && !x.Deleted).ToList();
+                if (checkdelive.Count <= 0)
+                    return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+
+                return await Task.FromResult(PayLoad<object>.Successfully(loadDataCode(checkdelive)));
+            }
+            catch (Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
+
+        private List<DeliverynoteGetAll> loadDataCode(List<DeliverynotePrepareToExport> data)
+        {
+            var list = new List<DeliverynoteGetAll>();
+            foreach(var item in data)
+            {
+                var checkDelive = _context.deliverynotes.Where(x => x.id == item.id_delivenote && !x.Deleted).FirstOrDefault();
+                if(checkDelive != null)
+                {
+                    list.Add(loadFindOneData(checkDelive));
+                }
+            }
+
+            return list;
+        }
     }
 }

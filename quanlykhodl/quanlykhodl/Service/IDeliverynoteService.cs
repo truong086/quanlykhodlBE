@@ -11,6 +11,7 @@ namespace quanlykhodl.Service
         Task<PayLoad<DeliverynoteDTO>> Add(DeliverynoteDTO data);
         Task<PayLoad<ImportformUpdate>> Update(int id, ImportformUpdate data);
         Task<PayLoad<string>> Delete(int id);
+        Task<PayLoad<object>> FindOneCodeProduct(string code);
 
     }
 }

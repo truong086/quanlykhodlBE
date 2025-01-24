@@ -40,7 +40,9 @@ namespace quanlykhodl.Service
                     product = checkData,
                     quantity = data.quantity,
                     account = checkAccount,
-                    account_id = checkAccount.id
+                    account_id = checkAccount.id,
+                    code = RanDomCode.geneAction(8),
+                    isCheck = false
                 };
 
                 checkData.quantity -= data.quantity;
@@ -245,6 +247,50 @@ namespace quanlykhodl.Service
             catch(Exception ex)
             {
                 return await Task.FromResult(PayLoad<PrepareToExportDTO>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<object>> FindOneCode(string id)
+        {
+            try
+            {
+                var checkCode = _context.prepareToExports.Where(x => x.code == id && !x.Deleted).FirstOrDefault();
+                if (checkCode == null)
+                    return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+
+                var checkProduc = _context.products1.Where(x => x.id == checkCode.id_product && !x.Deleted).FirstOrDefault();
+                var mapData = _mapper.Map<PrepareToExportGetAll>(checkProduc);
+                mapData.id = checkCode.id;
+                mapData.id_product = checkProduc == null ? null : checkProduc.id;
+                mapData.quantity = checkCode.quantity;
+                mapData.areaFloorWarehourseDelivenotes = loadDataAreaDelivenote(checkProduc.id);
+
+                return await Task.FromResult(PayLoad<object>.Successfully(mapData));
+            }
+            catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<string>> UdpateCheck(int id)
+        {
+            try
+            {
+                var checkdata = _context.prepareToExports.Where(x => x.id == id && !x.Deleted).FirstOrDefault();
+                if (checkdata == null)
+                    return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
+
+                checkdata.isCheck = true;
+
+                _context.prepareToExports.Update(checkdata);
+                _context.SaveChanges();
+
+                return await Task.FromResult(PayLoad<string>.Successfully(Status.SUCCESS));
+
+            }catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<string>.CreatedFail(ex.Message));
             }
         }
     }
