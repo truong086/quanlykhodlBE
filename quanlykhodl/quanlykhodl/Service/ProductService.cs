@@ -4,7 +4,6 @@ using quanlykhodl.Clouds;
 using quanlykhodl.Common;
 using quanlykhodl.Models;
 using quanlykhodl.ViewModel;
-using Twilio.Rest.Trunking.V1;
 
 namespace quanlykhodl.Service
 {
@@ -388,7 +387,7 @@ namespace quanlykhodl.Service
             var checkPlan = _context.plans.Where(x => x.area == id).ToList();
             if (checkPlan != null && checkPlan.Any())
             {
-                foreach(var item in checkPlan)
+                foreach(var item in checkPlan)   
                 {
                     if (!dictionary.ContainsKey(item.localtionNew.Value))
                     {

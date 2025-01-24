@@ -40,6 +40,13 @@ namespace quanlykhodl.Controllers
             return await _prepareToExportService.FindOneId(id);
         }
 
+        [HttpGet]
+        [Route(nameof(FindDataNoIsCheck))]
+        public async Task<PayLoad<object>> FindDataNoIsCheck(string? name, int page = 1, int pageSize = 20)
+        {
+            return await _prepareToExportService.FindDataNoIsCheck(name, page, pageSize);
+        }
+
         [HttpPost]
         [Route(nameof(Add))]
         public async Task<PayLoad<PrepareToExportDTO>> Add(PrepareToExportDTO data)

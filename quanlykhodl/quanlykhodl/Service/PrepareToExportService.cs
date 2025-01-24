@@ -293,5 +293,34 @@ namespace quanlykhodl.Service
                 return await Task.FromResult(PayLoad<string>.CreatedFail(ex.Message));
             }
         }
+
+        public async Task<PayLoad<object>> FindDataNoIsCheck(string? name, int page = 1, int pageSize = 20)
+        {
+            try
+            {
+                var checkData = _context.prepareToExports.Where(x => !x.isCheck && !x.Deleted).ToList();
+                if (checkData.Count <= 0)
+                    return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+
+                var mapData = loadData(checkData);
+                if (!string.IsNullOrEmpty(name))
+                    mapData = mapData.Where(x => x.title.Contains(name)).ToList();
+
+                var pageList = new PageList<object>(mapData, page - 1, pageSize);
+
+                return await Task.FromResult(PayLoad<object>.Successfully(new
+                {
+                    data = pageList,
+                    page,
+                    pageList.pageSize,
+                    pageList.totalCounts,
+                    pageList.totalPages
+                }));
+
+            }catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+            }
+        }
     }
 }

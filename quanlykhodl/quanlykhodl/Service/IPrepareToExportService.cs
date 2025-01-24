@@ -13,6 +13,7 @@ namespace quanlykhodl.Service
         Task<PayLoad<object>> FindOneId(int id);
         Task<PayLoad<object>> FindOneCode(string id);
         Task<PayLoad<string>> UdpateCheck(int id);
+        Task<PayLoad<object>> FindDataNoIsCheck(string? name, int page = 1, int pageSize = 20);
         
     }
 }
