@@ -13,5 +13,6 @@
         public string? account_image { get; set; }
         public string? floor_image { get; set; }
         public string? floor_name { get; set; }
+        public productArea? productArea { get; set; }
     }
 }

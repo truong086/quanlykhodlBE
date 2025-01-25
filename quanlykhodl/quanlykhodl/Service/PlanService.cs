@@ -112,8 +112,8 @@ namespace quanlykhodl.Service
                 {
                     mapData.Receiver = null;
                     mapData.Receiver_id = null;
-                    mapData.localtionNew = null;
-                    mapData.localtionOld = null;
+                    mapData.localtionNew = planDTO.localtionNew;
+                    mapData.localtionOld = planDTO.locationOld;
                     mapData.productidlocation = null;
                     mapData.productlocation_map = null;
                     mapData.isWarehourse = planDTO.isWarehourse;

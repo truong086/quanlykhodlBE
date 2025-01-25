@@ -88,6 +88,7 @@ namespace quanlykhodl.Service
 
         private void addDeliverynoteItem(List<productDeliverynoteDTO> data, Deliverynote deliverynote)
         {
+            var code = RanDomCode.geneAction(8) + deliverynote.id.ToString();
             foreach (var item in data)
             {
                 var checkProduct = _context.prepareToExports.Where(x => x.id == item.id_product && !x.Deleted).FirstOrDefault();
@@ -99,10 +100,12 @@ namespace quanlykhodl.Service
                        deliverynotes = deliverynote,
                        id_PrepareToExport = checkProduct.id,
                        PreparetoExports = checkProduct,
-                       
+                       code = code
+
                     };
 
                     checkProduct.Deleted = true;
+                    checkProduct.isCheck = true;
                     _context.prepareToExports.Update(checkProduct);
                     _context.SaveChanges();
 

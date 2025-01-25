@@ -241,8 +241,8 @@ namespace quanlykhodl.Service
                     }
                     else
                     {
-                        var checkProductLocationOld = _context.productlocations.Where(x => x.id_area == checkAreaOld.id && !x.Deleted).ToList();
-                        var checkProductLocationNew = _context.productlocations.Where(x => x.id_area == checkAreaNew.id && !x.Deleted).ToList();
+                        var checkProductLocationOld = _context.productlocations.Where(x => x.id_area == checkAreaOld.id && x.location == checkPlan.localtionOld && !x.Deleted).ToList();
+                        var checkProductLocationNew = _context.productlocations.Where(x => x.id_area == checkAreaNew.id && x.location == checkPlan.localtionOld && !x.Deleted).ToList();
                         if (checkProductLocationOld != null && checkAreaNew != null)
                             updateAreaNew(checkAreaNew, checkProductLocationOld);
 

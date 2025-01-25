@@ -13,6 +13,7 @@
         public int? warehouse { get; set; }
         public int? area { get; set; }
         public int? floor { get; set; }
+        public int? locationOld { get; set; }
     }
 
     public class PlanAllWarehoursDTO

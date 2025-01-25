@@ -274,18 +274,16 @@ namespace quanlykhodl.Service
 
         private productArea findAreaproduct(Area area)
         {
-            var data = new productArea
-            {
-                Id = area.id,
-                quantity = area.quantity.Value,
-                totalLocation = totalQuantityLocation(area),
-                totalLocationEmpty = checkQuantityEmty(area).Value,
-                totalLocatiEmpty = totalQuantityLocation(area) - checkQuantityEmty(area).Value,
-                productLocationAreas = productLocationAreas(area.id),
-                productPlans = productLocationAreasPlan(area.id),
-                locationTotal = checkLocation(area.id),
-                warehoursPlans = loadDataWarehoursePlan(area.id)
-            };
+            var data = new productArea();
+            data.Id = area.id;
+            data.quantity = area.quantity.Value;
+            data.totalLocation = totalQuantityLocation(area);
+            data.totalLocationEmpty = checkQuantityEmty(area).Value;
+            data.totalLocatiEmpty = totalQuantityLocation(area) - checkQuantityEmty(area).Value;
+            data.productLocationAreas = productLocationAreas(area.id);
+            data.productPlans = productLocationAreasPlan(area.id);
+            data.locationTotal = checkLocation(area.id);
+            data.warehoursPlans = loadDataWarehoursePlan(area.id);
 
             return data;
         }
@@ -384,7 +382,7 @@ namespace quanlykhodl.Service
         private Dictionary<int, int> checkLocation(int id)
         {
             var dictionary = new Dictionary<int, int>();
-            var checkPlan = _context.plans.Where(x => x.area == id).ToList();
+            var checkPlan = _context.plans.Where(x => x.area == id && !x.isWarehourse).ToList();
             if (checkPlan != null && checkPlan.Any())
             {
                 foreach(var item in checkPlan)   
@@ -422,7 +420,6 @@ namespace quanlykhodl.Service
             }
             return list;
         }
-        
         private List<productLocationArea> productLocationAreasPlan(int id)
         {
             var list = new List<productLocationArea>();
@@ -432,9 +429,9 @@ namespace quanlykhodl.Service
             {
                 foreach (var item in checkPlan)
                 {
-                    if (!item.isWarehourse)
+                    var checkLocationProduct = _context.productlocations.Where(x => x.location == item.localtionOld && x.id_area == item.areaOld && !x.Deleted).FirstOrDefault();
+                    if (checkLocationProduct != null)
                     {
-                        var checkLocationProduct = _context.productlocations.Where(x => x.id == item.productlocation_map && !x.Deleted).FirstOrDefault();
                         var checkProduct = _context.products1.Where(x => x.id == checkLocationProduct.id_product && !x.Deleted).FirstOrDefault();
                         var imageProductData = _context.imageProducts.Where(x => x.productMap == checkProduct.id && !x.Deleted).FirstOrDefault();
                         var checkLocationCode = _context.codelocations.Where(x => x.id_area == id && x.location == item.localtionNew && !x.Deleted).FirstOrDefault();
@@ -457,6 +454,37 @@ namespace quanlykhodl.Service
 
             return list;
         }
+        //private List<productLocationArea> productLocationAreasPlan(int id)
+        //{
+        //    var list = new List<productLocationArea>();
+
+        //    var checkPlan = _context.plans.Where(x => x.area == id && !x.Deleted && x.status.ToLower() != Status.DONE.ToLower()).ToList();
+        //    if (checkPlan.Any())
+        //    {
+        //        foreach (var item in checkPlan)
+        //        {
+        //            var checkLocationProduct = _context.productlocations.Where(x => x.location == item.localtionNew && x.id_area == item.area && !x.Deleted).FirstOrDefault();
+        //            var checkProduct = _context.products1.Where(x => x.id == checkLocationProduct.id_product && !x.Deleted).FirstOrDefault();
+        //            var imageProductData = _context.imageProducts.Where(x => x.productMap == checkProduct.id && !x.Deleted).FirstOrDefault();
+        //            var checkLocationCode = _context.codelocations.Where(x => x.id_area == id && x.location == item.localtionNew && !x.Deleted).FirstOrDefault();
+        //            var dataItem = new productLocationArea
+        //            {
+        //                Id_product = checkProduct.id,
+        //                location = item.localtionNew,
+        //                Id = checkLocationProduct.id,
+        //                image = imageProductData.Link,
+        //                name = checkProduct.title,
+        //                quantity = checkLocationProduct.quantity,
+        //                Id_plan = item.id,
+        //                code = checkLocationCode == null ? Status.CODEFAILD : checkLocationCode.code
+        //            };
+
+        //            list.Add(dataItem);
+        //        }
+        //    }
+
+        //    return list;
+        //}
 
         public async Task<PayLoad<object>> FindOneByCategory(int id, int page = 1, int pageSize = 20)
         {

@@ -322,5 +322,87 @@ namespace quanlykhodl.Service
                 return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
             }
         }
+
+        public async Task<PayLoad<object>> FindAccount(string? name, int page = 1, int pageSize = 20)
+        {
+            try
+            {
+                var user = _userService.name();
+                var checkAccount = _context.prepareToExports.Where(x => x.account_id == Convert.ToInt32(user) && x.isCheck).ToList();
+                var mapData = loadData(checkAccount);
+
+                if (!string.IsNullOrEmpty(name))
+                    mapData = mapData.Where(x => x.title.Contains(name)).ToList();
+
+                var pageList = new PageList<object>(mapData, page - 1, pageSize);
+                return await Task.FromResult(PayLoad<object>.Successfully(new
+                {
+                    data = pageList,
+                    page,
+                    pageList.pageSize,
+                    pageList.totalCounts,
+                    pageList.totalPages
+
+                }));
+            }
+            catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<object>> FindCode(string code, string? name, int page = 1, int pageSize = 20)
+        {
+            try
+            {
+                var checkCode = _context.deliverynotePrepareToEs.Where(x => x.code == code && !x.Deleted).ToList();
+                if (checkCode.Count <= 0)
+                    return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+
+                var mapData = loadDataCode(checkCode);
+                if (!string.IsNullOrEmpty(name))
+                    mapData = mapData.Where(x => x.title.Contains(name)).ToList();
+
+                var pageList = new PageList<object>(mapData, page - 1, pageSize);
+                return await Task.FromResult(PayLoad<object>.Successfully(new
+                {
+                    data = pageList,
+                    page,
+                    pageList.pageSize,
+                    pageList.totalCounts,
+                    pageList.totalPages
+                }));
+            }
+            catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
+
+        private List<PrepareToExportGetAll> loadDataCode(List<DeliverynotePrepareToExport> data)
+        {
+            var list = new List<PrepareToExportGetAll>();
+
+            foreach(var item in data)
+            {
+                var checkDateaItem = _context.prepareToExports.Where(x => x.id == item.id_PrepareToExport && !x.Deleted && x.isCheck).FirstOrDefault();
+                if(checkDateaItem != null)
+                {
+                    var checkProduc = _context.products1.Where(x => x.id == checkDateaItem.id_product && !x.Deleted).FirstOrDefault();
+                    if(checkProduc != null)
+                    {
+                        var mapData = _mapper.Map<PrepareToExportGetAll>(checkProduc);
+                        mapData.id = item.id;
+                        mapData.id_product = checkProduc == null ? null : checkProduc.id;
+                        mapData.quantity = checkDateaItem.quantity;
+                        mapData.areaFloorWarehourseDelivenotes = loadDataAreaDelivenote(checkProduc.id);
+
+                        list.Add(mapData);
+                    }
+                }
+            }
+
+            return list;
+        }
     }
 }

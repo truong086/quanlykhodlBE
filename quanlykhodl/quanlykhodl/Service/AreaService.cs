@@ -182,11 +182,184 @@ namespace quanlykhodl.Service
                 mapData.account_name = checkAccount.username;
                 mapData.account_image = checkAccount.image;
                 mapData.quantityEmtity = item.quantity - checkProductLocation;
+                mapData.productArea = findAreaproduct(item);
 
                 list.Add(mapData);
 
             }
             return list;
+        }
+        private productArea findAreaproduct(Area area)
+        {
+            var data = new productArea();
+            data.Id = area.id;
+            data.quantity = area.quantity.Value;
+            data.totalLocation = totalQuantityLocation(area);
+            data.totalLocationEmpty = checkQuantityEmty(area).Value;
+            data.totalLocatiEmpty = totalQuantityLocation(area) - checkQuantityEmty(area).Value;
+            data.productLocationAreas = productLocationAreas(area.id);
+            data.productPlans = productLocationAreasPlan(area.id);
+            data.locationTotal = checkLocation(area.id);
+            data.warehoursPlans = loadDataWarehoursePlan(area.id);
+
+            return data;
+        }
+        private int? quantityArea(Area area, int location)
+        {
+            var checkLocation = _context.locationExceptions.Where(x => x.id_area == area.id && x.location == location && !x.Deleted).FirstOrDefault();
+            if (checkLocation != null)
+            {
+                return checkLocation.max;
+            }
+            else
+            {
+                var checkLocationArea = _context.areas.Where(x => x.id == area.id && !x.Deleted).FirstOrDefault();
+                if (checkLocationArea != null)
+                    return checkLocationArea.max;
+            }
+            return 0;
+        }
+
+        private bool checkAreaLocationExsis(Area area, int location)
+        {
+            var checkDataProductLocation = _context.productlocations.Where(x => x.id_area == area.id && x.location == location && !x.Deleted).FirstOrDefault();
+            if (checkDataProductLocation != null)
+                return false;
+            return true;
+        }
+        private List<WarehoursPlan> loadDataWarehoursePlan(int id)
+        {
+            var list = new List<WarehoursPlan>();
+
+            var checkPlan = _context.plans.Where(x => x.area == id && x.isWarehourse && !x.Deleted).ToList();
+            if (checkPlan != null && checkPlan.Any())
+            {
+                foreach (var item in checkPlan)
+                {
+                    var DataItem = new WarehoursPlan();
+                    var checkArea = _context.areas.Where(x => x.id == item.area && !x.Deleted).FirstOrDefault();
+                    if (checkArea != null)
+                    {
+                        DataItem.area = checkArea.name;
+                        var checkFloor = _context.floors.Where(x => x.id == checkArea.floor && !x.Deleted).FirstOrDefault();
+                        if (checkFloor != null)
+                        {
+                            DataItem.floor = checkFloor.name;
+                            var checkWarehourse = _context.warehouses.Where(x => x.id == checkFloor.warehouse && !x.Deleted).FirstOrDefault();
+                            if (checkWarehourse != null)
+                                DataItem.warehours = checkWarehourse.name;
+                        }
+                    }
+
+                    list.Add(DataItem);
+                }
+
+            }
+
+            return list;
+        }
+        private Dictionary<int, int> checkLocation(int id)
+        {
+            var dictionary = new Dictionary<int, int>();
+            var checkPlan = _context.plans.Where(x => x.area == id).ToList();
+            if (checkPlan != null && checkPlan.Any())
+            {
+                foreach (var item in checkPlan)
+                {
+                    if (!dictionary.ContainsKey(item.localtionNew.Value))
+                    {
+                        var checkLocation = _context.plans.Where(x => x.area == id && x.localtionNew == item.localtionNew).Count();
+                        dictionary.Add(item.localtionNew.Value, checkLocation);
+                    }
+                }
+            }
+            return dictionary;
+        }
+        private List<productLocationArea> productLocationAreasPlan(int id)
+        {
+            var list = new List<productLocationArea>();
+
+            var checkPlan = _context.plans.Where(x => x.area == id && !x.Deleted && x.status.ToLower() != Status.DONE.ToLower()).ToList();
+            if (checkPlan.Any())
+            {
+                foreach (var item in checkPlan)
+                {
+                    var checkLocationProduct = _context.productlocations.Where(x => x.location == item.localtionOld && x.id_area == item.areaOld && !x.Deleted).FirstOrDefault();
+                    if(checkLocationProduct != null)
+                    {
+                        var checkProduct = _context.products1.Where(x => x.id == checkLocationProduct.id_product && !x.Deleted).FirstOrDefault();
+                        var imageProductData = _context.imageProducts.Where(x => x.productMap == checkProduct.id && !x.Deleted).FirstOrDefault();
+                        var checkLocationCode = _context.codelocations.Where(x => x.id_area == id && x.location == item.localtionNew && !x.Deleted).FirstOrDefault();
+                        var dataItem = new productLocationArea
+                        {
+                            Id_product = checkProduct.id,
+                            location = item.localtionNew,
+                            Id = checkLocationProduct.id,
+                            image = imageProductData.Link,
+                            name = checkProduct.title,
+                            quantity = checkLocationProduct.quantity,
+                            Id_plan = item.id,
+                            code = checkLocationCode == null ? Status.CODEFAILD : checkLocationCode.code
+                        };
+
+                        list.Add(dataItem);
+                    }
+                }
+            }
+
+            return list;
+        }
+        private List<productLocationArea> productLocationAreas(int id)
+        {
+            var list = new List<productLocationArea>();
+            var checkData = _context.productlocations.Where(x => x.id_area == id && !x.Deleted).ToList();
+
+            foreach (var item in checkData)
+            {
+                var checkProduct = _context.products1.Where(x => x.id == item.id_product && !x.Deleted).FirstOrDefault();
+                var imageProductData = _context.imageProducts.Where(x => x.productMap == checkProduct.id && !x.Deleted).FirstOrDefault();
+                var checkLocationCode = _context.codelocations.Where(x => x.id_area == id && x.location == item.location && !x.Deleted).FirstOrDefault();
+                var dataItem = new productLocationArea
+                {
+                    Id = item.id,
+                    Id_product = checkProduct.id,
+                    name = checkProduct.title,
+                    image = imageProductData.Link,
+                    location = item.location,
+                    quantity = item.quantity,
+                    code = checkLocationCode == null ? Status.CODEFAILD : checkLocationCode.code
+                };
+                list.Add(dataItem);
+            }
+            return list;
+        }
+        private int totalQuantityLocation(Area data)
+        {
+            var checkLocationExceps = _context.locationExceptions.Where(x => x.id_area == data.id && !x.Deleted).Count();
+            var total = data.quantity - checkLocationExceps;
+
+            var totalNoExCeps = (total * data.max) + totalLocal(data.id);
+
+            return totalNoExCeps.Value;
+        }
+        private int? checkQuantityEmty(Area area)
+        {
+            int? sum = 0;
+
+            for (var i = 1; i <= area.quantity; i++)
+            {
+                if (checkAreaLocationExsis(area, i))
+                {
+                    sum += quantityArea(area, i);
+                }
+            }
+            return sum;
+        }
+        private int totalLocal(int id)
+        {
+            var checkArea = _context.locationExceptions.Where(x => x.id_area == id && !x.Deleted).Sum(x => x.max);
+
+            return checkArea.Value;
         }
 
         public async Task<PayLoad<object>> FindOneFloor(int id, int page = 1, int pageSize = 20)

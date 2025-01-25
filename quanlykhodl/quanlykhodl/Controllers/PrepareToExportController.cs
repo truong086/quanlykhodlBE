@@ -34,6 +34,13 @@ namespace quanlykhodl.Controllers
         }
 
         [HttpGet]
+        [Route(nameof(FindAccount))]
+        public async Task<PayLoad<object>> FindAccount(string? name, int page = 1, int pageSize = 20)
+        {
+            return await _prepareToExportService.FindAccount(name, page, pageSize);
+        }
+
+        [HttpGet]
         [Route(nameof(FindOneId))]
         public async Task<PayLoad<object>> FindOneId(int id)
         {
@@ -45,6 +52,13 @@ namespace quanlykhodl.Controllers
         public async Task<PayLoad<object>> FindDataNoIsCheck(string? name, int page = 1, int pageSize = 20)
         {
             return await _prepareToExportService.FindDataNoIsCheck(name, page, pageSize);
+        }
+
+        [HttpGet]
+        [Route(nameof(FindCode))]
+        public async Task<PayLoad<object>> FindCode(string code, string? name, int page = 1, int pageSize = 20)
+        {
+            return await _prepareToExportService.FindCode(code, name, page, pageSize);
         }
 
         [HttpPost]

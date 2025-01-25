@@ -48,14 +48,23 @@ namespace quanlykhodl.QuartzService
                             uploadCloud.DeleteAllImageAndFolder(item.email, _cloud);
                             if (deleteTokens.Count > 0)
                                 deleteToken(deleteTokens);
-                            
+
+                            if (checkDateAccount >= 5)
+                            {
+                                if (item != null)
+                                    deleteAccount(item);
+                            }
                         }
                     }
-                    if (checkDateAccount >= 5)
+                    else
                     {
-                        if (item != null)
-                            deleteAccount(item);
+                        if (checkDateAccount >= 5)
+                        {
+                            if (item != null)
+                                deleteAccount(item);
+                        }
                     }
+                    
                 }
             }
         }
