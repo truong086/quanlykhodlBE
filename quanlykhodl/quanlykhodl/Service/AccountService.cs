@@ -645,5 +645,67 @@ namespace quanlykhodl.Service
                 return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
             }
         }
+
+        public async Task<PayLoad<string>> CheckToken(string token)
+        {
+            try
+            {
+                var user = _userService.name();
+                var checkAccount = _context.accounts.Where(x => x.id == Convert.ToInt32(user) && !x.Deleted).FirstOrDefault();
+                if (checkAccount == null)
+                    return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
+
+                var jwtTokenHandler = new JwtSecurityTokenHandler();
+                var secretKeyBytes = Encoding.UTF8.GetBytes(_jwt.Key); // Lấy mảng byte
+                var Tokenparam = new TokenValidationParameters
+                {
+                    // Tự cấp token
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+
+                    // Ký vào token
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(secretKeyBytes), // Thuật toán mã hóa token
+
+                    ClockSkew = TimeSpan.Zero,
+
+                    ValidateLifetime = false // Không kiểm tra token hết hạn
+                };
+
+                var tokenInverification = jwtTokenHandler.ValidateToken(token, Tokenparam, out var validatedToken);
+
+                var utcExpireDate = long.Parse(tokenInverification.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Exp).Value); 
+
+                var expireDate = ConverunixTimeToDateTime(utcExpireDate);
+                if (expireDate > DateTime.UtcNow)
+                {
+                    var checkRoleId = checkRole(checkAccount.role_id.Value);
+                    var claims = new List<Claim>
+                    {
+                        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                        new Claim(Status.IDAUTHENTICATION, checkAccount.id.ToString()),
+                        new Claim(ClaimTypes.Role, checkRoleId == null ? "Role không tồn tại" : checkRoleId.name),
+                    };
+
+                    return await Task.FromResult(PayLoad<string>.Successfully(GenerateToken(claims)));
+                }
+
+                return await Task.FromResult(PayLoad<string>.Successfully(Status.SUCCESS));
+            }
+            catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<string>.CreatedFail(ex.Message));
+            }
+        }
+
+        private DateTime ConverunixTimeToDateTime(long utcExpireDate)
+        {
+            // Tính thời gian từ năm: 1970
+            var dateTimeInterval = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+
+            dateTimeInterval.AddSeconds(utcExpireDate).ToUniversalTime();
+
+            return dateTimeInterval;
+        }
     }
 }

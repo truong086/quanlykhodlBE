@@ -70,13 +70,13 @@ namespace quanlykhodl.Service
 
                 if (!planDTO.isWarehourse)
                 {
-                    var checkLocationProductOld = _context.productlocations.Where(x => x.id == planDTO.productlocation_map && !x.Deleted).FirstOrDefault();
+                    var checkLocationProductOld = _context.productlocations.Where(x => x.id == planDTO.productlocation_map && !x.Deleted && x.isAction).FirstOrDefault();
                     if (checkLocationProductOld == null)
                         return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATANULL));
 
                     var checkReceiver = _context.accounts.Where(x => x.id == planDTO.Receiver && !x.Deleted).FirstOrDefault();
                     var checkProductExsis = _context.productlocations.Where(x => x.id_product == checkLocationProductOld.id_product
-                                            && x.id_area == checkAreaNew.id && x.location == planDTO.localtionNew && !x.Deleted).FirstOrDefault();
+                                            && x.id_area == checkAreaNew.id && x.location == planDTO.localtionNew && !x.Deleted && x.isAction).FirstOrDefault();
 
                     if (checkLocationProductOld.location == planDTO.localtionNew &&
                     checkArea.id == checkAreaNew.id && checkFloor.id == chechFloorNew.id
@@ -134,7 +134,7 @@ namespace quanlykhodl.Service
         private bool checkLocationQuantity(Area area, int location, int quantity)
         {
             var checkQuantityLocation = _context.locationExceptions.Where(x => x.id_area == area.id && x.location == location && !x.Deleted).FirstOrDefault();
-            var checkTotal = _context.productlocations.Where(x => x.id_area == area.id && x.location == location && !x.Deleted).Sum(x => x.quantity);
+            var checkTotal = _context.productlocations.Where(x => x.id_area == area.id && x.location == location && !x.Deleted && x.isAction).Sum(x => x.quantity);
             if (checkQuantityLocation != null)
             {
                 if (checkQuantityLocation.max < checkTotal + quantity)
@@ -168,7 +168,7 @@ namespace quanlykhodl.Service
                 {
                     if(list.Count() <= 2)
                     {
-                        var checkLocationProduct = _context.productlocations.Where(x => x.id == item.productlocation_map && !x.Deleted).FirstOrDefault();
+                        var checkLocationProduct = _context.productlocations.Where(x => x.id == item.productlocation_map && !x.Deleted && x.isAction).FirstOrDefault();
                         if(checkLocationProduct != null)
                         {
                             var checkProduct = _context.products1.Where(x => x.id == checkLocationProduct.id_product && !x.Deleted).FirstOrDefault();
@@ -240,7 +240,7 @@ namespace quanlykhodl.Service
 
                     if (!item.isWarehourse)
                     {
-                        var checkProductLocation = _context.productlocations.Where(x => x.id == item.productlocation_map && !x.Deleted).FirstOrDefault();
+                        var checkProductLocation = _context.productlocations.Where(x => x.id == item.productlocation_map && !x.Deleted && x.isAction).FirstOrDefault();
                         if(checkProductLocation != null)
                         {
                             var checkProduct = _context.products1.Where(x => x.id == checkProductLocation.id_product && !x.Deleted).FirstOrDefault();
@@ -460,7 +460,7 @@ namespace quanlykhodl.Service
 
         private PlanGetAll loadDataFindOne(Plan item)
         {
-            var checkProductLocation = _context.productlocations.Where(x => x.id == item.productlocation_map && !x.Deleted).FirstOrDefault();
+            var checkProductLocation = _context.productlocations.Where(x => x.id == item.productlocation_map && !x.Deleted && x.isAction).FirstOrDefault();
             var checkProduct = _context.products1.Where(x => x.id == checkProductLocation.id_product && !x.Deleted).FirstOrDefault();
             var checkImageProduct = _context.imageProducts.Where(x => x.productMap == checkProduct.id).FirstOrDefault();
             var checkAccount = _context.accounts.Where(x => x.id == item.Receiver && !x.Deleted).FirstOrDefault();
@@ -531,7 +531,7 @@ namespace quanlykhodl.Service
                 {
                     if (checkId.productlocation_map != planDTO.productlocation_map)
                     {
-                        var checkLocationProductOld = _context.productlocations.Where(x => x.id == planDTO.productlocation_map && !x.Deleted).FirstOrDefault();
+                        var checkLocationProductOld = _context.productlocations.Where(x => x.id == planDTO.productlocation_map && !x.Deleted && x.isAction).FirstOrDefault();
                         if (checkLocationProductOld == null)
                             return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATANULL));
 

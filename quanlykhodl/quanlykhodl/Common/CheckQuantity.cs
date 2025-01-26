@@ -7,7 +7,7 @@ namespace quanlykhodl.Common
         public static bool checkLocationQuantity(Area area, int location, int quantity, DBContext _context)
         {
             var checkQuantityLocation = _context.locationExceptions.Where(x => x.id_area == area.id && x.location == location && !x.Deleted).FirstOrDefault();
-            var checkTotal = _context.productlocations.Where(x => x.id_area == area.id && x.location == location && !x.Deleted).Sum(x => x.quantity);
+            var checkTotal = _context.productlocations.Where(x => x.id_area == area.id && x.location == location && !x.Deleted && x.isAction).Sum(x => x.quantity);
             if (checkQuantityLocation != null)
             {
                 if (checkQuantityLocation.max < checkTotal + quantity)

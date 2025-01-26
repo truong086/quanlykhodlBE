@@ -11,5 +11,7 @@ namespace quanlykhodl.Service
         Task<PayLoad<object>> FindAll(string? name, int page = 1, int pageSize = 20);
         Task<PayLoad<object>> FindOneId(int id);
         Task<PayLoad<object>> FindCode(string code);
+        Task<PayLoad<object>> FindCodeProductImportFrom(string code);
+        Task<PayLoad<string>> UpdateCode(ImportformUpdateCode code);
     }
 }

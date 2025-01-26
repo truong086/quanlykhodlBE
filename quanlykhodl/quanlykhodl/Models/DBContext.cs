@@ -34,11 +34,56 @@ namespace quanlykhodl.Models
 		public DbSet<Token> tokens { get; set; }
 		public DbSet<Warehousetransferstatus> warehousetransferstatuses { get; set; }
 		public DbSet<productlocation> productlocations { get; set; }
-		#endregion
+        public DbSet<Message> Messages { get; set; }
+        public DbSet<Conversation> Conversations { get; set; }
+        public DbSet<UserConversation> userConversations { get; set; }
+        #endregion
 
-		protected override void OnModelCreating(ModelBuilder modelBuilder)
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
-			modelBuilder.Entity<category>()
+            modelBuilder.Entity<UserConversation>()
+				.HasOne(uc => uc.User)
+				.WithMany()
+				.HasForeignKey(uc => uc.UserId)
+				.OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<UserConversation>()
+                .HasOne(uc => uc.Conversation)
+                .WithMany()
+                .HasForeignKey(uc => uc.ConversationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Message>()
+			   .HasOne(m => m.Sender)
+			   .WithMany(u => u.SentMessages)
+			   .HasForeignKey(m => m.SenderId)
+			   .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Message>()
+                .HasOne(m => m.Receiver)
+                .WithMany(u => u.ReceivedMessages)
+                .HasForeignKey(m => m.ReceiverId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Conversation>()
+			   .HasOne(c => c.User1)
+			   .WithMany() // "WithMany()" để rỗng là không ánh xạ ngược
+               .HasForeignKey(c => c.User1Id)
+			   .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Conversation>()
+                .HasOne(c => c.User2)
+                .WithMany()
+                .HasForeignKey(c => c.User2Id)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Conversation>()
+                .HasOne(c => c.LastMessage)
+                .WithMany()
+                .HasForeignKey(c => c.LastMessageId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<category>()
 				.HasMany(c => c.products)
 				.WithOne(p => p.categoryid123) // Trường "categoryid" trong product liên kết đến id của category
 				.HasForeignKey(p => p.category_map)

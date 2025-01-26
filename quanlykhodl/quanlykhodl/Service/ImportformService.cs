@@ -33,15 +33,15 @@ namespace quanlykhodl.Service
                 var user = _userService.name();
                 var checkAccount = _context.accounts.Where(x => x.id == Convert.ToInt32(user) && !x.Deleted).FirstOrDefault();
                 var mapData = _mapper.Map<Importform>(data);
-                mapData.code = RanDomCode.geneAction(8);
                 mapData.account_id = checkAccount;
                 mapData.account_idMap = checkAccount.id;
-
+                mapData.isAction = false;
                 _context.importforms.Add(mapData);
                 _context.SaveChanges();
 
                 var dataNew = _context.importforms.Where(x => !x.Deleted).OrderByDescending(x => x.CreatedAt).FirstOrDefault();
-                if(data.isProductNew)
+                dataNew.code = RanDomCode.geneAction(8) + dataNew.id.ToString();
+                if (data.isProductNew)
                 {
                     if(data.productNew != null && data.productNew.Any())
                     {
@@ -59,6 +59,9 @@ namespace quanlykhodl.Service
                         UpdataQuantityProduct(data.productOlds, dataNew);
                     }
                 }
+
+                _context.importforms.Update(dataNew);
+                _context.SaveChanges();
                 return await Task.FromResult(PayLoad<ImportformDTO>.Successfully(data));
             }
             catch(Exception ex)
@@ -67,18 +70,50 @@ namespace quanlykhodl.Service
             }
         }
 
+        //private void UpdataQuantityProduct(List<productOld> data, Importform importform)
+        //{
+        //    foreach(var item in data)
+        //    {
+        //        var checkProduct = _context.products1.Where(x => x.id == item.id_product && !x.Deleted).FirstOrDefault();
+        //        var checkArea = _context.areas.Where(x => x.id == item.areaId && !x.Deleted).FirstOrDefault();
+        //        var checkLocationArea = _context.productlocations.Where(x => x.location == item.location && x.id_area == checkArea.id && !x.Deleted).FirstOrDefault();
+        //        if(checkProduct != null && checkLocationArea != null)
+        //        {
+        //            checkProduct.quantity += item.quantity;
+        //            _context.products1.Update(checkProduct);
+
+        //            var importProductData = new productImportform
+        //            {
+        //                importform = importform.id,
+        //                importform_id1 = importform,
+        //                product = checkProduct.id,
+        //                products = checkProduct,
+        //                quantity = item.quantity,
+        //                area = checkArea,
+        //                area_id = checkArea.id,
+        //                location = item.location,
+        //                isAction = false
+        //            };
+
+        //            checkLocationArea.quantity += item.quantity;
+        //            _context.productlocations.Update(checkLocationArea);
+
+        //            _context.productImportforms.Add(importProductData);
+
+        //            _context.SaveChanges();
+        //        }
+        //    }
+        //}
+
         private void UpdataQuantityProduct(List<productOld> data, Importform importform)
         {
-            foreach(var item in data)
+            foreach (var item in data)
             {
                 var checkProduct = _context.products1.Where(x => x.id == item.id_product && !x.Deleted).FirstOrDefault();
                 var checkArea = _context.areas.Where(x => x.id == item.areaId && !x.Deleted).FirstOrDefault();
-                var checkLocationArea = _context.productlocations.Where(x => x.location == item.location && x.id_area == checkArea.id && !x.Deleted).FirstOrDefault();
-                if(checkProduct != null && checkLocationArea != null)
+                var checkLocationArea = _context.productlocations.Where(x => x.location == item.location && x.id_area == checkArea.id && !x.Deleted && x.isAction).FirstOrDefault();
+                if (checkProduct != null && checkLocationArea != null)
                 {
-                    checkProduct.quantity += item.quantity;
-                    _context.products1.Update(checkProduct);
-
                     var importProductData = new productImportform
                     {
                         importform = importform.id,
@@ -88,11 +123,10 @@ namespace quanlykhodl.Service
                         quantity = item.quantity,
                         area = checkArea,
                         area_id = checkArea.id,
-                        location = item.location
+                        location = item.location,
+                        isAction = false,
+                        code = RanDomCode.geneAction(8) + importform.id.ToString()
                     };
-
-                    checkLocationArea.quantity += item.quantity;
-                    _context.productlocations.Update(checkLocationArea);
 
                     _context.productImportforms.Add(importProductData);
 
@@ -100,10 +134,9 @@ namespace quanlykhodl.Service
                 }
             }
         }
-
         private bool AddProductLocation(List<productNew> data, Account account, Importform importform)
         {
-            foreach(var item in data)
+            foreach (var item in data)
             {
                 var checkArea = _context.areas.Where(x => x.id == item.areaId && !x.Deleted).FirstOrDefault();
                 var checkSupplier = _context.suppliers.Where(x => x.id == item.suppliers && !x.Deleted).FirstOrDefault();
@@ -124,7 +157,7 @@ namespace quanlykhodl.Service
                 _context.SaveChanges();
 
                 var dataNew = _context.products1.Where(x => !x.Deleted).OrderByDescending(x => x.CreatedAt).FirstOrDefault();
-                if(item.image != null)
+                if (item.image != null)
                 {
                     if (!_kiemtrabase64.kiemtra(item.image[0]))
                     {
@@ -144,11 +177,11 @@ namespace quanlykhodl.Service
                     id_product = dataNew.id,
                     location = item.location.Value,
                     products = dataNew,
-                    quantity = item.quantityLocation
+                    quantity = item.quantityLocation,
+                    isAction = false
                 };
 
                 _context.productlocations.Add(productLocationNew);
-                _context.SaveChanges();
 
                 var productImportData = new productImportform
                 {
@@ -161,17 +194,90 @@ namespace quanlykhodl.Service
                     supplier_id = checkSupplier,
                     area = checkArea,
                     area_id = checkArea.id,
-                    location = item.location
+                    location = item.location,
+                    isAction = false,
+                    code = RanDomCode.geneAction(8) + importform.id.ToString()
                 };
 
                 _context.productImportforms.Add(productImportData);
 
                 _context.SaveChanges();
-                
+
             }
 
             return true;
         }
+        //private bool AddProductLocation(List<productNew> data, Account account, Importform importform)
+        //{
+        //    foreach(var item in data)
+        //    {
+        //        var checkArea = _context.areas.Where(x => x.id == item.areaId && !x.Deleted).FirstOrDefault();
+        //        var checkSupplier = _context.suppliers.Where(x => x.id == item.suppliers && !x.Deleted).FirstOrDefault();
+        //        var checkCategory = _context.categories.Where(x => x.id == item.category_map && !x.Deleted).FirstOrDefault();
+
+        //        if (!CheckQuantity.checkLocationQuantity(checkArea, item.location.Value, item.quantityLocation, _context))
+        //            return false;
+        //        var mapData = _mapper.Map<product>(item);
+        //        mapData.code = RanDomCode.geneAction(8);
+        //        mapData.account_map = account.id;
+        //        mapData.account = account;
+        //        mapData.suppliers = checkSupplier.id;
+        //        mapData.supplier_id = checkSupplier;
+        //        mapData.category_map = checkCategory.id;
+        //        mapData.categoryid123 = checkCategory;
+
+        //        _context.products1.Add(mapData);
+        //        _context.SaveChanges();
+
+        //        var dataNew = _context.products1.Where(x => !x.Deleted).OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+        //        if(item.image != null)
+        //        {
+        //            if (!_kiemtrabase64.kiemtra(item.image[0]))
+        //            {
+        //                AddImageProductString(item.image, dataNew);
+        //            }
+        //            else
+        //            {
+        //                var chuyenDoi = chuyenDoiIFromFileProduct(item.image);
+        //                AddImageProduct(chuyenDoi, dataNew);
+        //            }
+        //        }
+
+        //        var productLocationNew = new productlocation
+        //        {
+        //            areas = checkArea,
+        //            id_area = checkArea.id,
+        //            id_product = dataNew.id,
+        //            location = item.location.Value,
+        //            products = dataNew,
+        //            quantity = item.quantityLocation
+        //        };
+
+        //        _context.productlocations.Add(productLocationNew);
+        //        _context.SaveChanges();
+
+        //        var productImportData = new productImportform
+        //        {
+        //            importform = importform.id,
+        //            importform_id1 = importform,
+        //            product = dataNew.id,
+        //            products = dataNew,
+        //            quantity = item.quantity,
+        //            supplier = checkSupplier.id,
+        //            supplier_id = checkSupplier,
+        //            area = checkArea,
+        //            area_id = checkArea.id,
+        //            location = item.location
+        //        };
+
+        //        _context.productImportforms.Add(productImportData);
+
+        //        _context.SaveChanges();
+
+        //    }
+
+        //    return true;
+        //}
 
         private void AddImageProduct(List<IFormFile> data, product dataPr)
         {
@@ -228,7 +334,7 @@ namespace quanlykhodl.Service
         {
             foreach(var item in data)
             {
-                var checkProductLocation = _context.productlocations.Include(p => p.products).Where(x => x.id_area == item.areaId && x.location == item.location && !x.Deleted).FirstOrDefault();
+                var checkProductLocation = _context.productlocations.Include(p => p.products).Where(x => x.id_area == item.areaId && x.location == item.location && !x.Deleted && x.isAction).FirstOrDefault();
                 if(checkProductLocation != null)
                 {
                     if(checkProductLocation.products != null)
@@ -336,6 +442,7 @@ namespace quanlykhodl.Service
                         dataItem.suppliersImage = checkSupplier == null ? Status.ACCOUNTNOTFOULD : checkSupplier.image;
                         dataItem.data = loadDataAreaProduct(checkProduct.id);
                         dataItem.dataItem = loadDataAreaProductAreaLocation(item);
+                        dataItem.codeProductImport = item.code == null ? Status.DATANULL : item.code;
 
                         list.Add(dataItem);
                     }
@@ -381,6 +488,7 @@ namespace quanlykhodl.Service
                             dataItem.floor = checkArea.floor_id.name;
                             dataItem.warehourse = checkWarehourse.name;
                             dataItem.code = checkCodeArea == null ? Status.CODEFAILD : checkCodeArea.code;
+                            dataItem.isAction = checkproductLocationData.isAction;
                         }
                     }
 
@@ -410,7 +518,8 @@ namespace quanlykhodl.Service
                                     location = item.location,
                                     area = checkArea.name,
                                     floor = checkArea.floor_id.name,
-                                    warehourse = checkWarehourse.name
+                                    warehourse = checkWarehourse.name,
+                                    isAction = item.isAction
                                 };
 
                                 list.Add(dataItem);
@@ -473,6 +582,99 @@ namespace quanlykhodl.Service
 
                 return await Task.FromResult(PayLoad<object>.Successfully(LoadOneData(checkData)));
             }catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<string>> UpdateCode(ImportformUpdateCode code)
+        {
+            try
+            {
+                var checkCode = _context.importforms.Where(x => x.code == code.code && !x.Deleted).FirstOrDefault();
+                if (checkCode == null)
+                    return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
+
+                checkCode.isAction = true;
+                checkCode.ActualQuantity = code.ActualQuantity;
+                _context.importforms.Update(checkCode);
+                _context.SaveChanges();
+
+                updateLocation(checkCode);
+
+                return await Task.FromResult(PayLoad<string>.Successfully(Status.SUCCESS));
+            }
+            catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<string>.CreatedFail(ex.Message));
+            }
+        }
+
+        private void updateLocation(Importform data)
+        {
+            var checkData = _context.productImportforms.Where(x => x.importform == data.id && !x.Deleted).ToList();
+            if(checkData.Any())
+            {
+                foreach(var item in checkData) 
+                {
+                    var checkLocation = _context.productlocations.Where(x => x.id_product == item.product 
+                    && x.location == item.location && x.id_area == item.area_id && !x.Deleted).FirstOrDefault();
+
+                    if(checkLocation != null)
+                    {
+                        if (!data.isProductNew)
+                        {
+                            var checkProduct = _context.products1.Where(x => x.id == item.product && !x.Deleted).FirstOrDefault();
+                            if (checkProduct != null)
+                            {
+                                checkProduct.quantity += item.quantity;
+                                checkLocation.quantity += item.quantity;
+
+                                _context.products1.Update(checkProduct);
+                            }
+                        }
+                        checkLocation.isAction = true;
+                        item.isAction = true;
+
+                        _context.productImportforms.Update(item);
+                        _context.productlocations.Update(checkLocation);
+                        _context.SaveChanges();
+                    }
+                }
+            }
+        }
+
+        public async Task<PayLoad<object>> FindCodeProductImportFrom(string code)
+        {
+            try
+            {
+                var checkCode = _context.productImportforms.Where(x => x.code == code && !x.Deleted).FirstOrDefault();
+                if (checkCode == null)
+                    return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+                var checkImportFrom = _context.importforms.Where(x => x.id == checkCode.importform && !x.Deleted).FirstOrDefault();
+                if (checkImportFrom == null)
+                    return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+
+                var checkProductLocation = _context.productlocations.Where(x => x.id_product == checkCode.product
+                    && x.location == checkCode.location && x.id_area == checkCode.area_id &&
+                    !x.Deleted).FirstOrDefault();
+
+                if (checkProductLocation == null)
+                    return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+
+                if (checkImportFrom.isProductNew)
+                {
+                    if (!checkProductLocation.isAction)
+                        return await Task.FromResult(PayLoad<object>.Successfully(true));
+                }
+                else
+                {
+                    if(checkProductLocation.isAction)
+                        return await Task.FromResult(PayLoad<object>.Successfully(true));
+                }
+                return await Task.FromResult(PayLoad<object>.Successfully(false));
+            }
+            catch(Exception ex)
             {
                 return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
             }

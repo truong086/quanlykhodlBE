@@ -155,7 +155,7 @@ namespace quanlykhodl.Service
             {
                 if (!checkPlan.isWarehourse)
                 {
-                    var checkLocationProduct = _context.productlocations.Where(x => x.id == checkPlan.productlocation_map && !x.Deleted).FirstOrDefault();
+                    var checkLocationProduct = _context.productlocations.Where(x => x.id == checkPlan.productlocation_map && !x.Deleted && x.isAction).FirstOrDefault();
                     if (checkLocationProduct != null)
                     {
                         var checkProduct = _context.products1.Where(x => x.id == checkLocationProduct.id_product && !x.Deleted).FirstOrDefault();
@@ -217,13 +217,13 @@ namespace quanlykhodl.Service
                     var checkAreaOld = _context.areas.Where(x => x.id == checkPlan.areaOld && !x.Deleted).FirstOrDefault();
                     if (!checkPlan.isWarehourse)
                     {
-                        var checkLocationProduct = _context.productlocations.Where(x => x.id == checkPlan.productlocation_map && !x.Deleted).FirstOrDefault();
+                        var checkLocationProduct = _context.productlocations.Where(x => x.id == checkPlan.productlocation_map && !x.Deleted && x.isAction).FirstOrDefault();
                         var checkProductExxsis = _context.productlocations.Where(x => x.id_product == checkLocationProduct.id_product
-                        && x.id_area == checkAreaNew.id && x.location == checkPlan.localtionNew && !x.Deleted && x.id != checkLocationProduct.id).FirstOrDefault();
+                        && x.id_area == checkAreaNew.id && x.location == checkPlan.localtionNew && !x.Deleted && x.id != checkLocationProduct.id && x.isAction).FirstOrDefault();
 
                         if (checkProductExxsis != null)
                         {
-                            var checkLocationNew = _context.productlocations.Where(x => x.id == checkProductExxsis.id && !x.Deleted).FirstOrDefault();
+                            var checkLocationNew = _context.productlocations.Where(x => x.id == checkProductExxsis.id && !x.Deleted && x.isAction).FirstOrDefault();
                             checkLocationNew.quantity += checkLocationProduct.quantity;
                             checkLocationProduct.Deleted = true;
 
@@ -241,13 +241,13 @@ namespace quanlykhodl.Service
                     }
                     else
                     {
-                        var checkProductLocationOld = _context.productlocations.Where(x => x.id_area == checkAreaOld.id && x.location == checkPlan.localtionOld && !x.Deleted).ToList();
-                        var checkProductLocationNew = _context.productlocations.Where(x => x.id_area == checkAreaNew.id && x.location == checkPlan.localtionOld && !x.Deleted).ToList();
+                        var checkProductLocationOld = _context.productlocations.Where(x => x.id_area == checkAreaOld.id && x.location == checkPlan.localtionOld && !x.Deleted && x.isAction).ToList();
+                        var checkProductLocationNew = _context.productlocations.Where(x => x.id_area == checkAreaNew.id && x.location == checkPlan.localtionNew && !x.Deleted && x.isAction).ToList();
                         if (checkProductLocationOld != null && checkAreaNew != null)
-                            updateAreaNew(checkAreaNew, checkProductLocationOld);
+                            updateAreaNew(checkAreaNew, checkProductLocationOld, checkPlan.localtionNew.Value);
 
                         if(checkProductLocationNew != null && checkAreaOld != null)
-                            updateAreaNew(checkAreaOld, checkProductLocationNew);
+                            updateAreaNew(checkAreaOld, checkProductLocationNew, checkPlan.localtionOld.Value);
                     }
 
                     checkPlan.status = Status.DONE.ToLower();
@@ -272,7 +272,7 @@ namespace quanlykhodl.Service
             }
         }
 
-        private void updateAreaNew(Area areaNew, List<productlocation> data)
+        private void updateAreaNew(Area areaNew, List<productlocation> data, int location)
         {
             foreach(var item in data)
             {
@@ -285,6 +285,7 @@ namespace quanlykhodl.Service
                 }
                 else
                 {
+                    item.location = location;
                     item.areas = areaNew;
                     item.id_area = areaNew.id;
                 }

@@ -7,6 +7,7 @@ namespace quanlykhodl.Models
         public int location {  get; set; }
         public int id_product {  get; set; }
         public int id_area {  get; set; }
+        public bool isAction {  get; set; }
         public product? products { get; set; }
         public Area? areas { get; set; }
         public int quantity { get; set; }

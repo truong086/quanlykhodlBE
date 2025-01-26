@@ -9,6 +9,7 @@ namespace quanlykhodl.Service
         Task<PayLoad<AccountDTO>> Add(AccountDTO accountDTO);
         Task<PayLoad<ReturnLogin>> LoginPage(Login accountDTO);
         Task<PayLoad<AccountUpdate>> Update(int id, AccountUpdate accountDTO);
+        Task<PayLoad<string>> CheckToken(string token);
         Task<PayLoad<string>> Delete(int id);
         Task<PayLoad<object>> FindAll(string? name, int page = 1, int pageSize = 20);
         Task<PayLoad<object>> Showrofile();

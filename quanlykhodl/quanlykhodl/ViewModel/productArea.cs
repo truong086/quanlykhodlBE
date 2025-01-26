@@ -22,8 +22,14 @@
         public string? name { get; set; }
         public string? code { get; set; }
         public string? image { get; set; }
+        public string? category { get; set; }
+        public string? account_name { get; set; }
+        public string? account_image { get; set; }
+        public string? supplier { get; set; }
         public int? location { get; set; }
         public int quantity { get; set; }
+        public int Inventory { get; set; }
+        public double price { get; set; }
     }
 
     public class WarehoursPlan

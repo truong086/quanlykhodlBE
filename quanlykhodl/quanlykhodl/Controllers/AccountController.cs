@@ -127,5 +127,12 @@ namespace quanlykhodl.Controllers
         {
             return await _accountService.updatePasswords(data);
         }
+
+        [HttpPost]
+        [Route(nameof(CheckToken))]
+        public async Task<PayLoad<string>> CheckToken(string token)
+        {
+            return await _accountService.CheckToken(token);
+        }
     }
 }

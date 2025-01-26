@@ -270,7 +270,7 @@ namespace quanlykhodl.Service
         private List<listArea> loadDataAreaProduct(int id)
         {
             var list = new List<listArea>();
-            var checkproductLocationData = _context.productlocations.Where(x => x.id_product == id && !x.Deleted).ToList();
+            var checkproductLocationData = _context.productlocations.Where(x => x.id_product == id && !x.Deleted && x.isAction).ToList();
             if (checkproductLocationData != null)
             {
                 foreach (var item in checkproductLocationData)

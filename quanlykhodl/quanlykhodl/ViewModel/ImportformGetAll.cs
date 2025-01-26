@@ -7,6 +7,8 @@ namespace quanlykhodl.ViewModel
         public int Id { get; set; }
         public string? tite { get; set; }
         public string? description { get; set; }
+        public bool isAction { get; set; }
+        public int? ActualQuantity { get; set; }
         public string? accountName { get; set; }
         public string? accountImage { get; set; }
         public bool isProductNew { get; set; }
@@ -33,6 +35,7 @@ namespace quanlykhodl.ViewModel
         public int quantity { get; set; }
         public int star { get; set; }
         public string? code { get; set; }
+        public string? codeProductImport { get; set; }
         public string? category_map { get; set; }
         public string? category_image { get; set; }
         public string? account_name { get; set; }
@@ -51,5 +54,6 @@ namespace quanlykhodl.ViewModel
         public string? warehourse { get; set; }
         public string? code { get; set; }
         public int? location { get; set; }
+        public bool isAction { get; set; }
     }
 }

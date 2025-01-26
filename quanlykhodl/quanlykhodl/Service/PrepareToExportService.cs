@@ -134,7 +134,7 @@ namespace quanlykhodl.Service
         {
             var list = new List<areaFloorWarehourseDelivenote>();
 
-            var checkLocaionProduct = _context.productlocations.Where(x => x.id_product == id && !x.Deleted).ToList();
+            var checkLocaionProduct = _context.productlocations.Where(x => x.id_product == id && !x.Deleted && x.isAction).ToList();
             if(checkLocaionProduct.Count > 0)
             {
                 foreach(var item in checkLocaionProduct)

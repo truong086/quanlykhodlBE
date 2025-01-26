@@ -26,5 +26,7 @@ namespace quanlykhodl.Models
 		public ICollection<Floor>? floors { get; set; }
 		public ICollection<Supplier>? suppliers { get; set; }
 		public ICollection<PrepareToExport>? prepareToExports { get; set; }
+		public ICollection<Message>? SentMessages { get; set; }
+		public ICollection<Message>? ReceivedMessages { get; set; }
 	}
 }

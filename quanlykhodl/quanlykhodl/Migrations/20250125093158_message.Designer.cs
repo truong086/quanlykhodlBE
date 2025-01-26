@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using quanlykhodl.Models;
 
@@ -11,9 +12,10 @@ using quanlykhodl.Models;
 namespace quanlykhodl.Migrations
 {
     [DbContext(typeof(DBContext))]
-    partial class DBContextModelSnapshot : ModelSnapshot
+    [Migration("20250125093158_message")]
+    partial class message
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -480,9 +482,6 @@ namespace quanlykhodl.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"), 1L, 1);
 
-                    b.Property<int?>("ActualQuantity")
-                        .HasColumnType("int");
-
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -509,9 +508,6 @@ namespace quanlykhodl.Migrations
 
                     b.Property<string>("description")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("isAction")
-                        .HasColumnType("bit");
 
                     b.Property<bool?>("isPercentage")
                         .HasColumnType("bit");
@@ -836,14 +832,8 @@ namespace quanlykhodl.Migrations
                     b.Property<int?>("area_id")
                         .HasColumnType("int");
 
-                    b.Property<string>("code")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int?>("importform")
                         .HasColumnType("int");
-
-                    b.Property<bool>("isAction")
-                        .HasColumnType("bit");
 
                     b.Property<int?>("location")
                         .HasColumnType("int");
@@ -898,9 +888,6 @@ namespace quanlykhodl.Migrations
 
                     b.Property<int>("id_product")
                         .HasColumnType("int");
-
-                    b.Property<bool>("isAction")
-                        .HasColumnType("bit");
 
                     b.Property<int>("location")
                         .HasColumnType("int");

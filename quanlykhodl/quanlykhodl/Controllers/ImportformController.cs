@@ -47,6 +47,20 @@ namespace quanlykhodl.Controllers
             return await _importformService.Add(data);
         }
 
+        [HttpPost]
+        [Route(nameof(FindCodeProductImportFrom))]
+        public async Task<PayLoad<object>> FindCodeProductImportFrom(string data)
+        {
+            return await _importformService.FindCodeProductImportFrom(data);
+        }
+
+        [HttpPost]
+        [Route(nameof(UpdateCode))]
+        public async Task<PayLoad<string>> UpdateCode(ImportformUpdateCode data)
+        {
+            return await _importformService.UpdateCode(data);
+        }
+
         [HttpPut]
         [Route(nameof(Update))]
         public async Task<PayLoad<ImportformUpdate>> Update(int id, ImportformUpdate data)

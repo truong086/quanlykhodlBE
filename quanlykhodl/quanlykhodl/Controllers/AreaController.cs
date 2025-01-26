@@ -28,14 +28,14 @@ namespace quanlykhodl.Controllers
 
         [HttpPost]
         [Route(nameof(Add))]
-        public async Task<PayLoad<AreaDTO>> Add([FromForm]AreaDTO data)
+        public async Task<PayLoad<AreaDTO>> Add(AreaDTO data)
         {
             return await _areaService.Add(data);
         }
 
         [HttpPut]
         [Route(nameof(Update))]
-        public async Task<PayLoad<AreaDTO>> Update(int id, [FromForm] AreaDTO data)
+        public async Task<PayLoad<AreaDTO>> Update(int id, AreaDTO data)
         {
             return await _areaService.Update(id, data);
         }

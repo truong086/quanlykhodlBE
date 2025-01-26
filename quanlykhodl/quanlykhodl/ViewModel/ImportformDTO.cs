@@ -47,4 +47,11 @@ namespace quanlykhodl.ViewModel
         public double total { get; set; }
 
     }
+
+    public class ImportformUpdateCode
+    {
+        public string? code { get; set; }
+        public int? ActualQuantity { get; set; }
+
+    }
 }
