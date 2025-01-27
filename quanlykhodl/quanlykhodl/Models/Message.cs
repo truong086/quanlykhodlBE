@@ -8,6 +8,8 @@ namespace quanlykhodl.Models
         public int? SenderId { get; set; } // Id người gửi
         public int? ReceiverId { get; set; } // Id người nhận
         public string Content { get; set; } = string.Empty; // Nội dung tin nhắn
+        public string? image { get; set; }
+        public string? publicId { get; set; }
         public bool IsRead { get; set; } = false; // Đã đọc hay chưa
 
         // Quan hệ

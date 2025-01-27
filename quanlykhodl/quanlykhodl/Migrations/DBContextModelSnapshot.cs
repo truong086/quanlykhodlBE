@@ -282,6 +282,9 @@ namespace quanlykhodl.Migrations
                     b.Property<string>("description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool?>("isAction")
+                        .HasColumnType("bit");
+
                     b.Property<bool?>("isPercentage")
                         .HasColumnType("bit");
 
@@ -335,6 +338,9 @@ namespace quanlykhodl.Migrations
                     b.Property<string>("code")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("deliverynotesid")
+                        .HasColumnType("int");
+
                     b.Property<int?>("id_PrepareToExport")
                         .HasColumnType("int");
 
@@ -343,9 +349,9 @@ namespace quanlykhodl.Migrations
 
                     b.HasKey("id");
 
-                    b.HasIndex("id_PrepareToExport");
+                    b.HasIndex("deliverynotesid");
 
-                    b.HasIndex("id_delivenote");
+                    b.HasIndex("id_PrepareToExport");
 
                     b.ToTable("deliverynotePrepareToEs");
                 });
@@ -607,6 +613,12 @@ namespace quanlykhodl.Migrations
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<string>("image")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("publicId")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("id");
 
                     b.HasIndex("ReceiverId");
@@ -614,6 +626,42 @@ namespace quanlykhodl.Migrations
                     b.HasIndex("SenderId");
 
                     b.ToTable("Messages");
+                });
+
+            modelBuilder.Entity("quanlykhodl.Models.OnlineUsers", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"), 1L, 1);
+
+                    b.Property<string>("ConnectionId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CretorEdit")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsOnline")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("account_id")
+                        .HasColumnType("int");
+
+                    b.HasKey("id");
+
+                    b.HasIndex("account_id");
+
+                    b.ToTable("onlineUsersUser");
                 });
 
             modelBuilder.Entity("quanlykhodl.Models.Plan", b =>
@@ -731,6 +779,9 @@ namespace quanlykhodl.Migrations
                     b.Property<int?>("account_id")
                         .HasColumnType("int");
 
+                    b.Property<int?>("accountid")
+                        .HasColumnType("int");
+
                     b.Property<string>("code")
                         .HasColumnType("nvarchar(max)");
 
@@ -740,16 +791,19 @@ namespace quanlykhodl.Migrations
                     b.Property<bool>("isCheck")
                         .HasColumnType("bit");
 
+                    b.Property<int?>("productid")
+                        .HasColumnType("int");
+
                     b.Property<int>("quantity")
                         .HasColumnType("int");
 
                     b.HasKey("id");
 
-                    b.HasIndex("account_id");
+                    b.HasIndex("accountid");
 
-                    b.HasIndex("id_product");
+                    b.HasIndex("productid");
 
-                    b.ToTable("prepareToExports");
+                    b.ToTable("PrepareToExport");
                 });
 
             modelBuilder.Entity("quanlykhodl.Models.product", b =>
@@ -811,6 +865,58 @@ namespace quanlykhodl.Migrations
                     b.HasIndex("suppliers");
 
                     b.ToTable("products1");
+                });
+
+            modelBuilder.Entity("quanlykhodl.Models.productDeliverynote", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"), 1L, 1);
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CretorEdit")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("area_id")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("areaid")
+                        .HasColumnType("int");
+
+                    b.Property<string>("code")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("deliverynote")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("location")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("product_map")
+                        .HasColumnType("int");
+
+                    b.Property<int>("quantity")
+                        .HasColumnType("int");
+
+                    b.HasKey("id");
+
+                    b.HasIndex("areaid");
+
+                    b.HasIndex("deliverynote");
+
+                    b.HasIndex("product_map");
+
+                    b.ToTable("productDeliverynotes");
                 });
 
             modelBuilder.Entity("quanlykhodl.Models.productImportform", b =>
@@ -1328,14 +1434,13 @@ namespace quanlykhodl.Migrations
 
             modelBuilder.Entity("quanlykhodl.Models.DeliverynotePrepareToExport", b =>
                 {
+                    b.HasOne("quanlykhodl.Models.Deliverynote", "deliverynotes")
+                        .WithMany()
+                        .HasForeignKey("deliverynotesid");
+
                     b.HasOne("quanlykhodl.Models.PrepareToExport", "PreparetoExports")
                         .WithMany("DeliverynotePrepareToExports")
                         .HasForeignKey("id_PrepareToExport")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("quanlykhodl.Models.Deliverynote", "deliverynotes")
-                        .WithMany("deliverynotePrepareToExports")
-                        .HasForeignKey("id_delivenote")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("PreparetoExports");
@@ -1418,6 +1523,16 @@ namespace quanlykhodl.Migrations
                     b.Navigation("Sender");
                 });
 
+            modelBuilder.Entity("quanlykhodl.Models.OnlineUsers", b =>
+                {
+                    b.HasOne("quanlykhodl.Models.Account", "account")
+                        .WithMany("onlineUsers")
+                        .HasForeignKey("account_id")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("account");
+                });
+
             modelBuilder.Entity("quanlykhodl.Models.Plan", b =>
                 {
                     b.HasOne("quanlykhodl.Models.Account", "Receiver_id")
@@ -1456,14 +1571,12 @@ namespace quanlykhodl.Migrations
             modelBuilder.Entity("quanlykhodl.Models.PrepareToExport", b =>
                 {
                     b.HasOne("quanlykhodl.Models.Account", "account")
-                        .WithMany("prepareToExports")
-                        .HasForeignKey("account_id")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .WithMany()
+                        .HasForeignKey("accountid");
 
                     b.HasOne("quanlykhodl.Models.product", "product")
-                        .WithMany("PrepareToExports")
-                        .HasForeignKey("id_product")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .WithMany()
+                        .HasForeignKey("productid");
 
                     b.Navigation("account");
 
@@ -1492,6 +1605,29 @@ namespace quanlykhodl.Migrations
                     b.Navigation("categoryid123");
 
                     b.Navigation("supplier_id");
+                });
+
+            modelBuilder.Entity("quanlykhodl.Models.productDeliverynote", b =>
+                {
+                    b.HasOne("quanlykhodl.Models.Area", "area")
+                        .WithMany()
+                        .HasForeignKey("areaid");
+
+                    b.HasOne("quanlykhodl.Models.Deliverynote", "deliverynote_id1")
+                        .WithMany("productDeliverynotes")
+                        .HasForeignKey("deliverynote")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("quanlykhodl.Models.product", "product")
+                        .WithMany("productDeliverynotes")
+                        .HasForeignKey("product_map")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("area");
+
+                    b.Navigation("deliverynote_id1");
+
+                    b.Navigation("product");
                 });
 
             modelBuilder.Entity("quanlykhodl.Models.productImportform", b =>
@@ -1629,9 +1765,9 @@ namespace quanlykhodl.Migrations
 
                     b.Navigation("importforms");
 
-                    b.Navigation("plans");
+                    b.Navigation("onlineUsers");
 
-                    b.Navigation("prepareToExports");
+                    b.Navigation("plans");
 
                     b.Navigation("products");
 
@@ -1660,7 +1796,7 @@ namespace quanlykhodl.Migrations
 
             modelBuilder.Entity("quanlykhodl.Models.Deliverynote", b =>
                 {
-                    b.Navigation("deliverynotePrepareToExports");
+                    b.Navigation("productDeliverynotes");
                 });
 
             modelBuilder.Entity("quanlykhodl.Models.Floor", b =>
@@ -1685,11 +1821,11 @@ namespace quanlykhodl.Migrations
 
             modelBuilder.Entity("quanlykhodl.Models.product", b =>
                 {
-                    b.Navigation("PrepareToExports");
-
                     b.Navigation("Productlocations");
 
                     b.Navigation("imageProducts");
+
+                    b.Navigation("productDeliverynotes");
 
                     b.Navigation("productImportforms");
                 });

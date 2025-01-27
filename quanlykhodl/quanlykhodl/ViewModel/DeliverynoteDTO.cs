@@ -24,5 +24,23 @@
     {
         public int id_product { get; set; }
         public int quantity { get; set; }
+        public int? location { get; set; }
+        public int? area { get; set; }
+    }
+
+    public class UploadproductDeliverynoteDTO
+    {
+        public int? productDelivenote_id { get; set; }
+        public int id_product { get; set; }
+        public int quantity { get; set; }
+        public int? location { get; set; }
+        public int? area { get; set; }
+    }
+
+    public class uploadDataLocationArea
+    {
+        public string? code { get; set;}
+        public int? id { get; set;}
+        public List<UploadproductDeliverynoteDTO>? products { get; set; }
     }
 }

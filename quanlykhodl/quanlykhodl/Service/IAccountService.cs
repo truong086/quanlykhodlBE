@@ -24,5 +24,6 @@ namespace quanlykhodl.Service
         Task<PayLoad<string>> CheckCode(ActionAccount data);
         Task<PayLoad<object>> FindAllToken();
         Task<PayLoad<string>> updatePasswords(updatatePasswordAccount data);
+        Task<PayLoad<string>> LogOut();
     }
 }

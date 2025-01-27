@@ -20,6 +20,7 @@
         public int? TotalProduct { get; set; }
         public long? TotalQuantity { get; set; }
         public bool? isPercentage { get; set; }
+        public bool? isAction { get; set; }
         public List<productImportformAndDeliveerrynote>? products { get; set; }
     }
 }

@@ -7,8 +7,11 @@ namespace quanlykhodl.Models
 		public int? deliverynote { get; set; }
 		public int? product_map { get; set; }
 		public int quantity {  get; set; }
-		public int code {  get; set; }
-		public Deliverynote? deliverynote_id1 { get; set; }
+		public int? location {  get; set; }
+		public string? code {  get; set; }
+        public int? area_id { get; set; }
+        public Area? area { get; set; }
+        public Deliverynote? deliverynote_id1 { get; set; }
 		public product? product { get; set; }
 	}
 }

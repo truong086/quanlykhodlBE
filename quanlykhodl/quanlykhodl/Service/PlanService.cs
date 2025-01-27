@@ -276,6 +276,19 @@ namespace quanlykhodl.Service
                     mapData.warehouseOld = checkWarehourseOld == null ? Status.NOWAREHOURSE : checkWarehourseOld.name;
                     mapData.Receiver_name = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.username;
                     mapData.Account_creatPlan = item.CretorEdit;
+                    mapData.CodeWarehourseOld = checkWarehourseOld == null ? Status.NOWAREHOURSE : checkWarehourseOld.code;
+                    mapData.CodeWarehourseNew = checkWarehourseNew == null ? Status.NOWAREHOURSE : checkWarehourseNew.code;
+                    mapData.CodeFloorOld = checkFloorOld == null ? Status.NOFLOOR : checkFloorOld.code;
+                    mapData.CodeFloorNew = checkFloorNew == null ? Status.NOFLOOR : checkFloorNew.code;
+                    mapData.CodeAreaeOld = checkAreaOld == null ? Status.NOAREA : checkAreaOld.code;
+                    mapData.CodeAreaeNew = checkAreaNew == null ? Status.NOFLOOR : checkAreaNew.code;
+
+                    mapData.ImageWarehourseOld = checkWarehourseOld == null ? Status.NOWAREHOURSE : checkWarehourseOld.image;
+                    mapData.ImageWarehourseNew = checkWarehourseNew == null ? Status.NOWAREHOURSE : checkWarehourseNew.image;
+                    mapData.ImageFloorOld = checkFloorOld == null ? Status.NOFLOOR : checkFloorOld.image;
+                    mapData.ImageFloorNew = checkFloorNew == null ? Status.NOFLOOR : checkFloorNew.image;
+                    mapData.ImageAreaeOld = checkAreaOld == null ? Status.NOAREA : checkAreaOld.image;
+                    mapData.ImageAreaeNew = checkAreaNew == null ? Status.NOFLOOR : checkAreaNew.image;
 
                     list.Add(mapData);
 
@@ -588,10 +601,10 @@ namespace quanlykhodl.Service
                         var checkId = _context.plans.Where(x => x.id == item && !x.isConfirmation && !x.isConsent && !x.Deleted).FirstOrDefault();
                         if (checkId == null)
                             return await Task.FromResult(PayLoad<bool>.CreatedFail(Status.DATANULL));
-
-                        checkId.isConfirmation = true;
+                        
                         if (data.isConfirmation == true)
                         {
+                            checkId.isConfirmation = true;
                             checkId.isConsent = true;
                             checkId.status = Status.DANHAN;
                             checkId.Receiver = checkAccount == null ? null : checkAccount.id;
@@ -605,14 +618,9 @@ namespace quanlykhodl.Service
                             };
 
                             _context.warehousetransferstatuses.Add(warehourseStarus);
+                            _context.plans.Update(checkId);
+                            _context.SaveChanges();
                         }
-                        else
-                        {
-                            checkId.isConsent = false;
-                        }
-
-                        _context.plans.Update(checkId);
-                        _context.SaveChanges();
                     }
                 }
                 return await Task.FromResult(PayLoad<bool>.Successfully(true));
@@ -664,6 +672,97 @@ namespace quanlykhodl.Service
             }catch(Exception ex)
             {
                 return await Task.FromResult(PayLoad<PlanAllWarehoursDTO>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<object>> FindDoneByAdmin(string? name, int page = 1, int pageSize = 20)
+        {
+            try
+            {
+                var checkDone = _context.plans.Where(x => x.status.ToLower() == Status.DONE.ToLower()).ToList();
+                if(checkDone.Count <= 0)
+                    return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+
+                if (!string.IsNullOrEmpty(name))
+                    checkDone = checkDone.Where(x => x.title.Contains(name)).ToList();
+                var pageList = new PageList<object>(LoadData(checkDone), page - 1, pageSize);
+
+                return await Task.FromResult(PayLoad<object>.Successfully(new
+                {
+                    data = pageList,
+                    page,
+                    pageList.pageSize,
+                    pageList.totalCounts,
+                    pageList.totalPages
+                }));
+            }
+            catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<object>> FindDoneByAccount(string? name, int page = 1, int pageSize = 20)
+        {
+            try
+            {
+                var user = _userService.name();
+                var checkAccount = _context.accounts.Where(x => x.id == int.Parse(user) && !x.Deleted).FirstOrDefault();
+                if(checkAccount == null)
+                    return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+
+                var checkDone = _context.plans.Where(x => x.status.ToLower() == Status.DONE.ToLower() && x.Receiver == checkAccount.id && x.isConfirmation).ToList();
+                if (checkDone.Count <= 0)
+                    return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+
+                if (!string.IsNullOrEmpty(name))
+                    checkDone = checkDone.Where(x => x.title.Contains(name)).ToList();
+                var pageList = new PageList<object>(LoadData(checkDone), page - 1, pageSize);
+
+                return await Task.FromResult(PayLoad<object>.Successfully(new
+                {
+                    data = pageList,
+                    page,
+                    pageList.pageSize,
+                    pageList.totalCounts,
+                    pageList.totalPages
+                }));
+            }
+            catch (Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<object>> FindConfirmationByAccount(string? name, int page = 1, int pageSize = 20)
+        {
+            try
+            {
+                var user = _userService.name();
+                var checkAccount = _context.accounts.Where(x => x.id == int.Parse(user) && !x.Deleted).FirstOrDefault();
+                if (checkAccount == null)
+                    return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+
+                var checkDone = _context.plans.Where(x => x.status.ToLower() != Status.DONE.ToLower() && x.Receiver == checkAccount.id && x.isConfirmation && !x.Deleted).ToList();
+                if (checkDone.Count <= 0)
+                    return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+
+                if (!string.IsNullOrEmpty(name))
+                    checkDone = checkDone.Where(x => x.title.Contains(name)).ToList();
+                var pageList = new PageList<object>(LoadData(checkDone), page - 1, pageSize);
+
+                return await Task.FromResult(PayLoad<object>.Successfully(new
+                {
+                    data = pageList,
+                    page,
+                    pageList.pageSize,
+                    pageList.totalCounts,
+                    pageList.totalPages
+                }));
+            }
+            catch (Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
             }
         }
     }

@@ -91,25 +91,24 @@ namespace quanlykhodl.Service
             var code = RanDomCode.geneAction(8) + deliverynote.id.ToString();
             foreach (var item in data)
             {
-                var checkProduct = _context.prepareToExports.Where(x => x.id == item.id_product && !x.Deleted).FirstOrDefault();
+                var checkProduct = _context.products1.Where(x => x.id == item.id_product && !x.Deleted).FirstOrDefault();
                 if (checkProduct != null)
                 {
-                    var addDataItem = new DeliverynotePrepareToExport
+                    var addDataItem = new productDeliverynote
                     {
-                       id_delivenote = deliverynote.id,
-                       deliverynotes = deliverynote,
-                       id_PrepareToExport = checkProduct.id,
-                       PreparetoExports = checkProduct,
+                       location = null,
+                       area = null,
+                       area_id = null,
+                       deliverynote = deliverynote.id,
+                       deliverynote_id1 = deliverynote,
+                       product = checkProduct,
+                       product_map = checkProduct.id,
+                       quantity = item.quantity,
                        code = code
 
                     };
 
-                    checkProduct.Deleted = true;
-                    checkProduct.isCheck = true;
-                    _context.prepareToExports.Update(checkProduct);
-                    _context.SaveChanges();
-
-                    _context.deliverynotePrepareToEs.Add(addDataItem);
+                    _context.productDeliverynotes.Add(addDataItem);
                     _context.SaveChanges();
                 }
             }
@@ -198,7 +197,7 @@ namespace quanlykhodl.Service
             var checkAccount = _context.accounts.Where(x => x.id == id.accountmap && !x.Deleted).FirstOrDefault();
             var checkRetaiCustomer = _context.Retailcustomers.Where(x => x.id == id.retailcustomers && !x.Deleted).FirstOrDefault();
 
-            var checkTotalQuantityProduct = _context.deliverynotePrepareToEs.Where(x => x.id_delivenote == id.id && !x.Deleted).ToList();
+            //var checkTotalQuantityProduct = _context.productDeliverynotes.Where(x => x.deliverynote == id.id && !x.Deleted).ToList();
 
             var mapData = _mapper.Map<DeliverynoteGetAll>(id);
             mapData.nameAccountCreat = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.username;
@@ -207,20 +206,20 @@ namespace quanlykhodl.Service
             mapData.EmailAccountBy = checkRetaiCustomer == null ? Status.ACCOUNTNOTFOULD : checkRetaiCustomer.email;
             mapData.AddressAccountBy = checkRetaiCustomer == null ? Status.ACCOUNTNOTFOULD : checkRetaiCustomer.address;
             mapData.products = loadProductImportData(id.id);
-            mapData.TotalProduct = _context.deliverynotePrepareToEs.Where(x => x.id_delivenote == id.id && !x.Deleted).Count();
-            mapData.TotalQuantity = sumTotal(checkTotalQuantityProduct);
+            mapData.TotalProduct = _context.productDeliverynotes.Where(x => x.deliverynote == id.id && !x.Deleted).Count();
+            //mapData.TotalQuantity = sumTotal(checkTotalQuantityProduct);
+            mapData.TotalQuantity = _context.productDeliverynotes.Where(x => x.deliverynote == id.id && !x.Deleted).Sum(x => x.quantity);
 
             return mapData;
         }
 
-        private long sumTotal(List<DeliverynotePrepareToExport> data)
+        private long sumTotal(List<productDeliverynote> data)
         {
             long sum = 0;
-            var list = new List<DeliverynotePrepareToExport>();
 
             foreach(var item in data)
             {
-                var checkQuantity = _context.prepareToExports.Where(x => x.id == item.id && !x.Deleted).FirstOrDefault();
+                var checkQuantity = _context.productDeliverynotes.Where(x => x.id == item.id && !x.Deleted).FirstOrDefault();
                 if (checkQuantity != null)
                     sum += checkQuantity.quantity;
             }
@@ -232,36 +231,34 @@ namespace quanlykhodl.Service
         {
             var list = new List<productImportformAndDeliveerrynote>();
             //var checkProductImport = _context.productDeliverynotes.Where(x => x.deliverynote == id && !x.Deleted).ToList();
-            var checkProductImport = _context.deliverynotePrepareToEs.Where(x => x.id_delivenote == id && !x.Deleted).ToList();
+            var checkProductImport = _context.productDeliverynotes.Where(x => x.deliverynote == id && !x.Deleted).ToList();
             if (checkProductImport != null)
             {
                 foreach (var item in checkProductImport)
                 {
-                    var checkDelivenoteProduct = _context.prepareToExports.Where(x => x.id == item.id_PrepareToExport).FirstOrDefault();
-                    if(checkDelivenoteProduct != null)
+                    var checkProduct = _context.products1.Where(x => x.id == item.product_map && !x.Deleted).FirstOrDefault();
+                    if (checkProduct != null)
                     {
-                        var checkProduct = _context.products1.Where(x => x.id == checkDelivenoteProduct.id_product && !x.Deleted).FirstOrDefault();
-                        if (checkProduct != null)
-                        {
 
-                            var checkCategory = _context.categories.Where(x => x.id == checkProduct.category_map && !x.Deleted).FirstOrDefault();
-                            var checkSupplier = _context.suppliers.Where(x => x.id == checkProduct.suppliers && !x.Deleted).FirstOrDefault();
-                            var checkAccount = _context.accounts.Where(x => x.id == checkProduct.account_map && !x.Deleted).FirstOrDefault();
+                        var checkCategory = _context.categories.Where(x => x.id == checkProduct.category_map && !x.Deleted).FirstOrDefault();
+                        var checkSupplier = _context.suppliers.Where(x => x.id == checkProduct.suppliers && !x.Deleted).FirstOrDefault();
+                        var checkAccount = _context.accounts.Where(x => x.id == checkProduct.account_map && !x.Deleted).FirstOrDefault();
 
-                            var dataItem = _mapper.Map<productImportformAndDeliveerrynote>(checkProduct);
-                            dataItem.id = checkProduct.id;
-                            dataItem.account_name = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.username;
-                            dataItem.account_image = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.image;
-                            dataItem.category_map = checkCategory == null ? Status.ACCOUNTNOTFOULD : checkCategory.name;
-                            dataItem.category_image = checkCategory == null ? Status.NOCATEGORY : checkCategory.image;
-                            dataItem.suppliers = checkSupplier == null ? Status.DATANULL : checkSupplier.name;
-                            dataItem.suppliersImage = checkSupplier == null ? Status.ACCOUNTNOTFOULD : checkSupplier.image;
-                            dataItem.data = loadDataAreaProduct(checkProduct.id);
+                        var dataItem = _mapper.Map<productImportformAndDeliveerrynote>(checkProduct);
+                        dataItem.id = checkProduct.id;
+                        dataItem.account_name = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.username;
+                        dataItem.account_image = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.image;
+                        dataItem.category_map = checkCategory == null ? Status.ACCOUNTNOTFOULD : checkCategory.name;
+                        dataItem.category_image = checkCategory == null ? Status.NOCATEGORY : checkCategory.image;
+                        dataItem.suppliers = checkSupplier == null ? Status.DATANULL : checkSupplier.name;
+                        dataItem.suppliersImage = checkSupplier == null ? Status.ACCOUNTNOTFOULD : checkSupplier.image;
+                        dataItem.data = loadDataAreaProduct(checkProduct.id);
+                        dataItem.id_productDelivenote = item.id;
+                        dataItem.code_productDelivenote = item.code;
 
-                            list.Add(dataItem);
-                        }
+                        list.Add(dataItem);
                     }
-                    
+
                 }
             }
             return list;
@@ -356,11 +353,11 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var checkData = _context.prepareToExports.Where(x => x.code == code).FirstOrDefault();
+                var checkData = _context.products1.Where(x => x.code == code && !x.Deleted).FirstOrDefault();
                 if (checkData == null)
                     return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
 
-                var checkdelive = _context.deliverynotePrepareToEs.Where(x => x.id_PrepareToExport == checkData.id && !x.Deleted).ToList();
+                var checkdelive = _context.productDeliverynotes.Where(x => x.product_map == checkData.id && !x.Deleted).ToList();
                 if (checkdelive.Count <= 0)
                     return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
 
@@ -372,12 +369,12 @@ namespace quanlykhodl.Service
             }
         }
 
-        private List<DeliverynoteGetAll> loadDataCode(List<DeliverynotePrepareToExport> data)
+        private List<DeliverynoteGetAll> loadDataCode(List<productDeliverynote> data)
         {
             var list = new List<DeliverynoteGetAll>();
             foreach(var item in data)
             {
-                var checkDelive = _context.deliverynotes.Where(x => x.id == item.id_delivenote && !x.Deleted).FirstOrDefault();
+                var checkDelive = _context.deliverynotes.Where(x => x.id == item.deliverynote && !x.Deleted).FirstOrDefault();
                 if(checkDelive != null)
                 {
                     list.Add(loadFindOneData(checkDelive));
@@ -385,6 +382,110 @@ namespace quanlykhodl.Service
             }
 
             return list;
+        }
+
+        public async Task<PayLoad<uploadDataLocationArea>> UpdateActionLocation(uploadDataLocationArea data)
+        {
+            try
+            {
+                if(data.products == null)
+                    return await Task.FromResult(PayLoad<uploadDataLocationArea>.CreatedFail(Status.DATANULL));
+
+                var checkDataQuantity = _context.productDeliverynotes.Where(x => x.deliverynote == data.id && !x.Deleted).Count();
+                if (checkDataQuantity < data.products.Count() || checkDataQuantity > data.products.Count())
+                    return await Task.FromResult(PayLoad<uploadDataLocationArea>.CreatedFail(Status.DATANULL));
+
+                if (!checkQuantityData(data.products))
+                    return await Task.FromResult(PayLoad<uploadDataLocationArea>.CreatedFail(Status.LOCATIONORPRODDUCTFAILD));
+
+                var checkId = _context.deliverynotes.Where(x => (x.id == data.id || x.code == data.code) && !x.Deleted).FirstOrDefault();
+                if (checkId == null)
+                    return await Task.FromResult(PayLoad<uploadDataLocationArea>.CreatedFail(Status.DATANULL));
+
+                checkId.isAction = true;
+
+                _context.deliverynotes.Update(checkId);
+                _context.SaveChanges();
+
+                return await Task.FromResult(PayLoad<uploadDataLocationArea>.Successfully(data));
+            }catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<uploadDataLocationArea>.CreatedFail(ex.Message));
+            }
+        }
+        private bool checkQuantityData(List<UploadproductDeliverynoteDTO> data)
+        {
+            if (data.Any())
+            {
+                foreach(var item in data)
+                {
+                    var checkId = _context.productDeliverynotes.Where(x => x.id == item.productDelivenote_id && !x.Deleted).FirstOrDefault();
+                    if(checkId == null) return false;
+
+                    var checkLocation = _context.productlocations.Where(x => x.id_product == checkId.product_map 
+                    && x.id_area == item.area && x.location == item.location && !x.Deleted && x.isAction)
+                        .FirstOrDefault();
+                    if(checkLocation == null)
+                        return false;
+
+                    var checkArea = _context.areas.Where(x => x.id == checkLocation.id_area && !x.Deleted).FirstOrDefault();
+                    if(checkArea == null) return false;
+
+                    var checkProduct = _context.products1.Where(x => x.id == checkId.product_map && !x.Deleted).FirstOrDefault();
+                    if(checkProduct == null) return false;
+
+                    if(checkLocation.quantity < checkId.quantity) return false;
+                    if(checkProduct.quantity < checkId.quantity) return false;
+
+                    checkId.location = checkLocation.location;
+                    checkId.area = checkArea;
+                    checkId.area_id = checkArea.id;
+                    checkId.UpdatedAt = DateTimeOffset.UtcNow;
+
+                    checkLocation.quantity -= checkId.quantity;
+
+                    checkProduct.quantity -= checkId.quantity;
+
+                    _context.products1.Update(checkProduct);
+                    _context.productDeliverynotes.Update(checkId);
+                    _context.productlocations.Update(checkLocation);
+                    _context.SaveChanges();
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        public async Task<PayLoad<object>> FindAccountDelivenote(string? name, int page = 1, int pageSize = 20)
+        {
+            try
+            {
+                var user = _userService.name();
+                var checkAccount = _context.accounts.Where(x => x.id == int.Parse(user) && !x.Deleted).FirstOrDefault();
+                if (checkAccount == null)
+                    return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+
+                var checkDelivenote = _context.deliverynotes.Where(x => x.accountmap == checkAccount.id && !x.Deleted).ToList();
+                if(checkDelivenote == null)
+                    return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+
+                var pageList = new PageList<object>(loadData(checkDelivenote), page, pageSize);
+
+                return await Task.FromResult(PayLoad<object>.Successfully(new
+                {
+                    data = pageList,
+                    page,
+                    pageList.pageSize,
+                    pageList.totalCounts,
+                    pageList.totalPages
+                }));
+            }
+            catch (Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
         }
     }
 }

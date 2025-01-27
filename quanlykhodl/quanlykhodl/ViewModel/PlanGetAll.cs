@@ -20,5 +20,17 @@
         public string? area { get; set; }
         public string? floor { get; set; }
         public string? Account_creatPlan { get; set; }
+        public string? CodeWarehourseNew { get; set; }
+        public string? CodeFloorNew { get; set; }
+        public string? CodeAreaeNew { get; set; }
+        public string? CodeWarehourseOld { get; set; }
+        public string? CodeFloorOld { get; set; }
+        public string? CodeAreaeOld { get; set; }
+        public string? ImageFloorNew { get; set; }
+        public string? ImageAreaeNew { get; set; }
+        public string? ImageWarehourseOld { get; set; }
+        public string? ImageWarehourseNew { get; set; }
+        public string? ImageFloorOld { get; set; }
+        public string? ImageAreaeOld { get; set; }
     }
 }

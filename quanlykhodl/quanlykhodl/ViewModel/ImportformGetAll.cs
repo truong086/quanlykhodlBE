@@ -33,7 +33,10 @@ namespace quanlykhodl.ViewModel
         public string? DonViTinh { get; set; }
         public List<string>? image { get; set; }
         public int quantity { get; set; }
+        public int quantityImportFrom { get; set; }
         public int star { get; set; }
+        public int id_productDelivenote { get; set; }
+        public string? code_productDelivenote { get; set; }
         public string? code { get; set; }
         public string? codeProductImport { get; set; }
         public string? category_map { get; set; }

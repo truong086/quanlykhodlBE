@@ -19,5 +19,8 @@ namespace quanlykhodl.Service
         Task<PayLoad<string>> Delete(int id);
         Task<PayLoad<PlanGetAll>> FindOne(int id);
         Task<PayLoad<bool>> UpdatePlanConfirmation(ConfirmationPlan data);
+        Task<PayLoad<object>> FindDoneByAdmin(string? name, int page = 1, int pageSize = 20);
+        Task<PayLoad<object>> FindDoneByAccount(string? name, int page = 1, int pageSize = 20);
+        Task<PayLoad<object>> FindConfirmationByAccount(string? name, int page = 1, int pageSize = 20);
     }
 }

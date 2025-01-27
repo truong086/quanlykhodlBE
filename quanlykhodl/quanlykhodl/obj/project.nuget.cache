@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "gmCf8wi5DRu9fzwEnvcM8WyWyNveAb3QyX/hc6dqpaNB9t8P373qPJXO0ltGlMw6WuAtVN37u0ec+tpXYLBVDA==",
+  "dgSpecHash": "lqNDH06yKO8yZs9Hn3dePlw5xCYxK9yubys892oJyA7oRk6GF6AWfqX3Eyhh9UureYfvPP07Ntx+sVpffs+Bnw==",
   "success": true,
   "projectFilePath": "C:\\Users\\ASUS\\source\\repos\\quanlykhodailoan\\quanlykhodl\\quanlykhodl\\quanlykhodl.csproj",
   "expectedPackageFiles": [
@@ -15,6 +15,8 @@
     "C:\\Users\\ASUS\\.nuget\\packages\\jose-jwt\\5.0.0\\jose-jwt.5.0.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\mailkit\\4.2.0\\mailkit.4.2.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\6.0.20\\microsoft.aspnetcore.authentication.jwtbearer.6.0.20.nupkg.sha512",
+    "C:\\Users\\ASUS\\.nuget\\packages\\microsoft.aspnetcore.jsonpatch\\6.0.20\\microsoft.aspnetcore.jsonpatch.6.0.20.nupkg.sha512",
+    "C:\\Users\\ASUS\\.nuget\\packages\\microsoft.aspnetcore.mvc.newtonsoftjson\\6.0.20\\microsoft.aspnetcore.mvc.newtonsoftjson.6.0.20.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\microsoft.csharp\\4.7.0\\microsoft.csharp.4.7.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\microsoft.data.sqlclient\\2.1.4\\microsoft.data.sqlclient.2.1.4.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\microsoft.data.sqlclient.sni.runtime\\2.1.1\\microsoft.data.sqlclient.sni.runtime.2.1.1.nupkg.sha512",
@@ -59,6 +61,7 @@
     "C:\\Users\\ASUS\\.nuget\\packages\\microsoft.win32.systemevents\\4.7.0\\microsoft.win32.systemevents.4.7.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\mimekit\\4.2.0\\mimekit.4.2.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512",
+    "C:\\Users\\ASUS\\.nuget\\packages\\newtonsoft.json.bson\\1.0.2\\newtonsoft.json.bson.1.0.2.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\quartz\\3.13.1\\quartz.3.13.1.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\quartz.extensions.dependencyinjection\\3.13.1\\quartz.extensions.dependencyinjection.3.13.1.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\quartz.extensions.hosting\\3.13.1\\quartz.extensions.hosting.3.13.1.nupkg.sha512",

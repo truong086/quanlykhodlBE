@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Newtonsoft.Json;
 using quanlykhodl.ChatHub;
 using quanlykhodl.Clouds;
 using quanlykhodl.EmailConfigs;
@@ -32,7 +33,7 @@ corsBuilder.WithOrigins("http://localhost:8080"); // Đây là Url bên frontEnd
 corsBuilder.AllowCredentials();
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("SiteCorsPolicy", corsBuilder.Build());
+    options.AddPolicy("AllowSpecificOrigin", corsBuilder.Build());
 });
 
 #endregion
@@ -133,6 +134,14 @@ builder.Services.AddDbContext<DBContext>(option =>
     option.UseSqlServer(connection); // "ThuongMaiDienTu" đây là tên của project, vì tách riêng model khỏi project sang 1 lớp khác nên phải để câu lệnh này "b => b.MigrationsAssembly("ThuongMaiDienTu")"
 });
 
+builder.Services.AddControllers().AddNewtonsoftJson(options =>
+    options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+);
+
+builder.Services.AddSignalR(options =>
+{
+    options.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10MB
+});
 // Đăng ký HostedService cho Quartz.NET
 builder.Services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
 builder.Services.AddAuthentication(); // Sử dụng phân quyền
@@ -157,6 +166,8 @@ builder.Services.AddScoped<IStatusService, StatusService>();
 builder.Services.AddScoped<IImportformService, ImportformService>();
 builder.Services.AddScoped<IDeliverynoteService, DeliverynoteService>();
 builder.Services.AddScoped<IPrepareToExportService, PrepareToExportService>();
+builder.Services.AddScoped<IUserOnlineService, UserOnlineService>();
+builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddScoped<onlineUser>();
 builder.Services.AddScoped<SendEmais>();
 builder.Services.AddSingleton<VerificationTaskWorker>();
@@ -180,7 +191,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseCors("SiteCorsPolicy");
+app.UseCors("AllowSpecificOrigin");
 
 app.UseCookiePolicy();
 app.UseRouting();
@@ -190,6 +201,11 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapHub<NotificationHub>("/notificationHub");
+//app.UseEndpoints(endpoints =>
+//{
+//    app.MapHub<NotificationHub>("/notificationHub");
+//});
+app.MapHub<NotificationHub>("/notificationHub")
+    .RequireAuthorization(); // Đảm bảo rằng chỉ các user đã xác thực mới có thể kết nối;
 
 app.Run();

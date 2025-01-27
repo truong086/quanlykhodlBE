@@ -17,6 +17,7 @@
         public static string CATEGORY = "Category: ";
         public static string PRODUCT = "Product: ";
         public static string STATUSITEM = "Status: ";
+        public static string MESSAGE = "Message: ";
 
     }
 }

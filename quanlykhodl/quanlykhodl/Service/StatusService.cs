@@ -353,5 +353,25 @@ namespace quanlykhodl.Service
             _context.imagestatusitems.AddRange(list);
             _context.SaveChanges();
         }
+
+        public async Task<PayLoad<object>> FindByPlan(int id)
+        {
+            try
+            {
+                var checkPlan = _context.plans.Where(x => x.id == id).FirstOrDefault();
+                if(checkPlan == null)
+                    return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+
+                var checkStatus = _context.warehousetransferstatuses.Where(x => x.plan == checkPlan.id).FirstOrDefault();
+                if(checkStatus == null)
+                    return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+
+                return await Task.FromResult(PayLoad<object>.Successfully(FindOneData(checkStatus)));
+            }
+            catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
     }
 }

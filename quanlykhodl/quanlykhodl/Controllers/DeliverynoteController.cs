@@ -39,11 +39,19 @@ namespace quanlykhodl.Controllers
         {
             return await _deliverynoteService.FindOneCode(code);
         }
+
         [HttpGet]
         [Route(nameof(findOneById))]
         public async Task<PayLoad<object>> findOneById(int id)
         {
             return await _deliverynoteService.findOneById(id);
+        }
+
+        [HttpGet]
+        [Route(nameof(FindAccountDelivenote))]
+        public async Task<PayLoad<object>> FindAccountDelivenote(string? name, int page = 1, int pageSie = 20)
+        {
+            return await _deliverynoteService.FindAccountDelivenote(name, page, pageSie);
         }
 
         [HttpPost]
@@ -58,6 +66,13 @@ namespace quanlykhodl.Controllers
         public async Task<PayLoad<ImportformUpdate>> Update(int id, ImportformUpdate data)
         {
             return await _deliverynoteService.Update(id, data);
+        }
+
+        [HttpPut]
+        [Route(nameof(UpdateActionLocation))]
+        public async Task<PayLoad<uploadDataLocationArea>> UpdateActionLocation(uploadDataLocationArea data)
+        {
+            return await _deliverynoteService.UpdateActionLocation(data);
         }
 
         [HttpDelete]

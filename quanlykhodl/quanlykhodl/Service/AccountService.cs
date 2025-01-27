@@ -228,6 +228,7 @@ namespace quanlykhodl.Service
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                     new Claim(Status.IDAUTHENTICATION, checkAccount.id.ToString()),
                     new Claim(ClaimTypes.Role, checkRoleId == null ? "Role không tồn tại" : checkRoleId.name),
+                    new Claim(JwtRegisteredClaimNames.Sub, checkAccount.id.ToString()) // Thêm claim "sub" để Signal biết ai đăng nhập
 
                 };
 
@@ -706,6 +707,39 @@ namespace quanlykhodl.Service
             dateTimeInterval.AddSeconds(utcExpireDate).ToUniversalTime();
 
             return dateTimeInterval;
+        }
+
+        public async Task<PayLoad<string>> LogOut()
+        {
+            try
+            {
+                var user = _userService.name();
+                var checkAccount = _context.accounts.Where(x => x.id == Convert.ToInt32(user) && !x.Deleted).FirstOrDefault();
+                if (checkAccount == null)
+                    return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
+
+                var checkAccountOnline = _context.onlineUsersUser.Where(x => x.account_id == checkAccount.id && x.IsOnline).ToList();
+                if (checkAccountOnline.Any())
+                {
+                    foreach(var item in checkAccountOnline)
+                    {
+                        item.IsOnline = false;
+                        item.UpdatedAt = DateTimeOffset.UtcNow;
+                        _context.onlineUsersUser.Update(item);
+                        _context.SaveChanges();
+                    }
+                }
+
+                var getAllDataOnline = _context.onlineUsersUser.Where(x => x.IsOnline).ToList();
+                await _hubContext.Clients.All.SendAsync("UserData", AccountOnline.GetAll(getAllDataOnline, _mapper, _context));
+
+                _userService.Logout();
+
+                return await Task.FromResult(PayLoad<string>.Successfully(Status.SUCCESS));
+            }catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<string>.CreatedFail(ex.Message));
+            }
         }
     }
 }

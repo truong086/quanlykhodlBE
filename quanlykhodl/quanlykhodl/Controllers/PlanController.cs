@@ -109,6 +109,25 @@ namespace quanlykhodl.Controllers
             return await _planService.FindAllByAccountPlanNoConfirmByDate();
         }
 
+        [HttpGet]
+        [Route(nameof(FindDoneByAdmin))]
+        public async Task<PayLoad<object>> FindDoneByAdmin(string? name, int page = 1, int pageSize = 20)
+        {
+            return await _planService.FindDoneByAdmin(name, page, pageSize);
+        }
 
+        [HttpGet]
+        [Route(nameof(FindDoneByAccount))]
+        public async Task<PayLoad<object>> FindDoneByAccount(string? name, int page = 1, int pageSize = 20)
+        {
+            return await _planService.FindDoneByAccount(name, page, pageSize);
+        }
+
+        [HttpGet]
+        [Route(nameof(FindConfirmationByAccount))]
+        public async Task<PayLoad<object>> FindConfirmationByAccount(string? name, int page = 1, int pageSize = 20)
+        {
+            return await _planService.FindConfirmationByAccount(name, page, pageSize);
+        }
     }
 }

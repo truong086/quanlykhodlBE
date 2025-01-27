@@ -19,6 +19,13 @@ namespace quanlykhodl.Controllers
             _accountService = accountService;
         }
 
+        [HttpPost]
+        [Route(nameof(Logout))]
+        public async Task<PayLoad<string>> Logout()
+        {
+            return await _accountService.LogOut();
+        }
+
         [AllowAnonymous]
         [HttpPost]
         [Route(nameof(Add))]

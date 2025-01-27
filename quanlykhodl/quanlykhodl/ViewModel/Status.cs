@@ -47,5 +47,6 @@
         public static string TODAYFULL = "Vượt quá số lượt chuyển của loại ngày hôm nay ";
         public static string ERRORLOCATION = "Không có vị trí này";
         public static string CODEFAILD = "Chưa có Code";
+        public static string LOCATIONORPRODDUCTFAILD = "Vị trí không tồn tại hoặc dữ liệu chuyền vào null";
     }
 }

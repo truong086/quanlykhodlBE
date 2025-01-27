@@ -33,6 +33,13 @@ namespace quanlykhodl.Controllers
             return await _statusService.FindByAccount(name, page, pageSize);
         }
 
+        [HttpGet]
+        [Route(nameof(FindByPlan))]
+        public async Task<PayLoad<object>> FindByPlan(int id)
+        {
+            return await _statusService.FindByPlan(id);
+        }
+
         [HttpPut]
         [Route(nameof(UpdateStatusItem))]
         public async Task<PayLoad<StatusItemDTO>> UpdateStatusItem([FromForm]StatusItemDTO statusItemDTO)

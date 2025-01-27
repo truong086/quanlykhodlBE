@@ -443,6 +443,7 @@ namespace quanlykhodl.Service
                         dataItem.data = loadDataAreaProduct(checkProduct.id);
                         dataItem.dataItem = loadDataAreaProductAreaLocation(item);
                         dataItem.codeProductImport = item.code == null ? Status.DATANULL : item.code;
+                        dataItem.quantityImportFrom = item.quantity;
 
                         list.Add(dataItem);
                     }
