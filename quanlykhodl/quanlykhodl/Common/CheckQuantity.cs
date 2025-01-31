@@ -15,11 +15,8 @@ namespace quanlykhodl.Common
             }
             else
             {
-                var checkArea = _context.areas.Where(x => x.id == area.id && !x.Deleted).FirstOrDefault();
-                if (checkArea != null)
-                {
-                    if (checkArea.max < checkTotal + quantity) return false;
-                }
+                //var checkArea = _context.areas.Where(x => x.id == area.id && !x.Deleted).FirstOrDefault();
+                if (area.max < checkTotal + quantity) return false;
             }
 
             return true;

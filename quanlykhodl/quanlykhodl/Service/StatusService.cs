@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
+using quanlykhodl.ChatHub;
 using quanlykhodl.Clouds;
 using quanlykhodl.Common;
 using quanlykhodl.Models;
@@ -14,12 +16,14 @@ namespace quanlykhodl.Service
         private readonly IMapper _mapper;
         private readonly Cloud _cloud;
         private readonly IUserService _userService;
-        public StatusService(DBContext context, IOptions<Cloud> cloud, IMapper mapper, IUserService userService)
+        private readonly IHubContext<NotificationHub> _hubContext;
+        public StatusService(DBContext context, IOptions<Cloud> cloud, IMapper mapper, IUserService userService, IHubContext<NotificationHub> hubContext)
         {
             _context = context;
             _cloud = cloud.Value;
             _mapper = mapper;
             _userService = userService;
+            _hubContext = hubContext;
         }
         public async Task<PayLoad<object>> FindAll(string? name, int page = 1, int pageSize = 20)
         {
@@ -184,6 +188,8 @@ namespace quanlykhodl.Service
                 dataItem.id_status = item.id;
                 dataItem.id_plan = checkPlan.id;
                 dataItem.plan_tile = checkPlan.title;
+                dataItem.locationNew = checkPlan.localtionNew.Value;
+                dataItem.locationOld = checkPlan.localtionOld.Value;
                 dataItem.areaNew = checkAreaNew.name;
                 dataItem.areaOld = checkAreaOld.name;
                 dataItem.FloorNew = checkFloorNew.name;
@@ -203,14 +209,21 @@ namespace quanlykhodl.Service
         {
             try
             {
+                var user = _userService.name();
                 var checkId = _context.warehousetransferstatuses.Where(x => x.id == statusItemDTO.id_statuswarehourse && !x.Deleted).FirstOrDefault();
                 if (checkId == null)
                     return await Task.FromResult(PayLoad<StatusWarehours>.CreatedFail(Status.DATANULL));
+               
+                var checkAccount = _context.accounts.Where(x => x.id == int.Parse(user) && !x.Deleted).FirstOrDefault();
+                if (checkAccount == null)
+                    return await Task.FromResult(PayLoad<StatusWarehours>.CreatedFail(Status.DATANULL));
 
-                var checkPlan = _context.plans.Where(x => x.id == checkId.plan && !x.Deleted).FirstOrDefault();
+                var checkPlan = _context.plans.Where(x => x.id == checkId.plan && !x.Deleted && x.isConfirmation).FirstOrDefault();
                 if (checkPlan == null)
                     return await Task.FromResult(PayLoad<StatusWarehours>.CreatedFail(Status.DATANULL));
 
+                if(checkPlan.Receiver != checkAccount.id)
+                    return await Task.FromResult(PayLoad<StatusWarehours>.CreatedFail(Status.ACCOUNTFAILD));
                 if (statusItemDTO.title.ToLower() == Status.DONE.ToLower())
                 {
                     var checkAreaNew = _context.areas.Where(x => x.id == checkPlan.area && !x.Deleted).FirstOrDefault();
@@ -254,6 +267,8 @@ namespace quanlykhodl.Service
                     checkId.status = Status.DONE.ToLower();
                     checkId.Deleted = true;
                     checkPlan.Deleted = true;
+
+                    await _hubContext.Clients.All.SendAsync("DonePlan", checkPlan.title, checkAccount.username);
                 }
                 else
                 {
@@ -309,9 +324,20 @@ namespace quanlykhodl.Service
         {
             try
             {
+                var user = _userService.name();
                 var checkId = _context.warehousetransferstatuses.Where(x => x.id == statusItemDTO.id_status && !x.Deleted).FirstOrDefault();
                 if (checkId == null)
                     return await Task.FromResult(PayLoad<StatusItemDTO>.CreatedFail(Status.DATANULL));
+                var checkPlan = _context.plans.Where(x => x.id == checkId.plan && !x.Deleted && x.isConfirmation).FirstOrDefault();
+                if (checkPlan == null)
+                    return await Task.FromResult(PayLoad<StatusItemDTO>.CreatedFail(Status.DATANULL));
+               
+                var checkAccount = _context.accounts.Where(x => x.id == int.Parse(user) && !x.Deleted).FirstOrDefault();
+                if (checkAccount == null)
+                    return await Task.FromResult(PayLoad<StatusItemDTO>.CreatedFail(Status.DATANULL));
+
+                if(checkAccount.id != checkPlan.Receiver)
+                    return await Task.FromResult(PayLoad<StatusItemDTO>.CreatedFail(Status.ACCOUNTFAILD));
 
                 var statusItemData = _mapper.Map<StatusItem>(statusItemDTO);
                 statusItemData.warehousetransferstatus = checkId.id;

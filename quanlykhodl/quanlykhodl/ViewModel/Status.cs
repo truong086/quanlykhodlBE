@@ -21,6 +21,7 @@
         public static string MAXLENG = "Data Vượt quá dữ liệu";
         public static string XACNHAN = "Chờ xác nhận";
         public static string DANHAN = "Đã nhận";
+        public static string INTRANSIT = "Đang vận chuyển";
         public static string DANGGIAO = "Đang giao";
         public static string NHANHANG = "Xác nhận đã nhận hàng";
         public static string DONE = "DONE";
@@ -48,5 +49,6 @@
         public static string ERRORLOCATION = "Không có vị trí này";
         public static string CODEFAILD = "Chưa có Code";
         public static string LOCATIONORPRODDUCTFAILD = "Vị trí không tồn tại hoặc dữ liệu chuyền vào null";
+        public static string ACCOUNTFAILD = "Account Faild !!!";
     }
 }

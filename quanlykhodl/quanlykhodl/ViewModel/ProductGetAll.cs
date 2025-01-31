@@ -28,6 +28,7 @@
         public string? area_image { get; set; }
         public string? code { get; set; }
         public int? quantity { get; set; }
+        public int? idArea { get; set; }
         public int? Id_productlocation { get; set; }
         public int? location { get; set; }
         public int? MaxlocationExceps { get; set; }
@@ -63,6 +64,12 @@
     {
         public int id_Area { get; set; }
         public int id_product { get; set; }
+        public int location { get; set; }
+    }
+
+    public class checkLocationExsis
+    {
+        public int id_Area { get; set; }
         public int location { get; set; }
     }
 }

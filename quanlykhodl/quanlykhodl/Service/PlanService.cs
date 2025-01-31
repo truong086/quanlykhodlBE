@@ -31,6 +31,9 @@ namespace quanlykhodl.Service
         {
             try
             {
+                var checkLocationExsis = _context.plans.Where(x => x.areaOld == planDTO.areaOld && x.localtionOld == planDTO.locationOld && !x.Deleted && x.status.ToLower() != Status.DONE.ToLower()).FirstOrDefault();
+                if (checkLocationExsis != null)
+                    return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATATONTAI));
                 if (!checkAddToday())
                     return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.TODAYFULL));
 
@@ -48,6 +51,9 @@ namespace quanlykhodl.Service
                 if (checkWarehourse == null)
                     return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATANULL));
                 
+                if(!checkQuantityLocation(planDTO))
+                    return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.FULLQUANTITY));
+
                 var checkAreaNew = _context.areas.Where(x => x.id == planDTO.area && !x.Deleted).FirstOrDefault();
                 var chechFloorNew = _context.floors.Where(x => x.id == planDTO.floor && !x.Deleted).FirstOrDefault();
                 var checkWarehourseNew = _context.warehouses.Where(x => x.id == planDTO.warehouse && !x.Deleted).FirstOrDefault();
@@ -122,13 +128,33 @@ namespace quanlykhodl.Service
                 _context.plans.Add(mapData);
                 _context.SaveChanges();
 
-                await _hubContext.Clients.All.SendAsync("thongbao", mapData.title);
+                await _hubContext.Clients.All.SendAsync("thongbao", mapData.title, checkAccount.username);
                 return await Task.FromResult(PayLoad<PlanDTO>.Successfully(planDTO));
             }
             catch(Exception ex)
             {
                 return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(ex.Message));
             }
+        }
+
+        private bool checkQuantityLocation(PlanDTO data)
+        {
+            var checkLocation = _context.productlocations.Where(x => x.id_area == data.areaOld && x.location == data.locationOld && !x.Deleted).Count();
+            var checkAreaNew = _context.areas.Where(x => x.id == data.area && !x.Deleted).FirstOrDefault();
+            if (checkAreaNew == null)
+                return false;
+            var checkLocationQuantity = _context.locationExceptions.Where(x => x.id_area == checkAreaNew.id && x.location == data.localtionNew && !x.Deleted).FirstOrDefault();
+            if (checkLocationQuantity != null)
+            {
+                if (checkLocationQuantity.max < checkLocation)
+                    return false;
+            }
+            else
+            {
+                if(checkAreaNew.max < checkLocation)
+                    return false;
+            }
+            return true;
         }
 
         private bool checkLocationQuantity(Area area, int location, int quantity)
@@ -592,34 +618,38 @@ namespace quanlykhodl.Service
         {
             try
             {
-                if(data.id != null && data.id != null)
+                if(data.id != null && data.id.Any())
                 {
                     var user = _userService.name();
                     var checkAccount = _context.accounts.Where(x => x.id == int.Parse(user) && !x.Deleted).FirstOrDefault();
                     foreach(var item in data.id)
                     {
+                        if(item <= 0)
+                            return await Task.FromResult(PayLoad<bool>.Successfully(false));
+                        
                         var checkId = _context.plans.Where(x => x.id == item && !x.isConfirmation && !x.isConsent && !x.Deleted).FirstOrDefault();
                         if (checkId == null)
-                            return await Task.FromResult(PayLoad<bool>.CreatedFail(Status.DATANULL));
+                            return await Task.FromResult(PayLoad<bool>.Successfully(false));
                         
                         if (data.isConfirmation == true)
                         {
                             checkId.isConfirmation = true;
                             checkId.isConsent = true;
-                            checkId.status = Status.DANHAN;
+                            checkId.status = Status.DANHAN.ToLower();
                             checkId.Receiver = checkAccount == null ? null : checkAccount.id;
                             checkId.Receiver_id = checkAccount == null ? null : checkAccount;
                             var warehourseStarus = new Warehousetransferstatus
                             {
                                 plan_id = checkId,
                                 plan = checkId.id,
-                                status = Status.DANHAN,
+                                status = Status.DANHAN.ToLower(),
                                 Deleted = false
                             };
 
                             _context.warehousetransferstatuses.Add(warehourseStarus);
                             _context.plans.Update(checkId);
                             _context.SaveChanges();
+                            await _hubContext.Clients.All.SendAsync("confirm", checkAccount.username, checkId.title);
                         }
                     }
                 }

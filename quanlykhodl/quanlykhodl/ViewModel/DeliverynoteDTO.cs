@@ -31,8 +31,8 @@
     public class UploadproductDeliverynoteDTO
     {
         public int? productDelivenote_id { get; set; }
-        public int id_product { get; set; }
-        public int quantity { get; set; }
+        public int? id_product { get; set; }
+        public int? quantity { get; set; }
         public int? location { get; set; }
         public int? area { get; set; }
     }
@@ -42,5 +42,11 @@
         public string? code { get; set;}
         public int? id { get; set;}
         public List<UploadproductDeliverynoteDTO>? products { get; set; }
+    }
+
+    public class updatePack
+    {
+        public string? code { get; set; }
+        public int? id { get; set; }
     }
 }

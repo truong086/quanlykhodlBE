@@ -7,6 +7,7 @@ using quanlykhodl.Models;
 using quanlykhodl.ViewModel;
 using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 using System.Drawing;
+using Twilio.Rest.Trunking.V1;
 
 namespace quanlykhodl.Service
 {
@@ -56,7 +57,8 @@ namespace quanlykhodl.Service
                 {
                     if (data.productOlds != null && data.productOlds.Any())
                     {
-                        UpdataQuantityProduct(data.productOlds, dataNew);
+                        if(!UpdataQuantityProduct(data.productOlds, dataNew))
+                            return await Task.FromResult(PayLoad<ImportformDTO>.CreatedFail(Status.FULLQUANTITY));
                     }
                 }
 
@@ -105,17 +107,24 @@ namespace quanlykhodl.Service
         //    }
         //}
 
-        private void UpdataQuantityProduct(List<productOld> data, Importform importform)
+        private bool UpdataQuantityProduct(List<productOld> data, Importform importform)
         {
             foreach (var item in data)
             {
+                var checkSupplier = _context.suppliers.Where(x => x.id == item.supplier && !x.Deleted).FirstOrDefault();
                 var checkProduct = _context.products1.Where(x => x.id == item.id_product && !x.Deleted).FirstOrDefault();
                 var checkArea = _context.areas.Where(x => x.id == item.areaId && !x.Deleted).FirstOrDefault();
+
                 var checkLocationArea = _context.productlocations.Where(x => x.location == item.location && x.id_area == checkArea.id && !x.Deleted && x.isAction).FirstOrDefault();
-                if (checkProduct != null && checkLocationArea != null)
+                if (!CheckQuantity.checkLocationQuantity(checkArea, item.location.Value, item.quantity, _context))
+                    return false;
+
+                if (checkProduct != null && checkLocationArea != null && checkSupplier != null)
                 {
                     var importProductData = new productImportform
                     {
+                        supplier = checkSupplier.id,
+                        supplier_id = checkSupplier,
                         importform = importform.id,
                         importform_id1 = importform,
                         product = checkProduct.id,
@@ -133,6 +142,8 @@ namespace quanlykhodl.Service
                     _context.SaveChanges();
                 }
             }
+
+            return true;
         }
         private bool AddProductLocation(List<productNew> data, Account account, Importform importform)
         {

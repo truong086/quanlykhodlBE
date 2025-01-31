@@ -59,7 +59,6 @@ namespace quanlykhodl.Service
                     var dataNewRetai = _context.Retailcustomers.Where(x => !x.Deleted).OrderByDescending(x => x.CreatedAt).FirstOrDefault();
                     dataNew.retailcustomers = dataNewRetai.id;
                     dataNew.retailcustomers_id = dataNewRetai;
-
                 }
                 else
                 {
@@ -73,7 +72,8 @@ namespace quanlykhodl.Service
 
                 if(data.products != null && data.products.Any())
                 {
-                    addDeliverynoteItem(data.products, dataNew);
+                    if(!addDeliverynoteItem(data.products, dataNew))
+                        return await Task.FromResult(PayLoad<DeliverynoteDTO>.CreatedFail(Status.DATAERROR));
                 }
 
                 _context.deliverynotes.Update(dataNew);
@@ -86,7 +86,7 @@ namespace quanlykhodl.Service
             }
         }
 
-        private void addDeliverynoteItem(List<productDeliverynoteDTO> data, Deliverynote deliverynote)
+        private bool addDeliverynoteItem(List<productDeliverynoteDTO> data, Deliverynote deliverynote)
         {
             var code = RanDomCode.geneAction(8) + deliverynote.id.ToString();
             foreach (var item in data)
@@ -94,6 +94,9 @@ namespace quanlykhodl.Service
                 var checkProduct = _context.products1.Where(x => x.id == item.id_product && !x.Deleted).FirstOrDefault();
                 if (checkProduct != null)
                 {
+                    if (checkProduct.quantity < item.quantity)
+                        return false;
+
                     var addDataItem = new productDeliverynote
                     {
                        location = null,
@@ -112,6 +115,8 @@ namespace quanlykhodl.Service
                     _context.SaveChanges();
                 }
             }
+
+            return true;
         }
         private bool checkQuantity(List<productDeliverynoteDTO> data)
         {
@@ -277,6 +282,8 @@ namespace quanlykhodl.Service
                     {
                         if (checkArea.floor_id != null)
                         {
+                            var checkCodeLocation = _context.codelocations.Where(x => x.id_area == checkArea.id
+                            && x.location == item.location && !x.Deleted).FirstOrDefault();
                             var checkWarehourse = _context.warehouses.Where(x => x.id == checkArea.floor_id.warehouse && !x.Deleted).FirstOrDefault();
                             if (checkWarehourse != null)
                             {
@@ -285,7 +292,9 @@ namespace quanlykhodl.Service
                                     location = item.location,
                                     area = checkArea.name,
                                     floor = checkArea.floor_id.name,
-                                    warehourse = checkWarehourse.name
+                                    warehourse = checkWarehourse.name,
+                                    isAction = item.isAction,
+                                    code = checkCodeLocation == null ? Status.CODEFAILD : checkCodeLocation.code
                                 };
 
                                 list.Add(dataItem);
@@ -471,7 +480,7 @@ namespace quanlykhodl.Service
                 if(checkDelivenote == null)
                     return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
 
-                var pageList = new PageList<object>(loadData(checkDelivenote), page, pageSize);
+                var pageList = new PageList<object>(loadData(checkDelivenote), page - 1, pageSize);
 
                 return await Task.FromResult(PayLoad<object>.Successfully(new
                 {
@@ -480,6 +489,264 @@ namespace quanlykhodl.Service
                     pageList.pageSize,
                     pageList.totalCounts,
                     pageList.totalPages
+                }));
+            }
+            catch (Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<string>> CheckPack(updatePack data)
+        {
+            try
+            {
+                var checkData = _context.deliverynotes.Where(x => x.id == data.id || x.code == data.code && !x.isPack && !x.Deleted).FirstOrDefault();
+                if (checkData == null)
+                    return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
+
+                checkData.isPack = true;
+
+                _context.deliverynotes.Update(checkData);
+                _context.SaveChanges();
+
+                return await Task.FromResult(PayLoad<string>.Successfully(Status.SUCCESS));
+            }catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<string>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<object>> FindNoPack(string? name, int page = 1, int pageSize = 20)
+        {
+            try
+            {
+                var data = _context.deliverynotes.Where(x => !x.Deleted && !x.isPack).ToList();
+
+                if (!string.IsNullOrEmpty(name))
+                    data = data.Where(x => x.title.Contains(name)).ToList();
+
+                var pageList = new PageList<object>(loadData(data), page - 1, pageSize);
+
+                return await Task.FromResult(PayLoad<object>.Successfully(new
+                {
+                    data = pageList,
+                    page,
+                    pageList.pageSize,
+                    pageList.totalCounts,
+                    pageList.totalPages,
+                }));
+            }
+            catch (Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<object>> FindOkPack(string? name, int page = 1, int pageSize = 20)
+        {
+            try
+            {
+                var data = _context.deliverynotes.Where(x => !x.Deleted && x.isPack).ToList();
+
+                if (!string.IsNullOrEmpty(name))
+                    data = data.Where(x => x.title.Contains(name)).ToList();
+
+                var pageList = new PageList<object>(loadData(data), page - 1, pageSize);
+
+                return await Task.FromResult(PayLoad<object>.Successfully(new
+                {
+                    data = pageList,
+                    page,
+                    pageList.pageSize,
+                    pageList.totalCounts,
+                    pageList.totalPages,
+                }));
+            }
+            catch (Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<object>> FindOkPackNoIsAction(string? name, int page = 1, int pageSize = 0)
+        {
+            try
+            {
+                var data = _context.deliverynotes.Where(x => !x.Deleted && x.isPack && x.isAction == false).ToList();
+
+                if (!string.IsNullOrEmpty(name))
+                    data = data.Where(x => x.title.Contains(name)).ToList();
+
+                var pageList = new PageList<object>(loadData(data), page - 1, pageSize);
+
+                return await Task.FromResult(PayLoad<object>.Successfully(new
+                {
+                    data = pageList,
+                    page,
+                    pageList.pageSize,
+                    pageList.totalCounts,
+                    pageList.totalPages,
+                }));
+            }
+            catch (Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<object>> FindOkPackOkIsAction(string? name, int page = 1, int pageSize = 20)
+        {
+            try
+            {
+                var data = _context.deliverynotes.Where(x => !x.Deleted && x.isPack && x.isAction == true).ToList();
+
+                if (!string.IsNullOrEmpty(name))
+                    data = data.Where(x => x.title.Contains(name)).ToList();
+
+                var pageList = new PageList<object>(loadData(data), page - 1, pageSize);
+
+                return await Task.FromResult(PayLoad<object>.Successfully(new
+                {
+                    data = pageList,
+                    page,
+                    pageList.pageSize,
+                    pageList.totalCounts,
+                    pageList.totalPages,
+                }));
+            }
+            catch (Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<object>> FindNoPackOkIsAction(string? name, int page = 1, int pageSize = 20)
+        {
+            try
+            {
+                var data = _context.deliverynotes.Where(x => !x.Deleted && !x.isPack && x.isAction == true).ToList();
+
+                if (!string.IsNullOrEmpty(name))
+                    data = data.Where(x => x.title.Contains(name)).ToList();
+
+                var pageList = new PageList<object>(loadData(data), page - 1, pageSize);
+
+                return await Task.FromResult(PayLoad<object>.Successfully(new
+                {
+                    data = pageList,
+                    page,
+                    pageList.pageSize,
+                    pageList.totalCounts,
+                    pageList.totalPages,
+                }));
+            }
+            catch (Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<object>> FindNoPackNoIsAction(string? name, int page = 1, int pageSize = 20)
+        {
+            try
+            {
+                var data = _context.deliverynotes.Where(x => !x.Deleted && !x.isPack && x.isAction == false).ToList();
+
+                if (!string.IsNullOrEmpty(name))
+                    data = data.Where(x => x.title.Contains(name)).ToList();
+
+                var pageList = new PageList<object>(loadData(data), page - 1, pageSize);
+
+                return await Task.FromResult(PayLoad<object>.Successfully(new
+                {
+                    data = pageList,
+                    page,
+                    pageList.pageSize,
+                    pageList.totalCounts,
+                    pageList.totalPages,
+                }));
+            }
+            catch (Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<object>> FindNoAction(string? name, int page = 1, int pageSize = 20)
+        {
+            try
+            {
+                var data = _context.deliverynotes.Where(x => !x.Deleted && x.isAction == false).ToList();
+
+                if (!string.IsNullOrEmpty(name))
+                    data = data.Where(x => x.title.Contains(name)).ToList();
+
+                var pageList = new PageList<object>(loadData(data), page - 1, pageSize);
+
+                return await Task.FromResult(PayLoad<object>.Successfully(new
+                {
+                    data = pageList,
+                    page,
+                    pageList.pageSize,
+                    pageList.totalCounts,
+                    pageList.totalPages,
+                }));
+            }
+            catch (Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<object>> FindOkAction(string? name, int page = 1, int pageSize = 20)
+        {
+            try
+            {
+                var data = _context.deliverynotes.Where(x => !x.Deleted && x.isAction == true).ToList();
+
+                if (!string.IsNullOrEmpty(name))
+                    data = data.Where(x => x.title.Contains(name)).ToList();
+
+                var pageList = new PageList<object>(loadData(data), page - 1, pageSize);
+
+                return await Task.FromResult(PayLoad<object>.Successfully(new
+                {
+                    data = pageList,
+                    page,
+                    pageList.pageSize,
+                    pageList.totalCounts,
+                    pageList.totalPages,
+                }));
+            }
+            catch (Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<object>> FindAccountNoPack(string? name, int page = 1, int pageSize = 20)
+        {
+            try
+            {
+                var user = _userService.name();
+                var checkAccount = _context.accounts.Where(x => x.id == Convert.ToInt32(user) && !x.Deleted).FirstOrDefault();
+                if (checkAccount == null)
+                    return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+                var data = _context.deliverynotes.Where(x => !x.Deleted && !x.isPack && x.accountmap == checkAccount.id).ToList();
+
+                if (!string.IsNullOrEmpty(name))
+                    data = data.Where(x => x.title.Contains(name)).ToList();
+
+                var pageList = new PageList<object>(loadData(data), page - 1, pageSize);
+
+                return await Task.FromResult(PayLoad<object>.Successfully(new
+                {
+                    data = pageList,
+                    page,
+                    pageList.pageSize,
+                    pageList.totalCounts,
+                    pageList.totalPages,
                 }));
             }
             catch (Exception ex)

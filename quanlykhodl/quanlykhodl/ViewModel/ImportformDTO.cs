@@ -23,6 +23,7 @@ namespace quanlykhodl.ViewModel
         public int quantity { get; set; }
         public int? areaId { get; set; }
         public int? location { get; set; }
+        public int? supplier { get; set; }
     }
     public class productNew
     {

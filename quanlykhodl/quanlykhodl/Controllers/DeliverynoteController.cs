@@ -54,6 +54,69 @@ namespace quanlykhodl.Controllers
             return await _deliverynoteService.FindAccountDelivenote(name, page, pageSie);
         }
 
+        [HttpGet]
+        [Route(nameof(FindNoPack))]
+        public async Task<PayLoad<object>> FindNoPack(string? name, int page = 1, int pageSie = 20)
+        {
+            return await _deliverynoteService.FindNoPack(name, page, pageSie);
+        }
+
+        [HttpGet]
+        [Route(nameof(FindOkPack))]
+        public async Task<PayLoad<object>> FindOkPack(string? name, int page = 1, int pageSie = 20)
+        {
+            return await _deliverynoteService.FindOkPack(name, page, pageSie);
+        }
+
+        [HttpGet]
+        [Route(nameof(FindOkPackNoIsAction))]
+        public async Task<PayLoad<object>> FindOkPackNoIsAction(string? name, int page = 1, int pageSie = 20)
+        {
+            return await _deliverynoteService.FindOkPackNoIsAction(name, page, pageSie);
+        }
+
+        [HttpGet]
+        [Route(nameof(FindOkPackOkIsAction))]
+        public async Task<PayLoad<object>> FindOkPackOkIsAction(string? name, int page = 1, int pageSie = 20)
+        {
+            return await _deliverynoteService.FindOkPackOkIsAction(name, page, pageSie);
+        }
+
+        [HttpGet]
+        [Route(nameof(FindNoPackOkIsAction))]
+        public async Task<PayLoad<object>> FindNoPackOkIsAction(string? name, int page = 1, int pageSie = 20)
+        {
+            return await _deliverynoteService.FindNoPackOkIsAction(name, page, pageSie);
+        }
+
+        [HttpGet]
+        [Route(nameof(FindNoPackNoIsAction))]
+        public async Task<PayLoad<object>> FindNoPackNoIsAction(string? name, int page = 1, int pageSie = 20)
+        {
+            return await _deliverynoteService.FindNoPackNoIsAction(name, page, pageSie);
+        }
+
+        [HttpGet]
+        [Route(nameof(FindNoAction))]
+        public async Task<PayLoad<object>> FindNoAction(string? name, int page = 1, int pageSie = 20)
+        {
+            return await _deliverynoteService.FindNoAction(name, page, pageSie);
+        }
+
+        [HttpGet]
+        [Route(nameof(FindOkAction))]
+        public async Task<PayLoad<object>> FindOkAction(string? name, int page = 1, int pageSie = 20)
+        {
+            return await _deliverynoteService.FindOkAction(name, page, pageSie);
+        }
+
+
+        [HttpGet]
+        [Route(nameof(FindAccountNoPack))]
+        public async Task<PayLoad<object>> FindAccountNoPack(string? name, int page = 1, int pageSie = 20)
+        {
+            return await _deliverynoteService.FindAccountNoPack(name, page, pageSie);
+        }
         [HttpPost]
         [Route(nameof(Add))]
         public async Task<PayLoad<DeliverynoteDTO>> Add(DeliverynoteDTO data)

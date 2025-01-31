@@ -96,6 +96,13 @@ namespace quanlykhodl.Controllers
             return await _productService.AddArea(data);
         }
 
+        [HttpPost]
+        [Route(nameof(checkLocationTotal))]
+        public async Task<PayLoad<bool>> checkLocationTotal(checkLocationExsis data)
+        {
+            return await _productService.checkLocationTotal(data);
+        }
+
         [HttpPut]
         [Route(nameof(UpdateArea))]
         public async Task<PayLoad<ProductAddAreas>> UpdateArea(int id, ProductAddAreas productDTOs)

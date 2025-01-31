@@ -13,6 +13,7 @@ namespace quanlykhodl.Service
         Task<PayLoad<object>> FindAll(string? name, int page = 1, int pageSize = 20);
         Task<PayLoad<ProductGetAll>> FindOneById(int id);
         Task<PayLoad<bool>> checkLocation(checkLocation data);
+        Task<PayLoad<bool>> checkLocationTotal(checkLocationExsis data);
         Task<PayLoad<object>> FindOneByCategory(int id, int page = 1, int pageSize = 20);
         Task<PayLoad<object>> FindOneByArea(int id);
         Task<PayLoad<object>> FindOneBySipplier(int id, int page = 1, int pageSize = 20);

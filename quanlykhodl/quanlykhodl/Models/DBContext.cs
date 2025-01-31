@@ -38,6 +38,7 @@ namespace quanlykhodl.Models
         public DbSet<Conversation> Conversations { get; set; }
         public DbSet<UserConversation> userConversations { get; set; }
         public DbSet<OnlineUsers> onlineUsersUser { get; set; }
+        public DbSet<UserTokenApp> userTokenApps { get; set; }
         #endregion
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

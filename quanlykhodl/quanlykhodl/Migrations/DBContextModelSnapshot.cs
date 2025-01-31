@@ -285,6 +285,9 @@ namespace quanlykhodl.Migrations
                     b.Property<bool?>("isAction")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("isPack")
+                        .HasColumnType("bit");
+
                     b.Property<bool?>("isPercentage")
                         .HasColumnType("bit");
 
@@ -1247,6 +1250,34 @@ namespace quanlykhodl.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("userConversations");
+                });
+
+            modelBuilder.Entity("quanlykhodl.Models.UserTokenApp", b =>
+                {
+                    b.Property<int>("id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"), 1L, 1);
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CretorEdit")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Token")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("id");
+
+                    b.ToTable("userTokenApps");
                 });
 
             modelBuilder.Entity("quanlykhodl.Models.Warehouse", b =>

@@ -1,4 +1,6 @@
 ﻿using CloudinaryDotNet;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -53,6 +55,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
     };
 });
 #endregion
+
+// Đăng ký Firebase Key
+FirebaseApp.Create(new AppOptions()
+{
+    Credential = GoogleCredential.FromFile("C:\\Users\\ASUS\\OneDrive\\Desktop\\VueJs\\SpringBoot\\thongbaoapp-41b96-firebase-adminsdk-fbsvc-fb75b932c5.json")
+});
 
 builder.Services.AddSwaggerGen(c =>
 {
@@ -168,6 +176,8 @@ builder.Services.AddScoped<IDeliverynoteService, DeliverynoteService>();
 builder.Services.AddScoped<IPrepareToExportService, PrepareToExportService>();
 builder.Services.AddScoped<IUserOnlineService, UserOnlineService>();
 builder.Services.AddScoped<IMessageService, MessageService>();
+builder.Services.AddScoped<IStatisticalService, StatisticalService>();
+builder.Services.AddScoped<IUserTokenAppService, UserTokenAppService>();
 builder.Services.AddScoped<onlineUser>();
 builder.Services.AddScoped<SendEmais>();
 builder.Services.AddSingleton<VerificationTaskWorker>();
