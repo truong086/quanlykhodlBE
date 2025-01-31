@@ -117,6 +117,14 @@ namespace quanlykhodl.Controllers
         {
             return await _deliverynoteService.FindAccountNoPack(name, page, pageSie);
         }
+
+        [HttpGet]
+        [Route(nameof(FindAccountOkPack))]
+        public async Task<PayLoad<object>> FindAccountOkPack(string? name, int page = 1, int pageSie = 20)
+        {
+            return await _deliverynoteService.FindAccountOkPack(name, page, pageSie);
+        }
+
         [HttpPost]
         [Route(nameof(Add))]
         public async Task<PayLoad<DeliverynoteDTO>> Add(DeliverynoteDTO data)
@@ -136,6 +144,13 @@ namespace quanlykhodl.Controllers
         public async Task<PayLoad<uploadDataLocationArea>> UpdateActionLocation(uploadDataLocationArea data)
         {
             return await _deliverynoteService.UpdateActionLocation(data);
+        }
+
+        [HttpPut]
+        [Route(nameof(CheckPack))]
+        public async Task<PayLoad<string>> CheckPack(updatePack data)
+        {
+            return await _deliverynoteService.CheckPack(data);
         }
 
         [HttpDelete]

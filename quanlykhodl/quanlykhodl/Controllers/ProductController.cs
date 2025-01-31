@@ -111,6 +111,13 @@ namespace quanlykhodl.Controllers
         }
 
         [HttpPut]
+        [Route(nameof(UpdateAreaQuantity))]
+        public async Task<PayLoad<ProductAddAreas>> UpdateAreaQuantity(int id, ProductAddAreas productDTOs)
+        {
+            return await _productService.UpdateAreaQuantity(id, productDTOs);
+        }
+
+        [HttpPut]
         [Route(nameof(Update))]
         public async Task<PayLoad<ProductDTO>> Update(int id, [FromForm]ProductDTO productDTO)
         {

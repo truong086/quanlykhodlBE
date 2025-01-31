@@ -25,6 +25,7 @@ namespace quanlykhodl.Service
         Task<PayLoad<object>> FindNoAction(string? name, int page = 1, int pageSize = 20);
         Task<PayLoad<object>> FindOkAction(string? name, int page = 1, int pageSize = 20);
         Task<PayLoad<object>> FindAccountNoPack(string? name, int page = 1, int pageSize = 20);
+        Task<PayLoad<object>> FindAccountOkPack(string? name, int page = 1, int pageSize = 20);
         Task<PayLoad<object>> FindAccountDelivenote(string? name, int page = 1, int pageSize = 20);
 
     }

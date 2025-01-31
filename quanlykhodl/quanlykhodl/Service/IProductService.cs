@@ -8,6 +8,7 @@ namespace quanlykhodl.Service
         Task<PayLoad<ProductDTO>> Add(ProductDTO productDTO);
         Task<PayLoad<ProductAddAreas>> AddArea(ProductAddAreas productDTO);
         Task<PayLoad<ProductAddAreas>> UpdateArea(int id, ProductAddAreas productDTO);
+        Task<PayLoad<ProductAddAreas>> UpdateAreaQuantity(int id, ProductAddAreas productDTO);
         Task<PayLoad<ProductDTO>> Update(int id, ProductDTO productDTO);
         Task<PayLoad<string>> Delete(int id);
         Task<PayLoad<object>> FindAll(string? name, int page = 1, int pageSize = 20);

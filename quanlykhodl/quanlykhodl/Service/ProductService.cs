@@ -5,6 +5,7 @@ using quanlykhodl.Clouds;
 using quanlykhodl.Common;
 using quanlykhodl.Models;
 using quanlykhodl.ViewModel;
+using Twilio.Rest.Trunking.V1;
 
 namespace quanlykhodl.Service
 {
@@ -996,6 +997,31 @@ namespace quanlykhodl.Service
             catch(Exception ex)
             {
                 return await Task.FromResult(PayLoad<bool>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<ProductAddAreas>> UpdateAreaQuantity(int id, ProductAddAreas productDTO)
+        {
+            try
+            {
+                var checkProductLocation = _context.productlocations.Where(x => x.id == id && !x.Deleted && x.isAction).FirstOrDefault();
+                if (checkProductLocation == null)
+                    return await Task.FromResult(PayLoad<ProductAddAreas>.CreatedFail(Status.DATANULL));
+
+                if (checkProductLocation.quantity < productDTO.quantity)
+                    return await Task.FromResult(PayLoad<ProductAddAreas>.CreatedFail(Status.FULLQUANTITY));
+
+                checkProductLocation.quantity -= productDTO.quantity;
+                //if (checkProductLocation.quantity - productDTO.quantity == 0)
+                //    checkProductLocation.Deleted = true;
+                _context.productlocations.Update(checkProductLocation);
+                _context.SaveChanges();
+
+                return await Task.FromResult(PayLoad<ProductAddAreas>.Successfully(productDTO));
+            }
+            catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<ProductAddAreas>.CreatedFail(ex.Message));
             }
         }
     }

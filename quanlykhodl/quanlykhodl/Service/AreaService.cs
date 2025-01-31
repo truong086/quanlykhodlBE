@@ -432,14 +432,15 @@ namespace quanlykhodl.Service
                     var checkCategory = _context.categories.Where(x => x.id == checkProduct.category_map && !x.Deleted).FirstOrDefault();
                     var checkSupplier = _context.suppliers.Where(x => x.id == checkProduct.suppliers && !x.Deleted).FirstOrDefault();
                     var checkAccountCreate = _context.accounts.Where(x => x.id == checkProduct.account_map && !x.Deleted).FirstOrDefault();
-                    var imageProductData = _context.imageProducts.Where(x => x.productMap == checkProduct.id && !x.Deleted).FirstOrDefault();
+                    var imageProductData = _context.imageProducts.Where(x => x.productMap == checkProduct.id && !x.Deleted).ToList();
                     var checkLocationCode = _context.codelocations.Where(x => x.id_area == id && x.location == item.location && !x.Deleted).FirstOrDefault();
                     var dataItem = new productLocationArea
                     {
                         Id = item.id,
                         Id_product = checkProduct.id,
                         name = checkProduct.title,
-                        image = imageProductData.Link,
+                        image = imageProductData[0].Link,
+                        images = imageProductData.Select(x => x.Link),
                         location = item.location,
                         quantity = item.quantity,
                         supplier = checkSupplier.name,

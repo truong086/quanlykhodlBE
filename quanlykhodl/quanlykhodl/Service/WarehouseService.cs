@@ -144,6 +144,7 @@ namespace quanlykhodl.Service
                 var mapData = _mapper.Map<WarehouseGetAll>(checkId);
                 mapData.account_name = checkAccountId.username;
                 mapData.account_image = checkAccountId.image;
+                mapData.address = checkId.address;
 
                 return await Task.FromResult(PayLoad<WarehouseGetAll>.Successfully(mapData));
             }

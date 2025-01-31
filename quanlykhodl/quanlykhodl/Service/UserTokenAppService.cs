@@ -84,15 +84,14 @@ namespace quanlykhodl.Service
                     Console.WriteLine($"Data: {response} Success");
                 }*/
 
-
                 // Cách 2
                 var message = new Message()
                 {
                     Topic = "allDevices",  // Gửi đến tất cả thiết bị đăng ký topic này "allDevices"
                     Notification = new Notification()
                     {
-                        Title = "",
-                        Body = ""
+                        Title = "❤❤❤💘💘",
+                        Body = "💫💨💨💨☮🕳"
                     }
                 };
 

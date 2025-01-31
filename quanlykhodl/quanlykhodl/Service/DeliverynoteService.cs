@@ -754,5 +754,35 @@ namespace quanlykhodl.Service
                 return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
             }
         }
+
+        public async Task<PayLoad<object>> FindAccountOkPack(string? name, int page = 1, int pageSize = 20)
+        {
+            try
+            {
+                var user = _userService.name();
+                var checkAccount = _context.accounts.Where(x => x.id == Convert.ToInt32(user) && !x.Deleted).FirstOrDefault();
+                if (checkAccount == null)
+                    return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+                var data = _context.deliverynotes.Where(x => !x.Deleted && x.isPack && x.accountmap == checkAccount.id).ToList();
+
+                if (!string.IsNullOrEmpty(name))
+                    data = data.Where(x => x.title.Contains(name)).ToList();
+
+                var pageList = new PageList<object>(loadData(data), page - 1, pageSize);
+
+                return await Task.FromResult(PayLoad<object>.Successfully(new
+                {
+                    data = pageList,
+                    page,
+                    pageList.pageSize,
+                    pageList.totalCounts,
+                    pageList.totalPages,
+                }));
+            }
+            catch (Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
     }
 }
