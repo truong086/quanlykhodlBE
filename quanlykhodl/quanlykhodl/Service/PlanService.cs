@@ -284,39 +284,7 @@ namespace quanlykhodl.Service
                         }
                         
                     }
-                    var checkAccount = _context.accounts.Where(x => x.id == item.Receiver && !x.Deleted).FirstOrDefault();
-                    var checkAreaOld = _context.areas.Where(x => x.id == item.areaOld && !x.Deleted).FirstOrDefault();
-                    var checkFloorOld = _context.floors.Where(x => x.id == item.floorOld && !x.Deleted).FirstOrDefault();
-                    var checkWarehourseOld = _context.warehouses.Where(x => x.id == item.warehouseOld && !x.Deleted).FirstOrDefault();
-
-                    var checkAreaNew = _context.areas.Where(x => x.id == item.area && !x.Deleted).FirstOrDefault();
-                    var checkFloorNew = _context.floors.Where(x => x.id == item.floor && !x.Deleted).FirstOrDefault();
-                    var checkWarehourseNew = _context.warehouses.Where(x => x.id == item.warehouse && !x.Deleted).FirstOrDefault();
-
-                    
-                    mapData.floor = checkFloorNew == null ? Status.NOFLOOR : checkFloorNew.name;
-                    mapData.area = checkAreaNew == null ? Status.NOAREA : checkAreaNew.name;
-                    mapData.warehouse = checkWarehourseNew == null ? Status.NOWAREHOURSE : checkWarehourseNew.name;
-                    mapData.floorOld = checkFloorOld == null ? Status.NOFLOOR : checkFloorOld.name;
-                    mapData.areaOld = checkAreaOld == null ? Status.NOAREA : checkAreaOld.name;
-                    mapData.warehouseOld = checkWarehourseOld == null ? Status.NOWAREHOURSE : checkWarehourseOld.name;
-                    mapData.Receiver_name = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.username;
-                    mapData.Account_creatPlan = item.CretorEdit;
-                    mapData.CodeWarehourseOld = checkWarehourseOld == null ? Status.NOWAREHOURSE : checkWarehourseOld.code;
-                    mapData.CodeWarehourseNew = checkWarehourseNew == null ? Status.NOWAREHOURSE : checkWarehourseNew.code;
-                    mapData.CodeFloorOld = checkFloorOld == null ? Status.NOFLOOR : checkFloorOld.code;
-                    mapData.CodeFloorNew = checkFloorNew == null ? Status.NOFLOOR : checkFloorNew.code;
-                    mapData.CodeAreaeOld = checkAreaOld == null ? Status.NOAREA : checkAreaOld.code;
-                    mapData.CodeAreaeNew = checkAreaNew == null ? Status.NOFLOOR : checkAreaNew.code;
-
-                    mapData.ImageWarehourseOld = checkWarehourseOld == null ? Status.NOWAREHOURSE : checkWarehourseOld.image;
-                    mapData.ImageWarehourseNew = checkWarehourseNew == null ? Status.NOWAREHOURSE : checkWarehourseNew.image;
-                    mapData.ImageFloorOld = checkFloorOld == null ? Status.NOFLOOR : checkFloorOld.image;
-                    mapData.ImageFloorNew = checkFloorNew == null ? Status.NOFLOOR : checkFloorNew.image;
-                    mapData.ImageAreaeOld = checkAreaOld == null ? Status.NOAREA : checkAreaOld.image;
-                    mapData.ImageAreaeNew = checkAreaNew == null ? Status.NOFLOOR : checkAreaNew.image;
-
-                    list.Add(mapData);
+                    list.Add(findOneDataMap(item));
 
                 }
             }
@@ -324,6 +292,56 @@ namespace quanlykhodl.Service
             return list;
         }
 
+        private PlanGetAll findOneDataMap(Plan item)
+        {
+            var mapData = _mapper.Map<PlanGetAll>(item);
+
+            var checkLocationOld = _context.productlocations.Where(x => x.id_area == item.areaOld && x.location == item.localtionOld && !x.Deleted && x.isAction).FirstOrDefault();
+            var checkLocationNew = _context.codelocations.Where(x => x.id_area == item.area && x.location == item.localtionNew && !x.Deleted).FirstOrDefault();
+
+            if (checkLocationOld != null)
+            {
+                var checkCodeLocationOld = _context.codelocations.Where(x => x.id_area == checkLocationOld.id_area && x.location == checkLocationOld.location && !x.Deleted).FirstOrDefault();
+
+                var checkAccount = _context.accounts.Where(x => x.id == item.Receiver && !x.Deleted).FirstOrDefault();
+                var checkAreaOld = _context.areas.Where(x => x.id == item.areaOld && !x.Deleted).FirstOrDefault();
+                var checkFloorOld = _context.floors.Where(x => x.id == item.floorOld && !x.Deleted).FirstOrDefault();
+                var checkWarehourseOld = _context.warehouses.Where(x => x.id == item.warehouseOld && !x.Deleted).FirstOrDefault();
+
+                var checkAreaNew = _context.areas.Where(x => x.id == item.area && !x.Deleted).FirstOrDefault();
+                var checkFloorNew = _context.floors.Where(x => x.id == item.floor && !x.Deleted).FirstOrDefault();
+                var checkWarehourseNew = _context.warehouses.Where(x => x.id == item.warehouse && !x.Deleted).FirstOrDefault();
+
+                mapData.localtionOldCode = checkCodeLocationOld == null ? Status.CODEFAILD : checkCodeLocationOld.code;
+                mapData.localtionNewCode = checkLocationNew == null ? Status.CODEFAILD : checkLocationNew.code;
+                mapData.floor = checkFloorNew == null ? Status.NOFLOOR : checkFloorNew.name;
+                mapData.area = checkAreaNew == null ? Status.NOAREA : checkAreaNew.name;
+                mapData.warehouse = checkWarehourseNew == null ? Status.NOWAREHOURSE : checkWarehourseNew.name;
+                mapData.floorOld = checkFloorOld == null ? Status.NOFLOOR : checkFloorOld.name;
+                mapData.areaOld = checkAreaOld == null ? Status.NOAREA : checkAreaOld.name;
+                mapData.warehouseOld = checkWarehourseOld == null ? Status.NOWAREHOURSE : checkWarehourseOld.name;
+                mapData.Receiver_name = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.username;
+                mapData.Receiver_image = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.image;
+                mapData.Account_creatPlan = item.CretorEdit;
+                mapData.CodeWarehourseOld = checkWarehourseOld == null ? Status.NOWAREHOURSE : checkWarehourseOld.code;
+                mapData.CodeWarehourseNew = checkWarehourseNew == null ? Status.NOWAREHOURSE : checkWarehourseNew.code;
+                mapData.CodeFloorOld = checkFloorOld == null ? Status.NOFLOOR : checkFloorOld.code;
+                mapData.CodeFloorNew = checkFloorNew == null ? Status.NOFLOOR : checkFloorNew.code;
+                mapData.CodeAreaeOld = checkAreaOld == null ? Status.NOAREA : checkAreaOld.code;
+                mapData.CodeAreaeNew = checkAreaNew == null ? Status.NOFLOOR : checkAreaNew.code;
+
+                mapData.ImageWarehourseOld = checkWarehourseOld == null ? Status.NOWAREHOURSE : checkWarehourseOld.image;
+                mapData.ImageWarehourseNew = checkWarehourseNew == null ? Status.NOWAREHOURSE : checkWarehourseNew.image;
+                mapData.ImageFloorOld = checkFloorOld == null ? Status.NOFLOOR : checkFloorOld.image;
+                mapData.ImageFloorNew = checkFloorNew == null ? Status.NOFLOOR : checkFloorNew.image;
+                mapData.ImageAreaeOld = checkAreaOld == null ? Status.NOAREA : checkAreaOld.image;
+                mapData.ImageAreaeNew = checkAreaNew == null ? Status.NOFLOOR : checkAreaNew.image;
+
+
+            }
+
+            return mapData;
+        }
         public async Task<PayLoad<object>> FindConfirmationAndConsentAdmin(string? name, int page = 1, int pageSize = 20)
         {
             try
@@ -490,7 +508,7 @@ namespace quanlykhodl.Service
                 if (checkId == null)
                     return await Task.FromResult(PayLoad<PlanGetAll>.CreatedFail(Status.DATANULL));
 
-                return await Task.FromResult(PayLoad<PlanGetAll>.Successfully(loadDataFindOne(checkId)));
+                return await Task.FromResult(PayLoad<PlanGetAll>.Successfully(findOneDataMap(checkId)));
             }catch(Exception ex)
             {
                 return await Task.FromResult(PayLoad<PlanGetAll>.CreatedFail(ex.Message));
@@ -499,9 +517,9 @@ namespace quanlykhodl.Service
 
         private PlanGetAll loadDataFindOne(Plan item)
         {
-            var checkProductLocation = _context.productlocations.Where(x => x.id == item.productlocation_map && !x.Deleted && x.isAction).FirstOrDefault();
-            var checkProduct = _context.products1.Where(x => x.id == checkProductLocation.id_product && !x.Deleted).FirstOrDefault();
-            var checkImageProduct = _context.imageProducts.Where(x => x.productMap == checkProduct.id).FirstOrDefault();
+            //var checkProductLocation = _context.productlocations.Where(x => x.id == item.productlocation_map && !x.Deleted && x.isAction).FirstOrDefault();
+            //var checkProduct = _context.products1.Where(x => x.id == checkProductLocation.id_product && !x.Deleted).FirstOrDefault();
+            //var checkImageProduct = _context.imageProducts.Where(x => x.productMap == checkProduct.id).FirstOrDefault();
             var checkAccount = _context.accounts.Where(x => x.id == item.Receiver && !x.Deleted).FirstOrDefault();
             var checkAreaOld = _context.areas.Where(x => x.id == item.areaOld && !x.Deleted).FirstOrDefault();
             var checkFloorOld = _context.floors.Where(x => x.id == item.floorOld && !x.Deleted).FirstOrDefault();
@@ -519,8 +537,8 @@ namespace quanlykhodl.Service
             mapData.areaOld = checkAreaOld == null ? Status.NOAREA : checkAreaOld.name;
             mapData.warehouseOld = checkWarehourseOld == null ? Status.NOWAREHOURSE : checkWarehourseOld.name;
             mapData.Receiver_name = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.username;
-            mapData.productName = checkProduct == null ? Status.DATANULL : checkProduct.title;
-            mapData.productImage = checkImageProduct == null ? Status.DATANULL : checkImageProduct.Link;
+            //mapData.productName = checkProduct == null ? Status.DATANULL : checkProduct.title;
+            //mapData.productImage = checkImageProduct == null ? Status.DATANULL : checkImageProduct.Link;
             mapData.Account_creatPlan = item.CretorEdit;
 
             return mapData;
@@ -645,6 +663,8 @@ namespace quanlykhodl.Service
                                 status = Status.DANHAN.ToLower(),
                                 Deleted = false
                             };
+
+                            checkId.UpdatedAt = DateTimeOffset.UtcNow;
 
                             _context.warehousetransferstatuses.Add(warehourseStarus);
                             _context.plans.Update(checkId);

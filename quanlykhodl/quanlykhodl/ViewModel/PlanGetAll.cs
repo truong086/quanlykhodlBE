@@ -12,7 +12,10 @@
         public string? productName { get; set; }
         public string? productImage { get; set; }
         public string? Receiver_name { get; set; }
+        public string? Receiver_image { get; set; }
         public int? localtionOld { get; set; }
+        public string? localtionOldCode { get; set; }
+        public string? localtionNewCode { get; set; }
         public string? warehouseOld { get; set; }
         public string? areaOld { get; set; }
         public string? floorOld { get; set; }
@@ -32,5 +35,6 @@
         public string? ImageWarehourseNew { get; set; }
         public string? ImageFloorOld { get; set; }
         public string? ImageAreaeOld { get; set; }
+        public DateTimeOffset? UpdatedAt { get; set; }
     }
 }

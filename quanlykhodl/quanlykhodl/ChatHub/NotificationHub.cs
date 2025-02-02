@@ -76,10 +76,10 @@ namespace quanlykhodl.ChatHub
             // Gửi cho người nhận
             await Clients.Client(checkUser.ConnectionId).SendAsync("ReceiveMessage", new
             {
-                idUser2 = Context.UserIdentifier, // Id người gửi
+                idUser2 = int.Parse(Context.UserIdentifier), // Id người gửi
                 image_user2 = checkUserSend.image,
                 name_user2 = checkUserSend.username,
-                idUser1 = checkUserReceiver.id,
+                idUser1 = receiverUserId,
                 image_user1 = checkUserReceiver.image,
                 name_user1 = checkUserReceiver.username,
                 message = message,
@@ -90,9 +90,9 @@ namespace quanlykhodl.ChatHub
             // Gửi lại cho bản thân để hiển thị
             await Clients.Client(Context.ConnectionId).SendAsync("ReceiveMessage", new
             {
-                idUser2 = Context.UserIdentifier, // Id người gửi
+                idUser2 = int.Parse(Context.UserIdentifier), // Id người gửi
                 image_user2 = checkUserSend.image,
-                idUser1 = checkUserReceiver.id,
+                idUser1 = receiverUserId,
                 image_user1 = checkUserReceiver.image,
                 name_user1 = checkUserReceiver.username,
                 message = message,

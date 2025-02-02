@@ -111,12 +111,16 @@ namespace quanlykhodl.Service
         }
         private void updateLocationExcep(List<locationExceptionsDTO> data, Area area)
         {
-            var list = new List<int>();
+            var list = new List<int?>();
             foreach (var item in data)
             {
                 if (!list.Contains(item.location))
                 {
-                    if (item.location < area.quantity)
+                    if (item.location < area.quantity 
+                        && item.location > 0 
+                        && item.quantity > 0
+                        && item.location != null
+                        && item.quantity != null)
                     {
                         var localExceps = new LocationException
                         {
@@ -513,12 +517,35 @@ namespace quanlykhodl.Service
                 mapData.account_image = checkAccount.image;
                 mapData.floor_image = checkFloor.image;
                 mapData.floor_name = checkFloor.name;
+                mapData.Id_floor = checkFloor.id;
+                mapData.quantityExceptions = dataLocationException(checkData);
 
                 return await Task.FromResult(PayLoad<AreaGetAll>.Successfully(mapData));
             }catch(Exception ex)
             {
                 return await Task.FromResult(PayLoad<AreaGetAll>.CreatedFail(ex.Message));
             }
+        }
+
+        private List<quantityException> dataLocationException(Area area)
+        {
+            var list = new List<quantityException>();
+
+            var checkData = _context.locationExceptions.Where(x => x.id_area == area.id && !x.Deleted).ToList();
+            if(checkData.Count > 0)
+            {
+                foreach(var item in checkData)
+                {
+                    var dataItem = new quantityException { 
+                        location = item.location,
+                        quantity = item.max
+                    };
+
+                    list.Add(dataItem);
+                }
+            }
+
+            return list;
         }
 
         public async Task<PayLoad<AreaDTO>> Update(int id, AreaDTO areaDTO)
@@ -529,7 +556,7 @@ namespace quanlykhodl.Service
                 var checkId = _context.areas.Where(x => x.id == id && !x.Deleted).FirstOrDefault();
                 var checkAccount = _context.accounts.Where(x => x.id == Convert.ToInt32(user) && !x.Deleted).FirstOrDefault();
                 var checkFloor = _context.floors.Where(x => x.id == areaDTO.floor && !x.Deleted).FirstOrDefault();
-                var checkName = _context.areas.Where(x => x.name == areaDTO.name && !x.Deleted).FirstOrDefault();
+                var checkName = _context.areas.Where(x => x.name == areaDTO.name && x.name != checkId.name && !x.Deleted).FirstOrDefault();
 
                 if (checkId == null || checkAccount == null || checkFloor == null || checkName != null)
                     return await Task.FromResult(PayLoad<AreaDTO>.CreatedFail(Status.DATANULL));
@@ -540,7 +567,23 @@ namespace quanlykhodl.Service
                 if (!checkQuantityproductInArea(checkId.id, areaDTO.quantity))
                     return await Task.FromResult(PayLoad<AreaDTO>.CreatedFail(Status.DATANULL));
 
-                if(areaDTO.image != null)
+                if (areaDTO.locationExceptionsDTOs != null && areaDTO.locationExceptionsDTOs.Count() > 0)
+                {
+                    if (!checkLocationException(areaDTO.locationExceptionsDTOs))
+                        return await Task.FromResult(PayLoad<AreaDTO>.CreatedFail(Status.ERRORLOCATION));
+
+                    var checkLocationExcep = _context.locationExceptions.Where(x => x.id_area == checkId.id && !x.Deleted).ToList();
+                    if (checkLocationExcep.Count > 0 && checkLocationExcep != null)
+                    {
+                        _context.locationExceptions.RemoveRange(checkLocationExcep);
+                        _context.SaveChanges();
+                    }
+
+                    updateLocationExcep(areaDTO.locationExceptionsDTOs, checkId);
+
+                }
+
+                if (areaDTO.image != null)
                 {
                     uploadCloud.DeleteAllImageAndFolder(TokenViewModel.AREA + checkId.id.ToString(), _cloud);
 
@@ -556,19 +599,6 @@ namespace quanlykhodl.Service
                     checkId.image = uploadCloud.Link;
                     checkId.publicid = uploadCloud.publicId;
                     
-                }
-
-                if(areaDTO.locationExceptionsDTOs != null)
-                {
-                    var checkLocationExcep = _context.locationExceptions.Where(x => x.id_area == checkId.id && !x.Deleted).ToList();
-                    if(checkLocationExcep.Count > 0 && checkLocationExcep != null)
-                    {
-                        _context.locationExceptions.RemoveRange(checkLocationExcep);
-                        _context.SaveChanges();
-                    }
-
-                    updateLocationExcep(areaDTO.locationExceptionsDTOs, checkId);
-
                 }
 
                 if(areaDTO.quantity != null && areaDTO.quantity != 0)
@@ -591,6 +621,19 @@ namespace quanlykhodl.Service
             {
                 return await Task.FromResult(PayLoad<AreaDTO>.CreatedFail(ex.Message));
             }
+        }
+
+        private bool checkLocationException(List<locationExceptionsDTO> data)
+        {
+            foreach(var item in data)
+            {
+                if (item.location == 0
+                 || item.location == null
+                 || item.quantity == 0
+                 || item.quantity == null)
+                    return false;
+            }
+            return true;
         }
 
         private void updateLocationCode(Area area, int totalLocation, int quantity)

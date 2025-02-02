@@ -177,6 +177,9 @@ namespace quanlykhodl.Service
 
                 }
 
+                var checkCodeLocationOld = _context.codelocations.Where(x => x.id_area == checkPlan.areaOld && x.location == checkPlan.localtionOld && !x.Deleted).FirstOrDefault();
+                var checkCodeLocationNew = _context.codelocations.Where(x => x.id_area == checkPlan.area && x.location == checkPlan.localtionNew && !x.Deleted).FirstOrDefault();
+
                 var checkAreaOld = _context.areas.Where(x => x.id == checkPlan.areaOld && !x.Deleted).FirstOrDefault();
                 var checkFloorOld = _context.floors.Where(x => x.id == checkAreaOld.floor && !x.Deleted).FirstOrDefault();
                 var checkWarehourseOld = _context.warehouses.Where(x => x.id == checkFloorOld.warehouse && !x.Deleted).FirstOrDefault();
@@ -200,6 +203,8 @@ namespace quanlykhodl.Service
                 dataItem.Account_image = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.image;
                 dataItem.Account_name = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.username;
                 dataItem.statusItemPlans = loadDataStatusItemImage(item.id);
+                dataItem.CodeLocationNew = checkCodeLocationNew == null ? Status.CODEFAILD : checkCodeLocationNew.code;
+                dataItem.CodeLocationOld = checkCodeLocationOld == null ? Status.CODEFAILD : checkCodeLocationOld.code;
             }
 
             return dataItem;
@@ -276,6 +281,7 @@ namespace quanlykhodl.Service
                     checkId.status = statusItemDTO.title.ToLower();
                 }
 
+                checkPlan.UpdatedAt = DateTimeOffset.UtcNow;
                 _context.plans.Update(checkPlan);
                 _context.warehousetransferstatuses.Update(checkId);
                 _context.SaveChanges();

@@ -674,7 +674,7 @@ namespace quanlykhodl.Service
                     {
                         account_image = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.image,
                         account_name = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.username,
-                        addressWarehouse = checkWarehourse.Country + checkWarehourse.City + checkWarehourse.District + checkWarehourse.Street,
+                        addressWarehouse = checkWarehourse.Country + ", " + checkWarehourse.City + ", " + checkWarehourse.District + ", " + checkWarehourse.Street,
                         warehouse_name = checkWarehourse == null ? Status.NOWAREHOURSE : checkWarehourse.name,
                         warehouse_image = checkWarehourse == null ? Status.NOWAREHOURSE : checkWarehourse.image,
                         floor_image = checkFloor == null ? Status.NOFLOOR : checkFloor.image,

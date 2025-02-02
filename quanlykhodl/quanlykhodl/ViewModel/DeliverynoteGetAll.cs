@@ -21,6 +21,7 @@
         public long? TotalQuantity { get; set; }
         public bool? isPercentage { get; set; }
         public bool? isAction { get; set; }
+        public bool? isPack { get; set; }
         public List<productImportformAndDeliveerrynote>? products { get; set; }
     }
 }

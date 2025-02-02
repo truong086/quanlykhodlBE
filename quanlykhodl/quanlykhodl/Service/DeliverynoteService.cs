@@ -404,13 +404,13 @@ namespace quanlykhodl.Service
                 if (checkDataQuantity < data.products.Count() || checkDataQuantity > data.products.Count())
                     return await Task.FromResult(PayLoad<uploadDataLocationArea>.CreatedFail(Status.DATANULL));
 
-                if (!checkQuantityData(data.products))
-                    return await Task.FromResult(PayLoad<uploadDataLocationArea>.CreatedFail(Status.LOCATIONORPRODDUCTFAILD));
 
                 var checkId = _context.deliverynotes.Where(x => (x.id == data.id || x.code == data.code) && !x.Deleted).FirstOrDefault();
                 if (checkId == null)
                     return await Task.FromResult(PayLoad<uploadDataLocationArea>.CreatedFail(Status.DATANULL));
 
+                if (!checkQuantityData(data.products, checkId))
+                    return await Task.FromResult(PayLoad<uploadDataLocationArea>.CreatedFail(Status.LOCATIONORPRODDUCTFAILD));
                 checkId.isAction = true;
 
                 _context.deliverynotes.Update(checkId);
@@ -422,13 +422,13 @@ namespace quanlykhodl.Service
                 return await Task.FromResult(PayLoad<uploadDataLocationArea>.CreatedFail(ex.Message));
             }
         }
-        private bool checkQuantityData(List<UploadproductDeliverynoteDTO> data)
+        private bool checkQuantityData(List<UploadproductDeliverynoteDTO> data, Deliverynote deliverynote)
         {
             if (data.Any())
             {
                 foreach(var item in data)
                 {
-                    var checkId = _context.productDeliverynotes.Where(x => x.id == item.productDelivenote_id && !x.Deleted).FirstOrDefault();
+                    var checkId = _context.productDeliverynotes.Where(x => x.deliverynote == deliverynote.id && x.product_map == item.id_product && !x.Deleted).FirstOrDefault();
                     if(checkId == null) return false;
 
                     var checkLocation = _context.productlocations.Where(x => x.id_product == checkId.product_map 

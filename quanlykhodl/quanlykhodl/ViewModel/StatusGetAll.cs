@@ -19,6 +19,8 @@
         public string? StatusPlan {  get; set; }
         public string? Account_name {  get; set; }
         public string? Account_image {  get; set; }
+        public string? CodeLocationOld {  get; set; }
+        public string? CodeLocationNew {  get; set; }
         public List<StatusItemPlan>? statusItemPlans { get; set; }
     }
 

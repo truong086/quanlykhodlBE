@@ -13,7 +13,7 @@
 
     public class locationExceptionsDTO
     {
-        public int location { get; set; }
-        public int quantity { get; set; }
+        public int? location { get; set; }
+        public int? quantity { get; set; }
     }
 }
