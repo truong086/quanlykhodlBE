@@ -396,10 +396,25 @@ namespace quanlykhodl.Service
              */
 
             return chuyenDoi;
+        }
+        private int checkDateChenhLechMinutes(DateTimeOffset data)
+        {
+            var dateNow = DateTimeOffset.UtcNow;
+
+            TimeSpan tinhChenhLech = dateNow.Subtract(data);
+
+            int chuyenDoi = Math.Abs(tinhChenhLech.Minutes);
+            /*
+                "Days": Ngày
+                "Hours": Giờ
+                "Minutes": Phút
+                "Seconds": Giây
+             */
+
+            return chuyenDoi;
 
 
         }
-
         public async Task<PayLoad<string>> ReloadOTP(reLoadOtp data)
         {
             try
@@ -408,48 +423,62 @@ namespace quanlykhodl.Service
                 if (checkEmail == null)
                     return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
 
-                var checkToken = _context.tokens.Include(a => a.account)
+                var checkDate = _context.tokens.Include(a => a.account)
+                    .Where(x => x.account_id == checkEmail.id && !x.Deleted)
+                    .OrderByDescending(x => x.CreatedAt)
+                    .FirstOrDefault();
+
+                if (checkDate == null)
+                    return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
+
+                if(checkDateChenhLechMinutes(checkDate.CreatedAt) > 1)
+                {
+                    var checkToken = _context.tokens.Include(a => a.account)
                     .Where(x => x.account_id == checkEmail.id && !x.Deleted)
                     .ToList();
 
-                if (checkToken.Any() || checkToken != null)
-                {
-                    _context.tokens.RemoveRange(checkToken);
+                    if (checkToken.Any() || checkToken != null)
+                    {
+                        _context.tokens.RemoveRange(checkToken);
+                        await _context.SaveChangesAsync();
+                    }
+
+                    var descriptEmail = new SendEmail
+                    {
+                        title = Status.TITLEEMAIL,
+                        message = Status.MESSAGEEMAIL,
+                        iamge = checkEmail.image,
+                        name = checkEmail.username,
+                        active = geneAction()
+                    };
+                    var tokenOTP = new Token
+                    {
+                        account_id = checkEmail.id,
+                        account = checkEmail,
+                        code = descriptEmail.active,
+                        Status = data.type.ToLower() == Status.UPDATEPASSWORD.ToLower() ? Status.UPDATEPASSWORD : Status.CREATEPASSWORD
+                    };
+
+                    _context.tokens.Add(tokenOTP);
                     await _context.SaveChangesAsync();
+
+                    var tempalte = Status.TEMPLATEVIEW;
+
+                    var tempalateEmail = await _emails.RenderViewToStringAsync(tempalte, descriptEmail);
+                    await _emails.SendEmai(checkEmail.email, descriptEmail.title, tempalateEmail);
+
+                    // Khởi động Background Task để xử lý
+                    _ = Task.Run(() =>
+                    {
+                        var work = _httpContextAccessor.HttpContext.RequestServices.GetRequiredService<VerificationTaskWorker>();
+                        work.ProcessVerificationAsync(tokenOTP, Status.CREATEPASSWORD); // Chuyền dữ liệu vào hàm "VerificationTaskWorker" này
+                    });
+
+                    return await Task.FromResult(PayLoad<string>.Successfully(Status.SUCCESS));
                 }
 
-                var descriptEmail = new SendEmail
-                {
-                    title = Status.TITLEEMAIL,
-                    message = Status.MESSAGEEMAIL,
-                    iamge = checkEmail.image,
-                    name = checkEmail.username,
-                    active = geneAction()
-                };
-                var tokenOTP = new Token
-                {
-                    account_id = checkEmail.id,
-                    account = checkEmail,
-                    code = descriptEmail.active,
-                    Status = data.type.ToLower() == Status.UPDATEPASSWORD.ToLower() ? Status.UPDATEPASSWORD : Status.CREATEPASSWORD
-                };
+                return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATATONTAI));
 
-                _context.tokens.Add(tokenOTP);
-                await _context.SaveChangesAsync();
-
-                var tempalte = Status.TEMPLATEVIEW;
-
-                var tempalateEmail = await _emails.RenderViewToStringAsync(tempalte, descriptEmail);
-                await _emails.SendEmai(checkEmail.email, descriptEmail.title, tempalateEmail);
-
-                // Khởi động Background Task để xử lý
-                _ = Task.Run(() =>
-                {
-                    var work = _httpContextAccessor.HttpContext.RequestServices.GetRequiredService<VerificationTaskWorker>();
-                    work.ProcessVerificationAsync(tokenOTP, Status.CREATEPASSWORD); // Chuyền dữ liệu vào hàm "VerificationTaskWorker" này
-                });
-
-                return await Task.FromResult(PayLoad<string>.Successfully(Status.SUCCESS));
             }
             catch(Exception ex)
             {
