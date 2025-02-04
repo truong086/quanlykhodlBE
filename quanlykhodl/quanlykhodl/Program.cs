@@ -178,6 +178,7 @@ builder.Services.AddScoped<IUserOnlineService, UserOnlineService>();
 builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddScoped<IStatisticalService, StatisticalService>();
 builder.Services.AddScoped<IUserTokenAppService, UserTokenAppService>();
+builder.Services.AddScoped<UserTokenAppService>();
 builder.Services.AddScoped<onlineUser>();
 builder.Services.AddScoped<SendEmais>();
 builder.Services.AddSingleton<VerificationTaskWorker>();

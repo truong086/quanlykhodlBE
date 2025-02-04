@@ -92,16 +92,25 @@ namespace quanlykhodl.Service
                 {
                     if (!checkList.Contains(item.Token))
                     {
-                        var messageSend = new Message
+                        try
                         {
-                            Token = item.Token,
-                            Notification = new Notification()
+                            var messageSend = new Message
                             {
-                                Title = "💫🕳💫🕳🕳💯 Thông báo có Plan mới",
-                                Body = "Có plan từ Admin vừa tạo"
-                            }
-                        };
-                        await FirebaseMessaging.DefaultInstance.SendAsync(messageSend);
+                                Token = item.Token,
+                                Notification = new Notification()
+                                {
+                                    Title = "💫🕳💫🕳🕳💯 New Plan Notification",
+                                    Body = "There is a plan from Admin just created"
+                                }
+                            };
+                            await FirebaseMessaging.DefaultInstance.SendAsync(messageSend);
+
+                            
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                        }
 
                         checkList.Add(item.Token);
                     }

@@ -19,13 +19,16 @@ namespace quanlykhodl.Service
         private readonly Cloud _cloud;
         private readonly IUserService _userService;
         private readonly IHubContext<NotificationHub> _hubContext;
-        public PlanService(DBContext context, IOptions<Cloud> cloud, IMapper mapper, IUserService userService, IHubContext<NotificationHub> hubContext)
+        private readonly IUserTokenAppService _userTokenAppService;
+        public PlanService(DBContext context, IOptions<Cloud> cloud, IMapper mapper, IUserService userService, IHubContext<NotificationHub> hubContext, IUserTokenAppService userTokenAppService)
         {
             _context = context;
             _cloud = cloud.Value;
             _mapper = mapper;
             _userService = userService;
             _hubContext = hubContext;
+            _userTokenAppService = userTokenAppService;
+
         }
         public async Task<PayLoad<PlanDTO>> Add(PlanDTO planDTO)
         {
@@ -129,6 +132,8 @@ namespace quanlykhodl.Service
                 _context.SaveChanges();
 
                 await _hubContext.Clients.All.SendAsync("thongbao", mapData.title, checkAccount.username);
+
+                await _userTokenAppService.SendNotify();
                 return await Task.FromResult(PayLoad<PlanDTO>.Successfully(planDTO));
             }
             catch(Exception ex)
