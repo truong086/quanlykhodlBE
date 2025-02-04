@@ -1,7 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using quanlykhodl.Common;
 using quanlykhodl.Models;
 using quanlykhodl.ViewModel;
+using System.Linq;
 
 namespace quanlykhodl.Service
 {
@@ -119,26 +120,29 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var data = await _dbcontext.productDeliverynotes.Include(d => d.deliverynote_id1).Include(p => p.product).ThenInclude(pi => pi.imageProducts).GroupBy(g => new
+                var data = _dbcontext.productDeliverynotes.Include(d => d.deliverynote_id1).Include(p => p.product).ThenInclude(pi => pi.imageProducts)
+                    .AsEnumerable()
+                    .GroupBy(g => new
                 {
                     Month = g.deliverynote_id1.CreatedAt.Month,
-                    Year = g.deliverynote_id1.CreatedAt.Year,
-                    idproduct = g.product_map,
-                    productName = g.product.title,
-                    image = g.product.imageProducts
+                    Year = g.deliverynote_id1.CreatedAt.Year
                 }).Select(x => new ProductSalesByMonth
                 {
                     Month = x.Key.Month,
                     Year = x.Key.Year,
-                    ProductId = x.Key.idproduct.Value,
-                    ProductName = x.Key.productName,
                     TotalQuantitySold = x.Sum(o => o.quantity),
                     TotalRevenue = x.Sum(od => od.quantity * (int)od.deliverynote_id1.price),
-                    image = x.Key.image.Select(i => i.Link).ToList()
-                }).OrderBy(x => x.Year).ThenBy(r => r.Month).ToListAsync();
+                    producSalesData = x.Select(pi => pi.product).Select(pi => new producSales
+                    {
+                        ProductName = pi.title,
+                        Quantity = x.Sum(o => o.quantity),
+                        images = pi.imageProducts.Select(i => i.Link).ToList()
+                    }).ToList()
+                }).OrderBy(x => x.Year).ThenBy(r => r.Month).ToList();
 
                 return await Task.FromResult(PayLoad<object>.Successfully(data));
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
             }
@@ -153,11 +157,13 @@ namespace quanlykhodl.Service
                     .AsEnumerable()
                     .GroupBy(g => new
                     {
+                        id = g.product.id,
                         productName = g.product.title,
                         image = g.product.imageProducts,
                         code = g.product.code
                     }).Select(x => new TotalProduct
                     {
+                        id = x.Key.id,
                         title = x.Key.productName,
                         image = x.Key.image.Select(x => x.Link).ToList(),
                         total = x.Sum(o => o.quantity),
@@ -165,7 +171,8 @@ namespace quanlykhodl.Service
                     }).OrderByDescending(x => x.total).ToList();
 
                 return await Task.FromResult(PayLoad<object>.Successfully(data));
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
             }
@@ -190,7 +197,8 @@ namespace quanlykhodl.Service
                     }).OrderByDescending(x => x.total).ToList();
 
                 return await Task.FromResult(PayLoad<object>.Successfully(data));
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
             }
@@ -200,24 +208,26 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var data = _dbcontext.deliverynotes.Include(a => a.account).Include(s => s.retailcustomers_id).Include(d => d.productDeliverynotes)
+                var data = _dbcontext.Retailcustomers.Include(a => a.deliverynotes).ThenInclude(s => s.productDeliverynotes)
+                    .ThenInclude(d => d.product).ThenInclude(pi => pi.imageProducts).AsEnumerable()
+                    .AsEnumerable()
                     .GroupBy(g => new
                     {
-                        accountName = g.account.username,
-                        image = g.account.image,
-                        email = g.account.email,
-                        customer = g.retailcustomers_id.name,
-                        customer_address = g.retailcustomers_id.address,
-                        customer_email = g.retailcustomers_id.email
+                        id = g.id,
+                        customerName = g.name,
+                        email = g.email
                     }).Select(x => new LySalesAccountByProductCustomer
                     {
-                        username = x.Key.accountName,
-                        image = x.Key.image,
-                        email = x.Key.email,
-                        customer_name = x.Key.customer,
-                        customer_address =x.Key.customer_address,
-                        customer_email = x.Key.customer_email,
-                        total = x.SelectMany(o => o.productDeliverynotes).Sum(o => o.quantity),
+                        id = x.Key.id,
+                        customer_name = x.Key.customerName,
+                        customer_email = x.Key.email,
+                        producSalesData = x.SelectMany(d => d.deliverynotes).SelectMany(ds => ds.productDeliverynotes).Select(ds1 => ds1.product).Select(dataItem => new producSales
+                        {
+                            ProductName = dataItem.title,
+                            Quantity = x.SelectMany(o => o.deliverynotes).SelectMany(d => d.productDeliverynotes).Sum(o => o.quantity),
+                            images = x.SelectMany(d => d.deliverynotes).SelectMany(ds => ds.productDeliverynotes).Select(ds1 => ds1.product).SelectMany(imageData => imageData.imageProducts).Select(ip => ip.Link).ToList()
+                        }).ToList(),
+                        total = x.SelectMany(o => o.deliverynotes).SelectMany(d => d.productDeliverynotes).Sum(o => o.quantity),
                     }).OrderByDescending(x => x.total).ToList();
 
                 return await Task.FromResult(PayLoad<object>.Successfully(data));
@@ -244,12 +254,12 @@ namespace quanlykhodl.Service
                 }).OrderBy(x => x.Year).ThenBy(x => x.Month).ToListAsync();
 
                 return await Task.FromResult(PayLoad<object>.Successfully(data));
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
             }
         }
-
         public async Task<PayLoad<object>> SetDayAndMonthAnhYearlyProductStatistics()
         {
             try
@@ -268,6 +278,10 @@ namespace quanlykhodl.Service
                         Year = g.CreatedAt.Year
                     }).Select(x => new TotalProductImportFrom
                     {
+                        Day = x.Key.Day,
+                        Hourse = x.Key.Hourse,
+                        Month = x.Key.Month,
+                        Year = x.Key.Year,
                         title = x.Key.title,
                         data = x.Key.data.Select(x => x.products).Select(p => new
                         {
@@ -313,9 +327,9 @@ namespace quanlykhodl.Service
                         account = g.account,
                     }).Select(x => new TotalProductQuantity
                     {
-                        Day = x.Key.Day, 
-                        Hourse = x.Key.Hourse, 
-                        Month = x.Key.Month, 
+                        Day = x.Key.Day,
+                        Hourse = x.Key.Hourse,
+                        Month = x.Key.Month,
                         Year = x.Key.Year,
                         Id = x.Key.Id,
                         title = x.Key.title,
@@ -406,7 +420,7 @@ namespace quanlykhodl.Service
 
                 return await Task.FromResult(PayLoad<object>.Successfully(data));
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
             }
@@ -418,15 +432,18 @@ namespace quanlykhodl.Service
             {
                 var data = _dbcontext.suppliers
                     .Include(d => d.products)
+                    .ThenInclude(ip => ip.imageProducts)
                     .AsEnumerable()
                     .GroupBy(g => new
                     {
+                        id = g.id,
                         name = g.name,
                         address = g.address,
                         image = g.image,
                         data = g.products
                     }).Select(x => new TotalProductSupplier
                     {
+                        id = x.Key.id,
                         name = x.Key.name,
                         address = x.Key.address,
                         image = x.Key.image,

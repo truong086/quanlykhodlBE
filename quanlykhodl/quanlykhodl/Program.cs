@@ -59,7 +59,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 // Đăng ký Firebase Key
 FirebaseApp.Create(new AppOptions()
 {
-    Credential = GoogleCredential.FromFile("C:\\Users\\ASUS\\OneDrive\\Desktop\\VueJs\\SpringBoot\\thongbaoapp-41b96-firebase-adminsdk-fbsvc-fb75b932c5.json")
+    Credential = GoogleCredential.FromFile("C:\\Users\\ASUS\\OneDrive\\Desktop\\VueJs\\SpringBoot\\notification-bdf14-firebase-adminsdk-fbsvc-2af3aa7e8a.json")
 });
 
 builder.Services.AddSwaggerGen(c =>

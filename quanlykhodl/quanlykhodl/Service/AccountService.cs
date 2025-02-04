@@ -428,10 +428,7 @@ namespace quanlykhodl.Service
                     .OrderByDescending(x => x.CreatedAt)
                     .FirstOrDefault();
 
-                if (checkDate == null)
-                    return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
-
-                if(checkDateChenhLechMinutes(checkDate.CreatedAt) > 1)
+                if(checkDateChenhLechMinutes(checkDate == null ? DateTimeOffset.Parse("2025-02-03T10:30:00+07:00") : checkDate.CreatedAt) > 1)
                 {
                     var checkToken = _context.tokens.Include(a => a.account)
                     .Where(x => x.account_id == checkEmail.id && !x.Deleted)
@@ -763,6 +760,21 @@ namespace quanlykhodl.Service
                 await _hubContext.Clients.All.SendAsync("UserData", AccountOnline.GetAll(getAllDataOnline, _mapper, _context));
 
                 _userService.Logout();
+
+                return await Task.FromResult(PayLoad<string>.Successfully(Status.SUCCESS));
+            }catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<string>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<string>> CheckEmail(string Email)
+        {
+            try
+            {
+                var checkEmail = _context.accounts.Where(x => x.email == Email && !x.Action && !x.Deleted).FirstOrDefault();
+                if (checkEmail == null)
+                    return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
 
                 return await Task.FromResult(PayLoad<string>.Successfully(Status.SUCCESS));
             }catch(Exception ex)

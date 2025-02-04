@@ -66,6 +66,14 @@ namespace quanlykhodl.Controllers
         }
 
         [AllowAnonymous]
+        [HttpPost]
+        [Route(nameof(CheckEmail))]
+        public async Task<PayLoad<string>> CheckEmail(string Email)
+        {
+            return await _accountService.CheckEmail(Email);
+        }
+
+        [AllowAnonymous]
         [HttpGet]
         [Route(nameof(FindAll))]
         public async Task<PayLoad<object>> FindAll(string? name, int page = 1, int pageSize = 20)

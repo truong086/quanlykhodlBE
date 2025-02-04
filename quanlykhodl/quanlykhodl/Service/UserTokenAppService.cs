@@ -5,6 +5,8 @@ using quanlykhodl.ViewModel;
 using Twilio.TwiML.Messaging;
 using Notification = FirebaseAdmin.Messaging.Notification;
 using Message = FirebaseAdmin.Messaging.Message;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 
 namespace quanlykhodl.Service
 {
@@ -63,16 +65,17 @@ namespace quanlykhodl.Service
         {
             try
             {
-                /* Cách 1
-                var data = _dBContext.userTokenApps.Select(x => x.Token).ToList();
-                if(data.Count <= 0)
+                //Cách 1
+                var data = _dBContext.userTokenApps.ToList();
+                if (data.Count <= 0)
                     return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
 
-                foreach(var item in data.Chunk(500)) // Gửi cho 500 thiết bị 1 lần
+                /*foreach (var item in data.Select(x => x.Token).Chunk(500)) // Gửi cho 500 thiết bị 1 lần
                 {
+
                     var messageSend = new MulticastMessage
                     {
-                        Tokens = data,
+                        Tokens = item,
                         Notification = new Notification()
                         {
                             Title = "💫🕳💫🕳🕳💯 Thông báo có Plan mới",
@@ -84,18 +87,42 @@ namespace quanlykhodl.Service
                     Console.WriteLine($"Data: {response} Success");
                 }*/
 
-                // Cách 2
-                var message = new Message()
+                var checkList = new List<string>();
+                foreach (var item in data)
                 {
-                    Topic = "allDevices",  // Gửi đến tất cả thiết bị đăng ký topic này "allDevices"
-                    Notification = new Notification()
+                    if (!checkList.Contains(item.Token))
                     {
-                        Title = "❤❤❤💘💘",
-                        Body = "💫💨💨💨☮🕳"
-                    }
-                };
+                        var messageSend = new Message
+                        {
+                            Token = item.Token,
+                            Notification = new Notification()
+                            {
+                                Title = "💫🕳💫🕳🕳💯 Thông báo có Plan mới",
+                                Body = "Có plan từ Admin vừa tạo"
+                            }
+                        };
+                        await FirebaseMessaging.DefaultInstance.SendAsync(messageSend);
 
-                await FirebaseMessaging.DefaultInstance.SendAsync(message);
+                        checkList.Add(item.Token);
+                    }
+                    
+                }
+
+
+
+
+                // Cách 2
+                //var message = new Message()
+                //{
+                //    Topic = "allDevices",  // Gửi đến tất cả thiết bị đăng ký topic này "allDevices"
+                //    Notification = new Notification()
+                //    {
+                //        Title = "❤❤❤💘💘",
+                //        Body = "💫💨💨💨☮🕳"
+                //    }
+                //};
+
+                //await FirebaseMessaging.DefaultInstance.SendAsync(message);
                 return await Task.FromResult(PayLoad<string>.Successfully(Status.SUCCESS));
 
             }
