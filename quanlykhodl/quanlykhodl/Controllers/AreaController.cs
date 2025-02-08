@@ -21,37 +21,44 @@ namespace quanlykhodl.Controllers
 
         [HttpGet]
         [Route(nameof(FindAll))]
-        public async Task<PayLoad<object>> FindAll(string? name, int page = 1, int pageSize = 20)
+        public async Task<PayLoad<object>> FindAll (string? name, int page = 1, int pageSize = 20)
         {
-            return await _areaService.FinAll(name, page, pageSize);
+            return await _areaService.FindAll(name, page, pageSize);
+        }
+
+        [HttpGet]
+        [Route(nameof(FindOneId))]
+        public async Task<PayLoad<object>> FindOneId(int id)
+        {
+            return await _areaService.FindOneId(id);
+        }
+
+        [HttpGet]
+        [Route(nameof(FindOneByFloor))]
+        public async Task<PayLoad<object>> FindOneByFloor(int id)
+        {
+            return await _areaService.FindByFloor(id);
         }
 
         [HttpPost]
         [Route(nameof(Add))]
-        public async Task<PayLoad<AreaDTO>> Add(AreaDTO data)
+        public async Task<PayLoad<AreaDTO>> Add([FromForm] AreaDTO data)
         {
             return await _areaService.Add(data);
         }
 
         [HttpPut]
         [Route(nameof(Update))]
-        public async Task<PayLoad<AreaDTO>> Update(int id, AreaDTO data)
+        public async Task<PayLoad<AreaDTO>> Update(int id, [FromForm] AreaDTO data)
         {
             return await _areaService.Update(id, data);
         }
 
-        [HttpGet]
-        [Route(nameof(FindOneId))]
-        public async Task<PayLoad<AreaGetAll>> FindOneId(int id)
+        [HttpDelete]
+        [Route(nameof(Delete))]
+        public async Task<PayLoad<string>> Delete(int id)
         {
-            return await _areaService.FindOneId(id);
-        }
-
-        [HttpGet]
-        [Route(nameof(FindByFloor))]
-        public async Task<PayLoad<object>> FindByFloor(int id, int page = 1, int pageSize = 20)
-        {
-            return await _areaService.FindOneFloor(id, page, pageSize);
+            return await _areaService.Delete(id);
         }
     }
 }

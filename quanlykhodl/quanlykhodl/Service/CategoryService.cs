@@ -25,21 +25,21 @@ namespace quanlykhodl.Service
             try
             {
                 var user = _userService.name();
-                var checkName = _context.categories.Where(x => x.name == data.name && !x.Deleted).FirstOrDefault();
+                var checkName = _context.categories.Where(x => x.name == data.name && !x.deleted).FirstOrDefault();
                 if (checkName != null)
                     return await Task.FromResult(PayLoad<CategoryDTO>.CreatedFail(Status.DATANULL));
 
-                var checkAccount = _context.accounts.Where(x => x.id == Convert.ToInt32(user) && !x.Deleted).FirstOrDefault();
-                var mapData = _mapper.Map<category>(data);
+                var checkAccount = _context.accounts.Where(x => x.id == Convert.ToInt32(user) && !x.deleted).FirstOrDefault();
+                var mapData = _mapper.Map<categories>(data);
                 mapData.account = checkAccount;
-                mapData.account_Id = checkAccount.id;
+                mapData.account_id = checkAccount.id;
 
                 _context.categories.Add(mapData);
                 _context.SaveChanges();
 
                 if(data.image != null)
                 {
-                    var dataNew = _context.categories.Where(x => !x.Deleted).OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+                    var dataNew = _context.categories.Where(x => !x.deleted).OrderByDescending(x => x.createdat).FirstOrDefault();
                     uploadCloud.CloudInaryIFromAccount(data.image, TokenViewModel.CATEGORY + dataNew.id.ToString(), _cloud);
                     dataNew.image = uploadCloud.Link;
                     dataNew.public_id = uploadCloud.publicId;
@@ -60,8 +60,8 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var checkId = _context.categories.Where(x => x.id == id && !x.Deleted).FirstOrDefault();
-                checkId.Deleted = true;
+                var checkId = _context.categories.Where(x => x.id == id && !x.deleted).FirstOrDefault();
+                checkId.deleted = true;
 
                 _context.categories.Update(checkId);
                 _context.SaveChanges();
@@ -77,7 +77,7 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var data = _context.categories.Where(x => !x.Deleted).ToList();
+                var data = _context.categories.Where(x => !x.deleted).ToList();
 
                 if (!string.IsNullOrEmpty(name))
                     data = data.Where(x => x.name.Contains(name)).ToList();
@@ -98,13 +98,13 @@ namespace quanlykhodl.Service
             }
         }
 
-        private List<CategoryGetAll> LoadData(List<category> data)
+        private List<CategoryGetAll> LoadData(List<categories> data)
         {
             var list = new List<CategoryGetAll>();
 
             foreach (var item in data)
             {
-                var checkAccount = _context.accounts.Where(x => x.id ==  item.account_Id && !x.Deleted).FirstOrDefault();
+                var checkAccount = _context.accounts.Where(x => x.id ==  item.account_id && !x.deleted).FirstOrDefault();
                 var mapData = _mapper.Map<CategoryGetAll>(item);
                 mapData.account_name = checkAccount.username;
                 mapData.account_image = checkAccount.image;
@@ -117,11 +117,11 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var checkId = _context.categories.Where(x => x.id == id && !x.Deleted).FirstOrDefault();
+                var checkId = _context.categories.Where(x => x.id == id && !x.deleted).FirstOrDefault();
                 if (checkId == null)
                     return await Task.FromResult(PayLoad<CategoryGetAll>.CreatedFail(Status.DATANULL));
 
-                var checkAccount = _context.accounts.Where(x => x.id == checkId.account_Id && !x.Deleted).FirstOrDefault();
+                var checkAccount = _context.accounts.Where(x => x.id == checkId.account_id && !x.deleted).FirstOrDefault();
                 var mapData = _mapper.Map<CategoryGetAll>(checkId);
                 mapData.account_name = checkAccount.username;
                 mapData.account_image = checkAccount.image;
@@ -137,8 +137,8 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var checkId = _context.categories.Where(x => x.id == id && !x.Deleted).FirstOrDefault();
-                var checkName = _context.categories.Where(x => x.name == data.name && !x.Deleted).FirstOrDefault();
+                var checkId = _context.categories.Where(x => x.id == id && !x.deleted).FirstOrDefault();
+                var checkName = _context.categories.Where(x => x.name == data.name && !x.deleted).FirstOrDefault();
                 if (checkId == null || checkName != null)
                     return await Task.FromResult(PayLoad<CategoryDTO>.CreatedFail(Status.DATANULL));
 

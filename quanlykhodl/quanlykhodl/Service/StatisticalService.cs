@@ -1,8 +1,9 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using quanlykhodl.Common;
 using quanlykhodl.Models;
 using quanlykhodl.ViewModel;
 using System.Linq;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace quanlykhodl.Service
 {
@@ -18,14 +19,14 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var data = _dbcontext.productDeliverynotes.Include(d => d.deliverynote_id1)
+                var data = _dbcontext.productdeliverynotes.Include(d => d.deliverynote_id1)
                     .Include(p => p.product).ThenInclude(pi => pi.imageProducts)
-                    .Where(x => x.deliverynote_id1.CreatedAt.Day == DateTimeOffset.UtcNow.Day)
+                    .Where(x => x.deliverynote_id1.createdat.Day == DateTimeOffset.UtcNow.Day)
                     .AsEnumerable()
                     .GroupBy(g => new
                     {
                         DayNow = DateTimeOffset.UtcNow,
-                        Day = g.CreatedAt.Day,
+                        Day = g.createdat.Day,
                         idproduct = g.product_map,
                         productName = g.product.title,
                         image = g.product.imageProducts
@@ -38,17 +39,17 @@ namespace quanlykhodl.Service
                         ProductName = x.Key.productName,
                         TotalQuantitySold = x.Sum(o => o.quantity),
                         TotalRevenue = x.Sum(od => od.quantity * (int)od.deliverynote_id1.price),
-                        image = x.Key.image.Select(i => i.Link).ToList()
+                        image = x.Key.image.Select(i => i.link).ToList()
                     }).OrderBy(x => x.Day).ThenBy(r => r.TotalRevenue).ToList();
 
-                //var data = _dbcontext.deliverynotes.Include(d => d.productDeliverynotes)
-                //    .ThenInclude(p => p.product).ThenInclude(pi => pi.imageProducts)
+                //var data = _dbcontext.deliverynotes.Include(d => d.productdeliverynotes)
+                //    .ThenInclude(p => p.product).ThenInclude(pi => pi.imageproducts)
                 //    .AsEnumerable()
                 //    .GroupBy(g => new
                 //    {
-                //        Day = g.CreatedAt.Day,
-                //        productDeliryNote = g.productDeliverynotes,
-                //        data = g.productDeliverynotes.Select(x => x.product)
+                //        Day = g.createdat.Day,
+                //        productDeliryNote = g.productdeliverynotes,
+                //        data = g.productdeliverynotes.Select(x => x.product)
                 //    }).Select(x => new ProductSalesByDay
                 //    {
                 //        hourse = null,
@@ -69,15 +70,15 @@ namespace quanlykhodl.Service
         {
             try
             {
-                //var data = _dbcontext.productDeliverynotes.Include(d => d.deliverynote_id1)
-                //    .Include(p => p.product).ThenInclude(pi => pi.imageProducts)
+                //var data = _dbcontext.productdeliverynotes.Include(d => d.deliverynote_id1)
+                //    .Include(p => p.product).ThenInclude(pi => pi.imageproducts)
                 //    .AsEnumerable()
                 //    .GroupBy(g => new
                 //    {
-                //        Hourse = g.deliverynote_id1.CreatedAt.Hour,
+                //        Hourse = g.deliverynote_id1.createdat.Hour,
                 //        idproduct = g.product_map,
                 //        productName = g.product.title,
-                //        image = g.product.imageProducts
+                //        image = g.product.imageproducts
                 //    }).Select(x => new ProductSalesByDay
                 //    {
                 //        hourse = x.Key.Hourse,
@@ -85,7 +86,7 @@ namespace quanlykhodl.Service
                 //        ProductName = x.Key.productName,
                 //        TotalQuantitySold = x.Sum(o => o.quantity),
                 //        TotalRevenue = x.Sum(od => od.quantity * (int)od.deliverynote_id1.price),
-                //        image = x.Key.image.Select(i => i.Link).ToList()
+                //        image = x.Key.image.Select(i => i.link).ToList()
                 //    }).OrderBy(x => x.Day).ThenBy(r => r.TotalRevenue).ToList();
 
                 var data = _dbcontext.deliverynotes.Include(d => d.productDeliverynotes)
@@ -93,7 +94,7 @@ namespace quanlykhodl.Service
                     .AsEnumerable()
                     .GroupBy(g => new
                     {
-                        Hourse = g.CreatedAt.Hour,
+                        Hourse = g.createdat.Hour,
                         dataItem = g.productDeliverynotes.Select(pr => pr.product)
                     }).Select(x => new ProductSalesByDay
                     {
@@ -103,7 +104,7 @@ namespace quanlykhodl.Service
                         {
                             id = x.id,
                             name = x.title,
-                            image = x.imageProducts.Select(x => x.Link).ToList(),
+                            image = x.imageProducts.Select(x => x.link).ToList(),
                             price = x.price
                         }).ToList()
                     }).OrderBy(x => x.Day).ThenBy(r => r.TotalRevenue).ToList();
@@ -120,25 +121,54 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var data = _dbcontext.productDeliverynotes.Include(d => d.deliverynote_id1).Include(p => p.product).ThenInclude(pi => pi.imageProducts)
+                //var data = _dbcontext.productdeliverynotes.Include(d => d.deliverynote_id1).Include(p => p.product).ThenInclude(pi => pi.imageproducts)
+                //    .AsEnumerable()
+                //    .GroupBy(g => new
+                //    {
+                //        Month = g.deliverynote_id1.createdat.Month,
+                //        Year = g.deliverynote_id1.createdat.Year,
+
+                //    }).Select(x => new ProductSalesByMonth
+                //    {
+                //        Month = x.Key.Month,
+                //        Year = x.Key.Year,
+                //        TotalQuantitySold = x.Sum(o => o.quantity),
+                //        TotalRevenue = x.Sum(od => od.quantity * (int)od.deliverynote_id1.price),
+                //        producSalesData = x.Select(pi => pi.product).Select(pi => new producSales
+                //        {
+                //            ProductName = pi.title,
+                //            Quantity = x.Where(d => d.product_map == pi.id).Select(dx => dx.quantity).FirstOrDefault(),
+                //            images = pi.imageproducts.Select(i => i.link).ToList()
+                //        }).ToList()
+                //    }).OrderBy(x => x.Year).ThenBy(r => r.Month).ToList();
+
+                var data = _dbcontext.productdeliverynotes.Include(d => d.deliverynote_id1).Include(p => p.product).ThenInclude(pi => pi.imageProducts)
                     .AsEnumerable()
                     .GroupBy(g => new
-                {
-                    Month = g.deliverynote_id1.CreatedAt.Month,
-                    Year = g.deliverynote_id1.CreatedAt.Year
-                }).Select(x => new ProductSalesByMonth
-                {
-                    Month = x.Key.Month,
-                    Year = x.Key.Year,
-                    TotalQuantitySold = x.Sum(o => o.quantity),
-                    TotalRevenue = x.Sum(od => od.quantity * (int)od.deliverynote_id1.price),
-                    producSalesData = x.Select(pi => pi.product).Select(pi => new producSales
                     {
-                        ProductName = pi.title,
-                        Quantity = x.Sum(o => o.quantity),
-                        images = pi.imageProducts.Select(i => i.Link).ToList()
-                    }).ToList()
-                }).OrderBy(x => x.Year).ThenBy(r => r.Month).ToList();
+                        Month = g.deliverynote_id1.createdat.Month,
+                        Year = g.deliverynote_id1.createdat.Year,
+                        g.product // Group By theo product
+                    }).Select(x => new 
+                    {
+                        Month = x.Key.Month,
+                        Year = x.Key.Year,
+                        ProductName = x.First().product.title, // "x.First()" lấy bản ghi đầu tiên trong nhóm (vì trong mỗi nhóm, tất cả các bản ghi đều có cùng ProductId, nên tên sản phẩm luôn giống nhau).
+                        Image = x.First().product.imageProducts,
+                        TotalSold = x.Sum(d => d.quantity)
+                    }).GroupBy(g => g.Month) // Nhóm lại theo tháng
+                    .Select(x => new ProductSalesByMonth
+                    {
+                        Month = x.Key,
+                        TotalQuantitySold = x.Sum(t => t.TotalSold),
+                        producSalesData = x.Select(p => new producSales
+                        {
+                            ProductName = p.ProductName,
+                            images = p.Image.Select(i => i.link).ToList(),
+                            Quantity = p.TotalSold
+                        }).ToList()
+                    })
+                    .OrderBy(x => x.Year).ThenBy(r => r.Month).ToList();
 
                 return await Task.FromResult(PayLoad<object>.Successfully(data));
             }
@@ -152,7 +182,7 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var data = _dbcontext.productDeliverynotes
+                var data = _dbcontext.productdeliverynotes
                     .Include(d => d.deliverynote_id1).Include(d => d.product).ThenInclude(pi => pi.imageProducts)
                     .AsEnumerable()
                     .GroupBy(g => new
@@ -165,7 +195,7 @@ namespace quanlykhodl.Service
                     {
                         id = x.Key.id,
                         title = x.Key.productName,
-                        image = x.Key.image.Select(x => x.Link).ToList(),
+                        image = x.Key.image.Select(x => x.link).ToList(),
                         total = x.Sum(o => o.quantity),
                         code = x.Key.code
                     }).OrderByDescending(x => x.total).ToList();
@@ -208,7 +238,7 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var data = _dbcontext.Retailcustomers.Include(a => a.deliverynotes).ThenInclude(s => s.productDeliverynotes)
+                var data = _dbcontext.retailcustomers.Include(a => a.deliverynotes).ThenInclude(s => s.productDeliverynotes)
                     .ThenInclude(d => d.product).ThenInclude(pi => pi.imageProducts).AsEnumerable()
                     .AsEnumerable()
                     .GroupBy(g => new
@@ -225,7 +255,7 @@ namespace quanlykhodl.Service
                         {
                             ProductName = dataItem.title,
                             Quantity = x.SelectMany(o => o.deliverynotes).SelectMany(d => d.productDeliverynotes).Sum(o => o.quantity),
-                            images = x.SelectMany(d => d.deliverynotes).SelectMany(ds => ds.productDeliverynotes).Select(ds1 => ds1.product).SelectMany(imageData => imageData.imageProducts).Select(ip => ip.Link).ToList()
+                            images = x.SelectMany(d => d.deliverynotes).SelectMany(ds => ds.productDeliverynotes).Select(ds1 => ds1.product).SelectMany(imageData => imageData.imageProducts).Select(ip => ip.link).ToList()
                         }).ToList(),
                         total = x.SelectMany(o => o.deliverynotes).SelectMany(d => d.productDeliverynotes).Sum(o => o.quantity),
                     }).OrderByDescending(x => x.total).ToList();
@@ -244,8 +274,8 @@ namespace quanlykhodl.Service
             {
                 var data = await _dbcontext.deliverynotes.Include(pd => pd.productDeliverynotes).GroupBy(g => new
                 {
-                    Month = g.CreatedAt.Month,
-                    Year = g.CreatedAt.Year
+                    Month = g.createdat.Month,
+                    Year = g.createdat.Year
                 }).Select(x => new MonthlySales
                 {
                     Month = x.Key.Month,
@@ -264,36 +294,78 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var data = _dbcontext.importforms
-                    .Include(d => d.productImportforms).ThenInclude(d => d.products).ThenInclude(pi => pi.imageProducts)
+                //var data = _dbcontext.importforms
+                //    .Include(d => d.productimportforms).ThenInclude(d => d.products).ThenInclude(pi => pi.imageproducts)
+                //    .AsEnumerable()
+                //    .GroupBy(g => new
+                //    {
+                //        title = g.tite,
+                //        code = g.code,
+                //        data = g.productimportforms,
+                //        Day = g.createdat.Day,
+                //        Hourse = g.createdat.Hour,
+                //        Month = g.createdat.Month,
+                //        Year = g.createdat.Year
+                //    }).Select(x => new TotalProductImportFrom
+                //    {
+                //        Day = x.Key.Day,
+                //        Hourse = x.Key.Hourse,
+                //        Month = x.Key.Month,
+                //        Year = x.Key.Year,
+                //        title = x.Key.title,
+                //        data = x.Key.data.Select(x => x.products).Select(p => new
+                //        {
+                //            id = p.id,
+                //            title = p.title,
+                //            price = p.price,
+                //            quantity = p.quantity,
+                //            image = p.imageproducts.Select(x => x.link).ToList()
+                //        }).ToList(),
+                //        Total = x.SelectMany(pri => pri.productimportforms).Sum(x => x.quantity),
+                //        code = x.Key.code
+                //    }).OrderByDescending(x => x.Total).ToList();
+
+
+                var data = _dbcontext.productimportforms
+                    .Include(d => d.importform_id1).Include(d => d.products).ThenInclude(pi => pi.imageProducts)
                     .AsEnumerable()
                     .GroupBy(g => new
                     {
-                        title = g.tite,
-                        code = g.code,
-                        data = g.productImportforms,
-                        Day = g.CreatedAt.Day,
-                        Hourse = g.CreatedAt.Hour,
-                        Month = g.CreatedAt.Month,
-                        Year = g.CreatedAt.Year
-                    }).Select(x => new TotalProductImportFrom
+
+                        Day = g.importform_id1.createdat.Day,
+                        Month = g.importform_id1.createdat.Month,
+                        Year = g.importform_id1.createdat.Year,
+                        g.products
+                    }).Select(x => new
                     {
-                        Day = x.Key.Day,
-                        Hourse = x.Key.Hourse,
                         Month = x.Key.Month,
                         Year = x.Key.Year,
-                        title = x.Key.title,
-                        data = x.Key.data.Select(x => x.products).Select(p => new
+                        ProductName = x.First().products.title,
+                        images = x.First().products.imageProducts,
+                        price = x.First().products.price,
+                        quantity = x.First().products.quantity,
+                        id = x.First().products.id,
+                        total = x.Sum(t => t.quantity)
+                    }).GroupBy(g2 => new
+                    {
+                        month = g2.Month,
+
+                    }).Select(x2 => new TotalProductImportFrom
+                    {
+                        Month = x2.Key.month,
+                        Total = x2.Sum(xt => xt.total),
+                        data = x2.Select(xd => new
                         {
-                            id = p.id,
-                            title = p.title,
-                            price = p.price,
-                            quantity = p.quantity,
-                            image = p.imageProducts.Select(x => x.Link).ToList()
-                        }).ToList(),
-                        Total = x.SelectMany(pri => pri.productImportforms).Sum(x => x.quantity),
-                        code = x.Key.code
-                    }).OrderByDescending(x => x.Total).ToList();
+                            id = xd.id,
+                            title = xd.ProductName,
+                            price = xd.price,
+                            quantity = xd.quantity,
+                            image = xd.images.Select(x => x.link).ToList(),
+                            totalProduct = xd.total
+                        }).ToList()
+                    })
+                    .OrderByDescending(x => x.Total).ToList();
+
 
                 return await Task.FromResult(PayLoad<object>.Successfully(data));
             }
@@ -317,10 +389,10 @@ namespace quanlykhodl.Service
                         title = g.title,
                         code = g.code,
                         data = g.imageProducts,
-                        Day = g.CreatedAt.Day,
-                        Hourse = g.CreatedAt.Hour,
-                        Month = g.CreatedAt.Month,
-                        Year = g.CreatedAt.Year,
+                        Day = g.createdat.Day,
+                        Hourse = g.createdat.Hour,
+                        Month = g.createdat.Month,
+                        Year = g.createdat.Year,
                         total = g.productImportforms,
                         description = g.description,
                         Id = g.id,
@@ -334,7 +406,7 @@ namespace quanlykhodl.Service
                         Id = x.Key.Id,
                         title = x.Key.title,
                         description = x.Key.description,
-                        image = x.Key.data.Select(x => x.Link).ToList(),
+                        image = x.Key.data.Select(x => x.link).ToList(),
                         Total = x.Key.total.Sum(x => x.quantity),
                         code = x.Key.code,
                         account_image = x.Key.account.image,
@@ -373,7 +445,7 @@ namespace quanlykhodl.Service
                             title = p.title,
                             price = p.price,
                             quantity = p.quantity,
-                            image = p.imageProducts.Select(x => x.Link).ToList()
+                            image = p.imageProducts.Select(x => x.link).ToList()
                         }).ToList(),
                         Total = x.SelectMany(pri => pri.productimportforms).Sum(x => x.quantity),
                     }).OrderByDescending(x => x.Total).ToList();
@@ -392,17 +464,17 @@ namespace quanlykhodl.Service
             {
                 var data = _dbcontext.importforms
                     .Include(d => d.productImportforms).ThenInclude(d => d.products).ThenInclude(pi => pi.imageProducts)
-                    .Where(x => x.CreatedAt.Day == DateTimeOffset.UtcNow.Day)
+                    .Where(x => x.createdat.Day == DateTimeOffset.UtcNow.Day)
                     .AsEnumerable()
                     .GroupBy(g => new
                     {
                         title = g.tite,
                         code = g.code,
                         data = g.productImportforms,
-                        Day = g.CreatedAt.Day,
-                        Hourse = g.CreatedAt.Hour,
-                        Month = g.CreatedAt.Month,
-                        Year = g.CreatedAt.Year
+                        Day = g.createdat.Day,
+                        Hourse = g.createdat.Hour,
+                        Month = g.createdat.Month,
+                        Year = g.createdat.Year
                     }).Select(x => new TotalProductImportFrom
                     {
                         title = x.Key.title,
@@ -412,7 +484,7 @@ namespace quanlykhodl.Service
                             title = p.title,
                             price = p.price,
                             quantity = p.quantity,
-                            image = p.imageProducts.Select(x => x.Link).ToList()
+                            image = p.imageProducts.Select(x => x.link).ToList()
                         }).ToList(),
                         Total = x.SelectMany(pri => pri.productImportforms).Sum(x => x.quantity),
                         code = x.Key.code
@@ -453,7 +525,7 @@ namespace quanlykhodl.Service
                             title = p.title,
                             price = p.price,
                             quantity = p.quantity,
-                            image = p.imageProducts.Select(x => x.Link).ToList()
+                            image = p.imageProducts.Select(x => x.link).ToList()
                         }).ToList(),
                         Total = x.Key.data.Sum(s => s.quantity)
                     }).OrderByDescending(x => x.Total).ToList();

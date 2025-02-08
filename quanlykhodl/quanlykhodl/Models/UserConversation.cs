@@ -5,13 +5,13 @@ namespace quanlykhodl.Models
 {
     public class UserConversation : BaseEntity
     {
-        public int UserConversationId { get; set; }
-        public int UserId { get; set; }
-        public int ConversationId { get; set; }
-        public bool IsDeleted { get; set; } = false;
+        public int userconversationid { get; set; }
+        public int userid { get; set; }
+        public int conversationid { get; set; }
+        public bool isdeleted { get; set; } = false;
 
         // Quan hệ
-        public Account? User { get; set; }
+        public accounts? User { get; set; }
         public Conversation? Conversation { get; set; }
     }
 }

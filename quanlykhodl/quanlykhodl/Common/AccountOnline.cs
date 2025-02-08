@@ -31,7 +31,7 @@ namespace quanlykhodl.Common
 
         private static GetAllAccountOnline findOne(OnlineUsers dataItem, IMapper mapper, DBContext context)
         {
-            var checkAccount = context.accounts.Where(x => x.id == dataItem.account_id && !x.Deleted).FirstOrDefault();
+            var checkAccount = context.accounts.Where(x => x.id == dataItem.account_id && !x.deleted).FirstOrDefault();
             var dataMap = mapper.Map<GetAllAccountOnline>(dataItem);
             if(checkAccount != null)
             {

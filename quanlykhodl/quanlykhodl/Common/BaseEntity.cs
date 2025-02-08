@@ -7,9 +7,9 @@ namespace quanlykhodl.Common
         protected BaseEntity() { }
         [Key]
         public int id { get; set; }
-        public bool Deleted { get; set; }
-        public string? CretorEdit { get; set; }
-        public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
-        public DateTimeOffset UpdatedAt { get; set; }
+        public bool deleted { get; set; }
+        public string? cretoredit { get; set; }
+        public DateTimeOffset createdat { get; set; } = DateTimeOffset.UtcNow;
+        public DateTimeOffset updatedat { get; set; }
     }
 }

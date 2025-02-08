@@ -15,7 +15,7 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var data = _context.onlineUsersUser.Where(x => x.IsOnline).ToList();
+                var data = _context.onlineusersuser.Where(x => x.isonline).ToList();
 
                 return await Task.FromResult(PayLoad<object>.Successfully(loadData(data)));
             }catch (Exception ex)
@@ -30,14 +30,14 @@ namespace quanlykhodl.Service
 
             foreach (var item in data)
             {
-                var checkAccount = _context.accounts.Where(x => x.id == item.account_id && !x.Deleted).FirstOrDefault();
+                var checkAccount = _context.accounts.Where(x => x.id == item.account_id && !x.deleted).FirstOrDefault();
                 if(checkAccount != null)
                 {
                     var dataItem = new UserOnlineGetAll
                     {
                         Account_image = checkAccount.image,
                         Account_name = checkAccount.username,
-                        ConnectId = item.ConnectionId,
+                        ConnectId = item.connectionid,
                         Id = item.account_id.Value,
                     };
 

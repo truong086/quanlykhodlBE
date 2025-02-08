@@ -38,9 +38,9 @@ namespace quanlykhodl.ChatHub
             var linkImage = string.Empty;
             var publicId = string.Empty;
 
-            var checkUser = _dbcontext.onlineUsersUser.Where(x => x.account_id == receiverUserId && x.IsOnline).FirstOrDefault();
-            var checkUserSend = _dbcontext.accounts.Where(x => x.id == int.Parse(Context.UserIdentifier) && !x.Deleted).FirstOrDefault();
-            var checkUserReceiver = _dbcontext.accounts.Where(x => x.id == receiverUserId && !x.Deleted).FirstOrDefault();
+            var checkUser = _dbcontext.onlineusersuser.Where(x => x.account_id == receiverUserId && x.isonline).FirstOrDefault();
+            var checkUserSend = _dbcontext.accounts.Where(x => x.id == int.Parse(Context.UserIdentifier) && !x.deleted).FirstOrDefault();
+            var checkUserReceiver = _dbcontext.accounts.Where(x => x.id == receiverUserId && !x.deleted).FirstOrDefault();
 
             if (image != null)
             {
@@ -74,7 +74,7 @@ namespace quanlykhodl.ChatHub
             }
 
             // Gửi cho người nhận
-            await Clients.Client(checkUser.ConnectionId).SendAsync("ReceiveMessage", new
+            await Clients.Client(checkUser.connectionid).SendAsync("ReceiveMessage", new
             {
                 idUser2 = int.Parse(Context.UserIdentifier), // Id người gửi
                 image_user2 = checkUserSend.image,
@@ -111,15 +111,15 @@ namespace quanlykhodl.ChatHub
         {
             var data = new Message
             {
-                ReceiverId = receiverId,
-                SenderId = sendId,
-                Content = message,
-                IsRead = check,
+                receiverid = receiverId,
+                senderid = sendId,
+                content = message,
+                isread = check,
                 image = link != null ? link : null,
-                publicId = publicId != null ? publicId : null
+                publicid = publicId != null ? publicId : null
             };
 
-            _dbcontext.Messages.Add(data);
+            _dbcontext.messages.Add(data);
             _dbcontext.SaveChanges();
         }
 
@@ -131,7 +131,7 @@ namespace quanlykhodl.ChatHub
             //string avatarUrl = Context.GetHttpContext()?.Request.Query["avatarUrl"];
 
             //// Thêm người dùng vào danh sách
-            //_onlineUserService.AddUser(Context.ConnectionId, 1, name ?? "Guest", avatarUrl ?? "/images/default-avatar.png");
+            //_onlineUserService.AddUser(Context.connectionid, 1, name ?? "Guest", avatarUrl ?? "/images/default-avatar.png");
 
             // Gửi danh sách người dùng mới cho tất cả client
             //await Clients.All.SendAsync("UpdateOnlineUsers", _onlineUserService.GetOnlineUsers());
@@ -140,20 +140,20 @@ namespace quanlykhodl.ChatHub
             //var userId = _userService.name();
             if (userId != null) 
             {
-                var checkAccount = _dbcontext.accounts.Where(x => x.id == int.Parse(userId) && !x.Deleted).FirstOrDefault();
+                var checkAccount = _dbcontext.accounts.Where(x => x.id == int.Parse(userId) && !x.deleted).FirstOrDefault();
                 if(checkAccount != null)
                 {
-                    var checkOnline = _dbcontext.onlineUsersUser.Where(x => x.account_id == checkAccount.id).OrderByDescending(c => c.CreatedAt).FirstOrDefault();
-                    if(checkOnline == null || !checkOnline.IsOnline)
+                    var checkOnline = _dbcontext.onlineusersuser.Where(x => x.account_id == checkAccount.id).OrderByDescending(c => c.createdat).FirstOrDefault();
+                    if(checkOnline == null || !checkOnline.isonline)
                     {
                         var userOnline = new OnlineUsers
                         {
                             account = checkAccount,
                             account_id = checkAccount.id,
-                            ConnectionId = Context.ConnectionId,
-                            IsOnline = true
+                            connectionid = Context.ConnectionId,
+                            isonline = true
                         };
-                        _dbcontext.onlineUsersUser.Add(userOnline);
+                        _dbcontext.onlineusersuser.Add(userOnline);
                         _dbcontext.SaveChanges();
 
                     }
@@ -161,7 +161,7 @@ namespace quanlykhodl.ChatHub
                 }
             }
 
-            var dataOnline = _dbcontext.onlineUsersUser.Where(x => x.IsOnline).ToList();
+            var dataOnline = _dbcontext.onlineusersuser.Where(x => x.isonline).ToList();
 
 
             await Clients.All.SendAsync("UserData", AccountOnline.GetAll(dataOnline, _mapper, _dbcontext));
@@ -171,25 +171,25 @@ namespace quanlykhodl.ChatHub
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
             // Xóa người dùng khỏi danh sách
-            //_onlineUserService.RemoveUser(Context.ConnectionId);
+            //_onlineUserService.RemoveUser(Context.connectionid);
 
             var userId = Context.UserIdentifier;
             if (userId != null)
             {
-                var onlineUserData = _dbcontext.onlineUsersUser.Where(x => x.account_id == int.Parse(userId) && x.IsOnline == true).ToList();
+                var onlineUserData = _dbcontext.onlineusersuser.Where(x => x.account_id == int.Parse(userId) && x.isonline == true).ToList();
                 if (onlineUserData.Any())
                 {
                     foreach(var item in onlineUserData)
                     {
-                        item.IsOnline = false;
-                        item.UpdatedAt = DateTimeOffset.UtcNow;
+                        item.isonline = false;
+                        item.updatedat = DateTimeOffset.UtcNow;
 
-                        _dbcontext.onlineUsersUser.Update(item);
+                        _dbcontext.onlineusersuser.Update(item);
                         _dbcontext.SaveChanges();
                     }
                 }
             }
-            var dataOnline = _dbcontext.onlineUsersUser.Where(x => x.IsOnline).ToList();
+            var dataOnline = _dbcontext.onlineusersuser.Where(x => x.isonline).ToList();
             // Gửi danh sách người dùng mới cho tất cả client
             //await Clients.All.SendAsync("UpdateOnlineUsers", _onlineUserService.GetOnlineUsers());
             //await Clients.All.SendAsync("online", dataOnline);

@@ -26,13 +26,15 @@
         public string? floor_image { get; set; }
         public string? area_name { get; set; }
         public string? area_image { get; set; }
+        public string? shelf_name { get; set; }
+        public string? shelf_image { get; set; }
         public string? code { get; set; }
         public int? quantity { get; set; }
-        public int? idArea { get; set; }
+        public int? idShelf { get; set; }
         public int? Id_productlocation { get; set; }
         public int? location { get; set; }
         public int? MaxlocationExceps { get; set; }
-        public int? MaxlocationArea { get; set; }
+        public int? MaxlocationShelf { get; set; }
     }
 
     public class ProductOneLocation
@@ -55,6 +57,8 @@
         public string? floor_image { get; set; }
         public string? area_name { get; set; }
         public string? area_image { get; set; }
+        public string? shelf_name { get; set; }
+        public string? shelf_image { get; set; }
         public string? code { get; set; }
         public int? quantityArea { get; set; }
         public int? TotalLocationEmty { get; set; }
@@ -62,14 +66,14 @@
 
     public class checkLocation
     {
-        public int id_Area { get; set; }
+        public int id_Shelf { get; set; }
         public int id_product { get; set; }
         public int location { get; set; }
     }
 
     public class checkLocationExsis
     {
-        public int id_Area { get; set; }
+        public int id_shelf { get; set; }
         public int location { get; set; }
     }
 }

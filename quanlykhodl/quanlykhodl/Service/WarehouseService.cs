@@ -27,11 +27,11 @@ namespace quanlykhodl.Service
             {
                 var user = _userService.name();
                 var idConver = Convert.ToInt32(user);
-                var checkName = _context.warehouses.Where(x => x.name == data.name && !x.Deleted).FirstOrDefault();
+                var checkName = _context.warehouses.Where(x => x.name == data.name && !x.deleted).FirstOrDefault();
                 if (checkName != null)
                     return await Task.FromResult(PayLoad<WarehouseDTO>.CreatedFail(Status.DATANULL));
 
-                var checkAccount = _context.accounts.Where(x => x.id == idConver && !x.Deleted).FirstOrDefault();
+                var checkAccount = _context.accounts.Where(x => x.id == idConver && !x.deleted).FirstOrDefault();
                 if (checkAccount == null)
                     return await Task.FromResult(PayLoad<WarehouseDTO>.CreatedFail(Status.DATANULL));
 
@@ -46,7 +46,7 @@ namespace quanlykhodl.Service
 
                 if (data.Image != null)
                 {
-                    var dataNew = _context.warehouses.Where(x => !x.Deleted).OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+                    var dataNew = _context.warehouses.Where(x => !x.deleted).OrderByDescending(x => x.createdat).FirstOrDefault();
                     uploadCloud.CloudInaryIFromAccount(data.Image, Status.WAREHOUSERFOLDER + dataNew.id.ToString(), _cloud);
                     dataNew.image = uploadCloud.Link;
                     dataNew.publicid = uploadCloud.publicId;
@@ -67,11 +67,11 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var checkId = _context.warehouses.Where(x => x.id == id && !x.Deleted).FirstOrDefault();
+                var checkId = _context.warehouses.Where(x => x.id == id && !x.deleted).FirstOrDefault();
                 if (checkId == null)
                     return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
 
-                checkId.Deleted = true;
+                checkId.deleted = true;
 
                 return await Task.FromResult(PayLoad<string>.Successfully(Status.SUCCESS));
             }catch(Exception ex)
@@ -84,7 +84,7 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var data = _context.warehouses.Where(x => !x.Deleted).ToList();
+                var data = _context.warehouses.Where(x => !x.deleted).ToList();
 
                 if (!string.IsNullOrEmpty(name))
                     data = data.Where(x => x.name.Contains(name)).ToList();
@@ -113,21 +113,21 @@ namespace quanlykhodl.Service
             foreach(var item in data)
             {
                 var checkAccountId = checkAccount(item.account_map);
-                var checkFloorTotal = _context.floors.Where(x => x.warehouse == item.id && !x.Deleted).Count();
+                var checkFloorTotal = _context.floors.Where(x => x.warehouse == item.id && !x.deleted).Count();
                 var mapData = _mapper.Map<WarehouseGetAll>(item);
                 mapData.account_name = checkAccountId == null ? Status.ACCOUNTNOTFOULD : checkAccountId.username;
                 mapData.Id = item.id;
                 mapData.account_image = checkAccountId == null ? Status.ACCOUNTNOTFOULD : checkAccountId.image;
-                mapData.NumberoffloorsEmty = item.Numberoffloors - checkFloorTotal;
+                mapData.NumberoffloorsEmty = item.numberoffloors - checkFloorTotal;
                 list.Add(mapData);
             }
 
             return list;
         }
 
-        private Account checkAccount(int? id)
+        private accounts checkAccount(int? id)
         {
-            var checkId = _context.accounts.Where(x => x.id == id && !x.Deleted).FirstOrDefault();
+            var checkId = _context.accounts.Where(x => x.id == id && !x.deleted).FirstOrDefault();
 
             return checkId == null ? null : checkId;
         }
@@ -135,7 +135,7 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var checkId = _context.warehouses.Where(x => x.id == id && !x.Deleted).FirstOrDefault();
+                var checkId = _context.warehouses.Where(x => x.id == id && !x.deleted).FirstOrDefault();
                 if (checkId == null)
                     return await Task.FromResult(PayLoad<WarehouseGetAll>.CreatedFail(Status.DATANULL));
 
@@ -159,11 +159,11 @@ namespace quanlykhodl.Service
             try
             {
                 var user = _userService.name();
-                var checkId = _context.warehouses.Where(x => x.id == id && !x.Deleted).FirstOrDefault();
+                var checkId = _context.warehouses.Where(x => x.id == id && !x.deleted).FirstOrDefault();
                 if (checkId == null)
                     return await Task.FromResult(PayLoad<WarehouseDTO>.CreatedFail(Status.DATANULL));
 
-                var checkAccount = _context.accounts.Where(x => x.id == int.Parse(user) && !x.Deleted).FirstOrDefault();
+                var checkAccount = _context.accounts.Where(x => x.id == int.Parse(user) && !x.deleted).FirstOrDefault();
                 if (checkAccount == null)
                     return await Task.FromResult(PayLoad<WarehouseDTO>.CreatedFail(Status.DATANULL));
 
@@ -180,8 +180,8 @@ namespace quanlykhodl.Service
                     mapDataUpdate.image = uploadCloud.Link;
                     mapDataUpdate.publicid = uploadCloud.publicId;
                 }
-                mapDataUpdate.UpdatedAt = DateTimeOffset.UtcNow;
-                mapDataUpdate.CretorEdit = checkAccount.username + " đã sủa bản ghi lúc " + DateTimeOffset.UtcNow;
+                mapDataUpdate.updatedat = DateTimeOffset.UtcNow;
+                mapDataUpdate.cretoredit = checkAccount.username + " đã sủa bản ghi lúc " + DateTimeOffset.UtcNow;
 
                 _context.warehouses.Update(mapDataUpdate);
                 _context.SaveChanges();

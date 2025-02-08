@@ -4,7 +4,6 @@
     {
         public string? name { get; set; }
         public int? quantityarea { get; set; }
-        public string? code { get; set; }
         public IFormFile? image { get; set; }
         public int? warehouse { get; set; }
     }

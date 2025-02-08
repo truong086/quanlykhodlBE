@@ -26,7 +26,7 @@ namespace quanlykhodl.Service
                     Token = userTokenAppDTO.token
                 };
 
-                _dBContext.userTokenApps.Add(data);
+                _dBContext.usertokenapps.Add(data);
                 _dBContext.SaveChanges();
 
                 return await Task.FromResult(PayLoad<UserTokenAppDTO>.Successfully(userTokenAppDTO));
@@ -51,7 +51,7 @@ namespace quanlykhodl.Service
                 var response = await FirebaseMessaging.DefaultInstance.SubscribeToTopicAsync(new List<string>
                 {userTokenAppDTO.token }, "allDevices");
 
-                _dBContext.userTokenApps.Add(tokenNew);
+                _dBContext.usertokenapps.Add(tokenNew);
                 _dBContext.SaveChanges();
 
                 return await Task.FromResult(PayLoad<UserTokenAppDTO>.Successfully(userTokenAppDTO));
@@ -66,7 +66,7 @@ namespace quanlykhodl.Service
             try
             {
                 //Cách 1
-                var data = _dBContext.userTokenApps.ToList();
+                var data = _dBContext.usertokenapps.ToList();
                 if (data.Count <= 0)
                     return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
 

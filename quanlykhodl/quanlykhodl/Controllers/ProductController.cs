@@ -44,7 +44,7 @@ namespace quanlykhodl.Controllers
         [Route(nameof(FindOneByArea))]
         public async Task<PayLoad<object>> FindOneByArea(int id)
         {
-            return await _productService.FindOneByArea(id);
+            return await _productService.FindOneByShelf(id);
         }
 
         [HttpGet]

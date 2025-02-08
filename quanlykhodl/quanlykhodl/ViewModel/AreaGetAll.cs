@@ -2,35 +2,18 @@
 {
     public class AreaGetAll
     {
-        public int Id { get; set; }
+        public int id { get; set; }
         public string? name { get; set; }
-        public int? quantity { get; set; }
-        public int? quantityEmtity { get; set; }
-        public int? totalLocationExsis { get; set; }
-        public int? max { get; set; }
-        public string? Status { get; set; }
         public string? code { get; set; }
+        public string? status { get; set; }
+        public int storage { get; set; }
         public string? image { get; set; }
-        public string? account_name { get; set; }
-        public string? account_image { get; set; }
-        public string? floor_image { get; set; }
-        public string? floor_name { get; set; }
-        public int? Id_floor { get; set; }
-        public productArea? productArea { get; set; }
-        public List<quantityException>? quantityExceptions { get; set; }
-        public List<totalQuantityUsed>? totalQuantityUseds { get; set; }
-    }
+        public string? floorName { get; set; }
+        public int floorId { get; set; }
+        public string? floorCode { get; set; }
+        public string? floorImage { get; set; }
+        public string? accountName { get; set; }
+        public string? accountImage { get; set; }
 
-    public class totalQuantityUsed
-    {
-        public int location { get; set; }
-        public int quantity { get; set; }
-        public int quantityUsed { get; set; }
-    }
-
-    public class quantityException
-    {
-        public int? location { get; set; }
-        public int? quantity { get; set; }
     }
 }

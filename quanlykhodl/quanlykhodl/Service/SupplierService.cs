@@ -26,11 +26,11 @@ namespace quanlykhodl.Service
             try
             {
                 var user = _userService.name();
-                var checkName = _context.suppliers.Where(x => x.name == data.name && !x.Deleted).FirstOrDefault();
+                var checkName = _context.suppliers.Where(x => x.name == data.name && !x.deleted).FirstOrDefault();
                 if (checkName != null)
                     return await Task.FromResult(PayLoad<SupplierDTO>.CreatedFail(Status.DATANULL));
 
-                var checkAccount = _context.accounts.Where(x => x.id == int.Parse(user) && !x.Deleted).FirstOrDefault();
+                var checkAccount = _context.accounts.Where(x => x.id == int.Parse(user) && !x.deleted).FirstOrDefault();
 
                 var mapData = _mapper.Map<Supplier>(data);
                 mapData.account_id = checkAccount.id;
@@ -41,7 +41,7 @@ namespace quanlykhodl.Service
 
                 if(data.image != null)
                 {
-                    var dataNew = _context.suppliers.Where(x => !x.Deleted).OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+                    var dataNew = _context.suppliers.Where(x => !x.deleted).OrderByDescending(x => x.createdat).FirstOrDefault();
                     uploadCloud.CloudInaryIFromAccount(data.image, TokenViewModel.SUPPLIER + dataNew.id.ToString(), _cloud);
                     dataNew.image = uploadCloud.Link;
                     dataNew.publicid = uploadCloud.publicId;
@@ -62,8 +62,8 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var checkId = _context.suppliers.Where(x => x.id == id && !x.Deleted).FirstOrDefault();
-                checkId.Deleted = true;
+                var checkId = _context.suppliers.Where(x => x.id == id && !x.deleted).FirstOrDefault();
+                checkId.deleted = true;
 
                 _context.suppliers.Update(checkId);
                 _context.SaveChanges();
@@ -79,7 +79,7 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var data = _context.suppliers.Where(x => !x.Deleted).ToList();
+                var data = _context.suppliers.Where(x => !x.deleted).ToList();
 
                 if (!string.IsNullOrEmpty(name))
                     data = data.Where(x => x.name.Contains(name)).ToList();
@@ -117,7 +117,7 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var checkId = _context.suppliers.Where(x => x.id == id && !x.Deleted).FirstOrDefault();
+                var checkId = _context.suppliers.Where(x => x.id == id && !x.deleted).FirstOrDefault();
                 if (checkId == null)
                     return await Task.FromResult(PayLoad<SupplierGetAll>.CreatedFail(Status.DATANULL));
 
@@ -134,7 +134,7 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var checkId = _context.suppliers.Where(x => x.id == id && !x.Deleted).FirstOrDefault();
+                var checkId = _context.suppliers.Where(x => x.id == id && !x.deleted).FirstOrDefault();
                 if (checkId == null)
                     return await Task.FromResult(PayLoad<SupplierDTO>.CreatedFail(Status.DATANULL));
 

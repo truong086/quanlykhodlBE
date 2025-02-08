@@ -6,6 +6,6 @@ namespace quanlykhodl.Models
 	{
 		public string? name { get; set; }
 
-		public ICollection<Account>? account { get; set; }
+		public ICollection<accounts>? account { get; set; }
 	}
 }

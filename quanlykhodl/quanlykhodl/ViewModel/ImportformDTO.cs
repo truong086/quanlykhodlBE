@@ -21,7 +21,7 @@ namespace quanlykhodl.ViewModel
     {
         public int id_product { get; set; }
         public int quantity { get; set; }
-        public int? areaId { get; set; }
+        public int? shelfId { get; set; }
         public int? location { get; set; }
         public int? supplier { get; set; }
     }
@@ -35,7 +35,7 @@ namespace quanlykhodl.ViewModel
         public int quantityLocation { get; set; }
         public int? category_map { get; set; }
         public int? suppliers { get; set; }
-        public int? areaId { get; set; }
+        public int? shelfId { get; set; }
         public int? location { get; set; }
         public List<string>? image { get; set; }
     }

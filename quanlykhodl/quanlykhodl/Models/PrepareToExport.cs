@@ -9,8 +9,8 @@ namespace quanlykhodl.Models
         public int quantity {  get; set; }
         public string? code {  get; set; }
         public int? account_id {  get; set; }
-        public bool isCheck {  get; set; }
-        public Account? account {  get; set; }
+        public bool ischeck {  get; set; }
+        public accounts? account {  get; set; }
         public virtual ICollection<DeliverynotePrepareToExport>? DeliverynotePrepareToExports { get; set; }
     }
 }

@@ -2,6 +2,7 @@
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder.Extensions;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -14,7 +15,10 @@ using quanlykhodl.FunctionAuto;
 using quanlykhodl.Models;
 using quanlykhodl.QuartzService;
 using quanlykhodl.Service;
+using quanlykhodl.ViewModel;
 using Quartz;
+using System.ComponentModel.Design;
+using System.Runtime.InteropServices;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -139,7 +143,7 @@ builder.Services.AddQuartz(q =>
 var connection = builder.Configuration.GetConnectionString("MyDB");
 builder.Services.AddDbContext<DBContext>(option =>
 {
-    option.UseSqlServer(connection); // "ThuongMaiDienTu" đây là tên của project, vì tách riêng model khỏi project sang 1 lớp khác nên phải để câu lệnh này "b => b.MigrationsAssembly("ThuongMaiDienTu")"
+    option.UseMySql(connection, new MySqlServerVersion(new Version(8, 0, 31))); // "ThuongMaiDienTu" đây là tên của project, vì tách riêng model khỏi project sang 1 lớp khác nên phải để câu lệnh này "b => b.MigrationsAssembly("ThuongMaiDienTu")"
 });
 
 builder.Services.AddControllers().AddNewtonsoftJson(options =>
@@ -165,7 +169,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IWarehouseService, WarehouseService>();
 builder.Services.AddScoped<IFloorService, FloorService>();
-builder.Services.AddScoped<IAreaService, AreaService>();
+builder.Services.AddScoped<IShelfService, ShelfService>();
 builder.Services.AddScoped<ISupplierService, SupplierService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductService, ProductService>();
@@ -178,6 +182,7 @@ builder.Services.AddScoped<IUserOnlineService, UserOnlineService>();
 builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddScoped<IStatisticalService, StatisticalService>();
 builder.Services.AddScoped<IUserTokenAppService, UserTokenAppService>();
+builder.Services.AddScoped<IAreaService, AreaService>();
 builder.Services.AddScoped<UserTokenAppService>();
 builder.Services.AddScoped<onlineUser>();
 builder.Services.AddScoped<SendEmais>();

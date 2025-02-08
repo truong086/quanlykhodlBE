@@ -10,6 +10,8 @@
         public string? plan_tile {  get; set; }
         public int locationOld {  get; set; }
         public int locationNew {  get; set; }
+        public string? shelfOld { get; set; }
+        public string? shelfNew { get; set; }
         public string? areaOld {  get; set; }
         public string? areaNew {  get; set; }
         public string? FloorOld {  get; set; }

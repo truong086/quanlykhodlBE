@@ -12,6 +12,7 @@
         public static string RANDOMCODE = "QWERTYUIOPASDFGHJKLZXCVBNM1234567890";
         public static string TEMPLATEVIEW = "EmailTemplate";
         public static string DATATONTAI = "Data Tồn tại";
+        public static string DATATONTAIPLAN = "Data Plan Tồn tại";
         public static string DATADANGKYTONTAI = "Data đăng ký Tồn tại";
         public static string VIDEO = "Video";
         public static string AUDIO = "Audio";
@@ -36,7 +37,7 @@
         public static string MESSAGEEMAIL = "Thông tin mã xác nhận";
         public static string PASSWORDOLDFAILD = "Mật khẩu không khớp";
         public static string ROLENOTFOULD = "Role đã bị xóa hoặc chưa cài đặt";
-        public static string ACCOUNTNOTFOULD = "Account đã bị xóa hoặc chưa cài đặt";
+        public static string ACCOUNTNOTFOULD = "accounts đã bị xóa hoặc chưa cài đặt";
         public static string WAREHOUSERFOULD = "Warehouser đã bị xóa hoặc chưa cài đặt";
         public static string IDAUTHENTICATION = "Id";
         public static string WAREHOUSERFOLDER = "Warehouse ";
@@ -45,10 +46,11 @@
         public static string NOWAREHOURSE = "Kho đã bị xóa hoặc chưa cài đặt ";
         public static string NOFLOOR = "Tầng đã bị xóa hoặc chưa cài đặt";
         public static string NOAREA = "Khu đã bị xóa hoặc chưa cài đặt ";
+        public static string NOSHELF = "Kệ đã bị xóa hoặc chưa cài đặt ";
         public static string TODAYFULL = "Vượt quá số lượt chuyển của loại ngày hôm nay ";
         public static string ERRORLOCATION = "Không có vị trí này";
         public static string CODEFAILD = "Chưa có Code";
         public static string LOCATIONORPRODDUCTFAILD = "Vị trí không tồn tại hoặc dữ liệu chuyền vào null";
-        public static string ACCOUNTFAILD = "Account Faild !!!";
+        public static string ACCOUNTFAILD = "accounts Faild !!!";
     }
 }

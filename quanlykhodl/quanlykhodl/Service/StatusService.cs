@@ -29,7 +29,7 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var data = _context.warehousetransferstatuses.Where(x => !x.Deleted).ToList();
+                var data = _context.warehousetransferstatuses.Where(x => !x.deleted).ToList();
 
                 if (!string.IsNullOrWhiteSpace(name))
                     data = data.Where(x => x.status.Contains(name)).ToList();
@@ -70,7 +70,7 @@ namespace quanlykhodl.Service
         private List<StatusItemPlan> loadDataStatusItemImage(int id)
         {
             var list = new List<StatusItemPlan>();
-            var checkStaustItem = _context.statusItems.Where(x => x.warehousetransferstatus == id && !x.Deleted).ToList();
+            var checkStaustItem = _context.statusitems.Where(x => x.warehousetransferstatus == id && !x.deleted).ToList();
             if (checkStaustItem.Any())
             {
                 foreach(var item in checkStaustItem)
@@ -94,7 +94,7 @@ namespace quanlykhodl.Service
         {
             var list = new List<string>();
 
-            var checkImageStatus = _context.imagestatusitems.Where(x => x.statusItemMap == id && !x.Deleted).ToList();
+            var checkImageStatus = _context.imagestatusitems.Where(x => x.statusitemmap == id && !x.deleted).ToList();
             if (checkImageStatus.Any())
             {
                 foreach (var item in checkImageStatus)
@@ -110,11 +110,11 @@ namespace quanlykhodl.Service
             try
             {
                 var user = _userService.name();
-                var checkAccount = _context.accounts.Where(x => x.id == int.Parse(user) && !x.Deleted).FirstOrDefault();
+                var checkAccount = _context.accounts.Where(x => x.id == int.Parse(user) && !x.deleted).FirstOrDefault();
                 if (checkAccount == null)
                     return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
 
-                var checkPlan = _context.plans.Where(x => x.Receiver == checkAccount.id && !x.Deleted).ToList();
+                var checkPlan = _context.plans.Where(x => x.Receiver == checkAccount.id && !x.deleted).ToList();
 
                 var pageList = new PageList<object>(loadDataFinOne(checkPlan), page - 1, pageSize);
 
@@ -140,7 +140,7 @@ namespace quanlykhodl.Service
             {
                 foreach (var item in data)
                 {
-                    var checkStatus = _context.warehousetransferstatuses.Where(x => x.plan == item.id && !x.Deleted).FirstOrDefault();
+                    var checkStatus = _context.warehousetransferstatuses.Where(x => x.plan == item.id && !x.deleted).FirstOrDefault();
                     if(checkStatus != null)
                     {
                         list.Add(FindOneData(checkStatus));
@@ -154,45 +154,49 @@ namespace quanlykhodl.Service
         private StatusGetAll FindOneData(Warehousetransferstatus item)
         {
             var dataItem = new StatusGetAll();
-            var checkPlan = _context.plans.Where(x => x.id == item.plan && !x.Deleted).FirstOrDefault();
+            var checkPlan = _context.plans.Where(x => x.id == item.plan && !x.deleted).FirstOrDefault();
             if(checkPlan != null )
             {
-                if (!checkPlan.isWarehourse)
+                if (!checkPlan.iswarehourse)
                 {
-                    var checkLocationProduct = _context.productlocations.Where(x => x.id == checkPlan.productlocation_map && !x.Deleted && x.isAction).FirstOrDefault();
+                    var checkLocationProduct = _context.productlocations.Where(x => x.id == checkPlan.productlocation_map && !x.deleted && x.isaction).FirstOrDefault();
                     if (checkLocationProduct != null)
                     {
-                        var checkProduct = _context.products1.Where(x => x.id == checkLocationProduct.id_product && !x.Deleted).FirstOrDefault();
+                        var checkProduct = _context.products1.Where(x => x.id == checkLocationProduct.id_product && !x.deleted).FirstOrDefault();
                         if (checkProduct != null)
                         {
-                            var checkImageProduct = _context.imageProducts.Where(x => x.productMap == checkProduct.id).FirstOrDefault();
+                            var checkImageProduct = _context.imageproducts.Where(x => x.productmap == checkProduct.id).FirstOrDefault();
                             if (checkImageProduct != null)
                             {
                                 dataItem.id_product = checkProduct.id;
-                                dataItem.product_iamge = checkImageProduct == null ? "Không có ảnh" : checkImageProduct.Link;
+                                dataItem.product_iamge = checkImageProduct == null ? "Không có ảnh" : checkImageProduct.link;
                                 dataItem.product_name = checkProduct.title;
                             }
                         }
                     }
-
                 }
 
-                var checkCodeLocationOld = _context.codelocations.Where(x => x.id_area == checkPlan.areaOld && x.location == checkPlan.localtionOld && !x.Deleted).FirstOrDefault();
-                var checkCodeLocationNew = _context.codelocations.Where(x => x.id_area == checkPlan.area && x.location == checkPlan.localtionNew && !x.Deleted).FirstOrDefault();
+                var checkCodeLocationOld = _context.codelocations.Where(x => x.id_helf == checkPlan.shelfOld && x.location == checkPlan.localtionold && !x.deleted).FirstOrDefault();
+                var checkCodeLocationNew = _context.codelocations.Where(x => x.id_helf == checkPlan.shelf && x.location == checkPlan.localtionnew && !x.deleted).FirstOrDefault();
 
-                var checkAreaOld = _context.areas.Where(x => x.id == checkPlan.areaOld && !x.Deleted).FirstOrDefault();
-                var checkFloorOld = _context.floors.Where(x => x.id == checkAreaOld.floor && !x.Deleted).FirstOrDefault();
-                var checkWarehourseOld = _context.warehouses.Where(x => x.id == checkFloorOld.warehouse && !x.Deleted).FirstOrDefault();
-                var checkAreaNew = _context.areas.Where(x => x.id == checkPlan.area && !x.Deleted).FirstOrDefault();
-                var checkFloorNew = _context.floors.Where(x => x.id == checkAreaNew.floor && !x.Deleted).FirstOrDefault();
-                var checkWarehourseNew = _context.warehouses.Where(x => x.id == checkFloorNew.warehouse && !x.Deleted).FirstOrDefault();
-                var checkAccount = _context.accounts.Where(x => x.id == checkPlan.Receiver && !x.Deleted).FirstOrDefault();
+                var checkShelfOld = _context.shelfs.Where(x => x.id == checkPlan.shelfOld && !x.deleted).FirstOrDefault();
+                var checkAreaOld = _context.areas.Where(x => x.id == checkShelfOld.area && !x.deleted).FirstOrDefault();
+                var checkFloorOld = _context.floors.Where(x => x.id == checkAreaOld.floor && !x.deleted).FirstOrDefault();
+                var checkWarehourseOld = _context.warehouses.Where(x => x.id == checkFloorOld.warehouse && !x.deleted).FirstOrDefault();
+                
+                var checkShelfNew = _context.shelfs.Where(x => x.id == checkPlan.shelf && !x.deleted).FirstOrDefault();
+                var checkAreaNew = _context.areas.Where(x => x.id == checkPlan.area && !x.deleted).FirstOrDefault();
+                var checkFloorNew = _context.floors.Where(x => x.id == checkAreaNew.floor && !x.deleted).FirstOrDefault();
+                var checkWarehourseNew = _context.warehouses.Where(x => x.id == checkFloorNew.warehouse && !x.deleted).FirstOrDefault();
+                var checkAccount = _context.accounts.Where(x => x.id == checkPlan.Receiver && !x.deleted).FirstOrDefault();
 
                 dataItem.id_status = item.id;
                 dataItem.id_plan = checkPlan.id;
                 dataItem.plan_tile = checkPlan.title;
-                dataItem.locationNew = checkPlan.localtionNew.Value;
-                dataItem.locationOld = checkPlan.localtionOld.Value;
+                dataItem.locationNew = checkPlan.localtionnew.Value;
+                dataItem.locationOld = checkPlan.localtionold.Value;
+                dataItem.shelfOld = checkShelfOld.name;
+                dataItem.shelfNew = checkShelfNew.name;
                 dataItem.areaNew = checkAreaNew.name;
                 dataItem.areaOld = checkAreaOld.name;
                 dataItem.FloorNew = checkFloorNew.name;
@@ -215,63 +219,67 @@ namespace quanlykhodl.Service
             try
             {
                 var user = _userService.name();
-                var checkId = _context.warehousetransferstatuses.Where(x => x.id == statusItemDTO.id_statuswarehourse && !x.Deleted).FirstOrDefault();
+                var checkId = _context.warehousetransferstatuses.Where(x => x.id == statusItemDTO.id_statuswarehourse && !x.deleted).FirstOrDefault();
                 if (checkId == null)
                     return await Task.FromResult(PayLoad<StatusWarehours>.CreatedFail(Status.DATANULL));
                
-                var checkAccount = _context.accounts.Where(x => x.id == int.Parse(user) && !x.Deleted).FirstOrDefault();
+                var checkAccount = _context.accounts.Where(x => x.id == int.Parse(user) && !x.deleted).FirstOrDefault();
                 if (checkAccount == null)
                     return await Task.FromResult(PayLoad<StatusWarehours>.CreatedFail(Status.DATANULL));
 
-                var checkPlan = _context.plans.Where(x => x.id == checkId.plan && !x.Deleted && x.isConfirmation).FirstOrDefault();
+                var checkPlan = _context.plans.Where(x => x.id == checkId.plan && !x.deleted && x.isconfirmation).FirstOrDefault();
                 if (checkPlan == null)
                     return await Task.FromResult(PayLoad<StatusWarehours>.CreatedFail(Status.DATANULL));
 
                 if(checkPlan.Receiver != checkAccount.id)
                     return await Task.FromResult(PayLoad<StatusWarehours>.CreatedFail(Status.ACCOUNTFAILD));
+
                 if (statusItemDTO.title.ToLower() == Status.DONE.ToLower())
                 {
-                    var checkAreaNew = _context.areas.Where(x => x.id == checkPlan.area && !x.Deleted).FirstOrDefault();
-                    var checkAreaOld = _context.areas.Where(x => x.id == checkPlan.areaOld && !x.Deleted).FirstOrDefault();
-                    if (!checkPlan.isWarehourse)
+                    var checkShelfNew = _context.shelfs.Where(x => x.id == checkPlan.shelf && !x.deleted).FirstOrDefault();
+                    var checkShelOld = _context.shelfs.Where(x => x.id == checkPlan.shelfOld && !x.deleted).FirstOrDefault();
+                    if (!checkPlan.iswarehourse)
                     {
-                        var checkLocationProduct = _context.productlocations.Where(x => x.id == checkPlan.productlocation_map && !x.Deleted && x.isAction).FirstOrDefault();
+                        var checkLocationProduct = _context.productlocations.Where(x => x.id == checkPlan.productlocation_map && !x.deleted && x.isaction).FirstOrDefault();
                         var checkProductExxsis = _context.productlocations.Where(x => x.id_product == checkLocationProduct.id_product
-                        && x.id_area == checkAreaNew.id && x.location == checkPlan.localtionNew && !x.Deleted && x.id != checkLocationProduct.id && x.isAction).FirstOrDefault();
+                        && x.id_shelf == checkShelfNew.id && x.location == checkPlan.localtionnew && !x.deleted && x.id != checkLocationProduct.id && x.isaction).FirstOrDefault();
 
                         if (checkProductExxsis != null)
                         {
-                            var checkLocationNew = _context.productlocations.Where(x => x.id == checkProductExxsis.id && !x.Deleted && x.isAction).FirstOrDefault();
+                            var checkLocationNew = _context.productlocations.Where(x => x.id == checkProductExxsis.id && !x.deleted && x.isaction).FirstOrDefault();
+                            if (checkLocationNew == null || checkLocationProduct == null)
+                                return await Task.FromResult(PayLoad<StatusWarehours>.CreatedFail(Status.DATANULL));
+
                             checkLocationNew.quantity += checkLocationProduct.quantity;
-                            checkLocationProduct.Deleted = true;
+                            checkLocationProduct.deleted = true;
 
                             _context.productlocations.Update(checkLocationNew);
                             _context.SaveChanges();
                         }
                         else
                         {
-                            checkLocationProduct.location = checkPlan.localtionNew.Value;
-                            checkLocationProduct.areas = checkAreaNew;
-                            checkLocationProduct.id_area = checkAreaNew.id;
+                            checkLocationProduct.location = checkPlan.localtionnew.Value;
+                            checkLocationProduct.shelfs = checkShelfNew;
+                            checkLocationProduct.id_shelf = checkShelfNew.id;
                         }
 
                         _context.productlocations.Update(checkLocationProduct);
                     }
                     else
                     {
-                        var checkProductLocationOld = _context.productlocations.Where(x => x.id_area == checkAreaOld.id && x.location == checkPlan.localtionOld && !x.Deleted && x.isAction).ToList();
-                        var checkProductLocationNew = _context.productlocations.Where(x => x.id_area == checkAreaNew.id && x.location == checkPlan.localtionNew && !x.Deleted && x.isAction).ToList();
-                        if (checkProductLocationOld != null && checkAreaNew != null)
-                            updateAreaNew(checkAreaNew, checkProductLocationOld, checkPlan.localtionNew.Value);
+                        var checkProductLocationOld = _context.productlocations.Where(x => x.id_shelf == checkShelOld.id && x.location == checkPlan.localtionold && !x.deleted && x.isaction).ToList();
+                        var checkProductLocationNew = _context.productlocations.Where(x => x.id_shelf == checkShelfNew.id && x.location == checkPlan.localtionnew && !x.deleted && x.isaction).ToList();
+                        if (checkProductLocationOld != null && checkShelfNew != null)
+                            updateAreaNew(checkShelfNew, checkProductLocationOld, checkPlan.localtionnew.Value);
 
-                        if(checkProductLocationNew != null && checkAreaOld != null)
-                            updateAreaNew(checkAreaOld, checkProductLocationNew, checkPlan.localtionOld.Value);
+                        if(checkProductLocationNew != null && checkShelOld != null)
+                            updateAreaNew(checkShelOld, checkProductLocationNew, checkPlan.localtionold.Value);
                     }
 
                     checkPlan.status = Status.DONE.ToLower();
                     checkId.status = Status.DONE.ToLower();
-                    checkId.Deleted = true;
-                    checkPlan.Deleted = true;
+                    checkId.deleted = true;
+                    checkPlan.deleted = true;
 
                     await _hubContext.Clients.All.SendAsync("DonePlan", checkPlan.title, checkAccount.username);
                 }
@@ -281,7 +289,7 @@ namespace quanlykhodl.Service
                     checkId.status = statusItemDTO.title.ToLower();
                 }
 
-                checkPlan.UpdatedAt = DateTimeOffset.UtcNow;
+                checkPlan.updatedat = DateTimeOffset.UtcNow;
                 _context.plans.Update(checkPlan);
                 _context.warehousetransferstatuses.Update(checkId);
                 _context.SaveChanges();
@@ -293,24 +301,25 @@ namespace quanlykhodl.Service
             }
         }
 
-        private void updateAreaNew(Area areaNew, List<productlocation> data, int location)
+        private void updateAreaNew(Shelf shelf, List<productlocation> data, int location)
         {
             foreach(var item in data)
             {
-                if(areaNew.quantity < item.location)
+                if(shelf.quantity < item.location)
                 {
-                    item.location = areaNew.quantity.Value;
-                    item.areas = areaNew;
-                    item.id_area = areaNew.id;
+                    item.location = shelf.quantity.Value;
+                    item.shelfs = shelf;
+                    item.id_shelf = shelf.id;
 
                 }
                 else
                 {
                     item.location = location;
-                    item.areas = areaNew;
-                    item.id_area = areaNew.id;
+                    item.shelfs = shelf;
+                    item.id_shelf = shelf.id;
                 }
 
+                item.updatedat = DateTimeOffset.UtcNow;
                 _context.productlocations.Update(item);
                 _context.SaveChanges();
             }
@@ -331,14 +340,14 @@ namespace quanlykhodl.Service
             try
             {
                 var user = _userService.name();
-                var checkId = _context.warehousetransferstatuses.Where(x => x.id == statusItemDTO.id_status && !x.Deleted).FirstOrDefault();
+                var checkId = _context.warehousetransferstatuses.Where(x => x.id == statusItemDTO.id_status && !x.deleted).FirstOrDefault();
                 if (checkId == null)
                     return await Task.FromResult(PayLoad<StatusItemDTO>.CreatedFail(Status.DATANULL));
-                var checkPlan = _context.plans.Where(x => x.id == checkId.plan && !x.Deleted && x.isConfirmation).FirstOrDefault();
+                var checkPlan = _context.plans.Where(x => x.id == checkId.plan && !x.deleted && x.isconfirmation).FirstOrDefault();
                 if (checkPlan == null)
                     return await Task.FromResult(PayLoad<StatusItemDTO>.CreatedFail(Status.DATANULL));
                
-                var checkAccount = _context.accounts.Where(x => x.id == int.Parse(user) && !x.Deleted).FirstOrDefault();
+                var checkAccount = _context.accounts.Where(x => x.id == int.Parse(user) && !x.deleted).FirstOrDefault();
                 if (checkAccount == null)
                     return await Task.FromResult(PayLoad<StatusItemDTO>.CreatedFail(Status.DATANULL));
 
@@ -349,12 +358,12 @@ namespace quanlykhodl.Service
                 statusItemData.warehousetransferstatus = checkId.id;
                 statusItemData.Warehousetransferstatus_id = checkId;
 
-                _context.statusItems.Add(statusItemData);
+                _context.statusitems.Add(statusItemData);
                 _context.SaveChanges();
 
                 if(statusItemDTO.image != null)
                 {
-                    var checkData = _context.statusItems.Where(x => !x.Deleted).OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+                    var checkData = _context.statusitems.Where(x => !x.deleted).OrderByDescending(x => x.createdat).FirstOrDefault();
                     UploadImageCloud(statusItemDTO.image, TokenViewModel.STATUSITEM + checkData.id.ToString(), checkData);
                 }
 
@@ -376,7 +385,7 @@ namespace quanlykhodl.Service
                     image = uploadCloud.Link,
                     publicid = uploadCloud.publicId,
                     statusItem_id = data,
-                    statusItemMap = data.id
+                    statusitemmap = data.id
                 };
 
                 list.Add(imageStatusItemData);

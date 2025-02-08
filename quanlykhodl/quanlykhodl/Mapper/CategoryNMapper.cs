@@ -8,9 +8,9 @@ namespace quanlykhodl.Mapper
     {
         public CategoryNMapper()
         {
-            CreateMap<CategoryDTO, category>();
-            CreateMap<category, CategoryDTO>();
-            CreateMap<category, CategoryGetAll>();
+            CreateMap<CategoryDTO, categories>();
+            CreateMap<categories, CategoryDTO>();
+            CreateMap<categories, CategoryGetAll>();
         }
     }
 }

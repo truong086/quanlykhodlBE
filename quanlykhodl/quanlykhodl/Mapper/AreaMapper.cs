@@ -8,9 +8,9 @@ namespace quanlykhodl.Mapper
     {
         public AreaMapper()
         {
-            CreateMap<AreaDTO, Area>();
-            CreateMap<Area, AreaDTO>();
-            CreateMap<Area, AreaGetAll>();
+            CreateMap<areas, AreaDTO>();
+            CreateMap<AreaDTO, areas>();
+            CreateMap<areas, AreaGetAll>();
         }
     }
 }

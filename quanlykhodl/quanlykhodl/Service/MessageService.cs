@@ -18,13 +18,13 @@ namespace quanlykhodl.Service
             try
             {
                 var user = _userService.name();
-                var checkAccount = _context.accounts.Where(x => x.id == int.Parse(user) && !x.Deleted).FirstOrDefault();
-                var checkAccountUser1 = _context.accounts.Where(x => x.id == userId1 && !x.Deleted).FirstOrDefault();
+                var checkAccount = _context.accounts.Where(x => x.id == int.Parse(user) && !x.deleted).FirstOrDefault();
+                var checkAccountUser1 = _context.accounts.Where(x => x.id == userId1 && !x.deleted).FirstOrDefault();
                 if (checkAccount == null || checkAccountUser1 == null)
                     return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
 
-                var data = _context.Messages.Where(x => (x.SenderId == checkAccountUser1.id && x.ReceiverId == checkAccount.id) ||
-                (x.SenderId == checkAccount.id && x.ReceiverId == checkAccountUser1.id)).OrderBy(x => x.CreatedAt).ToList();
+                var data = _context.messages.Where(x => (x.senderid == checkAccountUser1.id && x.receiverid == checkAccount.id) ||
+                (x.senderid == checkAccount.id && x.receiverid == checkAccountUser1.id)).OrderBy(x => x.createdat).ToList();
 
                 var dataMap = new MessageGetAll
                 {
@@ -52,15 +52,15 @@ namespace quanlykhodl.Service
                 {
                     var dataItem = new MessageItem
                     {
-                        idUser1 = findOneAccount(item.ReceiverId.Value).id,
-                        image_user1 = findOneAccount(item.ReceiverId.Value).image,
-                        name_user1 = findOneAccount(item.ReceiverId.Value).username,
-                        idUser2 = findOneAccount(item.SenderId.Value).id,
-                        name_user2 = findOneAccount(item.SenderId.Value).username,
-                        image_user2 = findOneAccount(item.SenderId.Value).image,
-                        message = item.Content,
+                        idUser1 = findOneAccount(item.receiverid.Value).id,
+                        image_user1 = findOneAccount(item.receiverid.Value).image,
+                        name_user1 = findOneAccount(item.receiverid.Value).username,
+                        idUser2 = findOneAccount(item.senderid.Value).id,
+                        name_user2 = findOneAccount(item.senderid.Value).username,
+                        image_user2 = findOneAccount(item.senderid.Value).image,
+                        message = item.content,
                         imagedata = item.image == null || item.image == "" ? null : item.image,
-                        CreateAt = item.CreatedAt
+                        CreateAt = item.createdat
                     };
 
                     list.Add(dataItem);
@@ -70,9 +70,9 @@ namespace quanlykhodl.Service
             return list;
         }
 
-        private Account findOneAccount(int id)
+        private accounts findOneAccount(int id)
         {
-            var checkAccount = _context.accounts.Where(x => x.id == id && !x.Deleted).FirstOrDefault();
+            var checkAccount = _context.accounts.Where(x => x.id == id && !x.deleted).FirstOrDefault();
             return checkAccount;
         }
     }

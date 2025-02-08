@@ -32,15 +32,15 @@ namespace quanlykhodl.Service
             try
             {
                 var user = _userService.name();
-                var checkAccount = _context.accounts.Where(x => x.id == Convert.ToInt32(user) && !x.Deleted).FirstOrDefault();
+                var checkAccount = _context.accounts.Where(x => x.id == Convert.ToInt32(user) && !x.deleted).FirstOrDefault();
                 var mapData = _mapper.Map<Importform>(data);
                 mapData.account_id = checkAccount;
-                mapData.account_idMap = checkAccount.id;
-                mapData.isAction = false;
+                mapData.account_idmap = checkAccount.id;
+                mapData.isaction = false;
                 _context.importforms.Add(mapData);
                 _context.SaveChanges();
 
-                var dataNew = _context.importforms.Where(x => !x.Deleted).OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+                var dataNew = _context.importforms.Where(x => !x.deleted).OrderByDescending(x => x.createdat).FirstOrDefault();
                 dataNew.code = RanDomCode.geneAction(8) + dataNew.id.ToString();
                 if (data.isProductNew)
                 {
@@ -76,9 +76,9 @@ namespace quanlykhodl.Service
         //{
         //    foreach(var item in data)
         //    {
-        //        var checkProduct = _context.products1.Where(x => x.id == item.id_product && !x.Deleted).FirstOrDefault();
-        //        var checkArea = _context.areas.Where(x => x.id == item.areaId && !x.Deleted).FirstOrDefault();
-        //        var checkLocationArea = _context.productlocations.Where(x => x.location == item.location && x.id_area == checkArea.id && !x.Deleted).FirstOrDefault();
+        //        var checkProduct = _context.products1.Where(x => x.id == item.id_product && !x.deleted).FirstOrDefault();
+        //        var checkArea = _context.shelfs.Where(x => x.id == item.shelfId && !x.deleted).FirstOrDefault();
+        //        var checkLocationArea = _context.productlocations.Where(x => x.location == item.location && x.id_shelf == checkArea.id && !x.deleted).FirstOrDefault();
         //        if(checkProduct != null && checkLocationArea != null)
         //        {
         //            checkProduct.quantity += item.quantity;
@@ -91,16 +91,16 @@ namespace quanlykhodl.Service
         //                product = checkProduct.id,
         //                products = checkProduct,
         //                quantity = item.quantity,
-        //                area = checkArea,
-        //                area_id = checkArea.id,
+        //                shelfs = checkArea,
+        //                shelf_id = checkArea.id,
         //                location = item.location,
-        //                isAction = false
+        //                isaction = false
         //            };
 
         //            checkLocationArea.quantity += item.quantity;
         //            _context.productlocations.Update(checkLocationArea);
 
-        //            _context.productImportforms.Add(importProductData);
+        //            _context.productimportforms.Add(importProductData);
 
         //            _context.SaveChanges();
         //        }
@@ -111,11 +111,11 @@ namespace quanlykhodl.Service
         {
             foreach (var item in data)
             {
-                var checkSupplier = _context.suppliers.Where(x => x.id == item.supplier && !x.Deleted).FirstOrDefault();
-                var checkProduct = _context.products1.Where(x => x.id == item.id_product && !x.Deleted).FirstOrDefault();
-                var checkArea = _context.areas.Where(x => x.id == item.areaId && !x.Deleted).FirstOrDefault();
+                var checkSupplier = _context.suppliers.Where(x => x.id == item.supplier && !x.deleted).FirstOrDefault();
+                var checkProduct = _context.products1.Where(x => x.id == item.id_product && !x.deleted).FirstOrDefault();
+                var checkArea = _context.shelfs.Where(x => x.id == item.shelfId && !x.deleted).FirstOrDefault();
 
-                var checkLocationArea = _context.productlocations.Where(x => x.location == item.location && x.id_area == checkArea.id && !x.Deleted && x.isAction).FirstOrDefault();
+                var checkLocationArea = _context.productlocations.Where(x => x.location == item.location && x.id_shelf == checkArea.id && !x.deleted && x.isaction).FirstOrDefault();
                 if (!CheckQuantity.checkLocationQuantity(checkArea, item.location.Value, item.quantity, _context))
                     return false;
 
@@ -130,14 +130,14 @@ namespace quanlykhodl.Service
                         product = checkProduct.id,
                         products = checkProduct,
                         quantity = item.quantity,
-                        area = checkArea,
-                        area_id = checkArea.id,
+                        shelfs = checkArea,
+                        shelf_id = checkArea.id,
                         location = item.location,
-                        isAction = false,
+                        isaction = false,
                         code = RanDomCode.geneAction(8) + importform.id.ToString()
                     };
 
-                    _context.productImportforms.Add(importProductData);
+                    _context.productimportforms.Add(importProductData);
 
                     _context.SaveChanges();
                 }
@@ -145,13 +145,13 @@ namespace quanlykhodl.Service
 
             return true;
         }
-        private bool AddProductLocation(List<productNew> data, Account account, Importform importform)
+        private bool AddProductLocation(List<productNew> data, accounts account, Importform importform)
         {
             foreach (var item in data)
             {
-                var checkArea = _context.areas.Where(x => x.id == item.areaId && !x.Deleted).FirstOrDefault();
-                var checkSupplier = _context.suppliers.Where(x => x.id == item.suppliers && !x.Deleted).FirstOrDefault();
-                var checkCategory = _context.categories.Where(x => x.id == item.category_map && !x.Deleted).FirstOrDefault();
+                var checkArea = _context.shelfs.Where(x => x.id == item.shelfId && !x.deleted).FirstOrDefault();
+                var checkSupplier = _context.suppliers.Where(x => x.id == item.suppliers && !x.deleted).FirstOrDefault();
+                var checkCategory = _context.categories.Where(x => x.id == item.category_map && !x.deleted).FirstOrDefault();
 
                 if (!CheckQuantity.checkLocationQuantity(checkArea, item.location.Value, item.quantityLocation, _context))
                     return false;
@@ -167,7 +167,7 @@ namespace quanlykhodl.Service
                 _context.products1.Add(mapData);
                 _context.SaveChanges();
 
-                var dataNew = _context.products1.Where(x => !x.Deleted).OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+                var dataNew = _context.products1.Where(x => !x.deleted).OrderByDescending(x => x.createdat).FirstOrDefault();
                 if (item.image != null)
                 {
                     if (!_kiemtrabase64.kiemtra(item.image[0]))
@@ -183,13 +183,13 @@ namespace quanlykhodl.Service
 
                 var productLocationNew = new productlocation
                 {
-                    areas = checkArea,
-                    id_area = checkArea.id,
+                    shelfs = checkArea,
+                    id_shelf = checkArea.id,
                     id_product = dataNew.id,
                     location = item.location.Value,
                     products = dataNew,
                     quantity = item.quantityLocation,
-                    isAction = false
+                    isaction = false
                 };
 
                 _context.productlocations.Add(productLocationNew);
@@ -203,14 +203,14 @@ namespace quanlykhodl.Service
                     quantity = item.quantity,
                     supplier = checkSupplier.id,
                     supplier_id = checkSupplier,
-                    area = checkArea,
-                    area_id = checkArea.id,
+                    shelfs = checkArea,
+                    shelf_id = checkArea.id,
                     location = item.location,
-                    isAction = false,
+                    isaction = false,
                     code = RanDomCode.geneAction(8) + importform.id.ToString()
                 };
 
-                _context.productImportforms.Add(productImportData);
+                _context.productimportforms.Add(productImportData);
 
                 _context.SaveChanges();
 
@@ -218,13 +218,13 @@ namespace quanlykhodl.Service
 
             return true;
         }
-        //private bool AddProductLocation(List<productNew> data, Account account, Importform importform)
+        //private bool AddProductLocation(List<productNew> data, accounts account, Importform importform)
         //{
         //    foreach(var item in data)
         //    {
-        //        var checkArea = _context.areas.Where(x => x.id == item.areaId && !x.Deleted).FirstOrDefault();
-        //        var checkSupplier = _context.suppliers.Where(x => x.id == item.suppliers && !x.Deleted).FirstOrDefault();
-        //        var checkCategory = _context.categories.Where(x => x.id == item.category_map && !x.Deleted).FirstOrDefault();
+        //        var checkArea = _context.shelfs.Where(x => x.id == item.shelfId && !x.deleted).FirstOrDefault();
+        //        var checkSupplier = _context.suppliers.Where(x => x.id == item.suppliers && !x.deleted).FirstOrDefault();
+        //        var checkCategory = _context.categories.Where(x => x.id == item.category_map && !x.deleted).FirstOrDefault();
 
         //        if (!CheckQuantity.checkLocationQuantity(checkArea, item.location.Value, item.quantityLocation, _context))
         //            return false;
@@ -240,7 +240,7 @@ namespace quanlykhodl.Service
         //        _context.products1.Add(mapData);
         //        _context.SaveChanges();
 
-        //        var dataNew = _context.products1.Where(x => !x.Deleted).OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+        //        var dataNew = _context.products1.Where(x => !x.deleted).OrderByDescending(x => x.createdat).FirstOrDefault();
         //        if(item.image != null)
         //        {
         //            if (!_kiemtrabase64.kiemtra(item.image[0]))
@@ -256,8 +256,8 @@ namespace quanlykhodl.Service
 
         //        var productLocationNew = new productlocation
         //        {
-        //            areas = checkArea,
-        //            id_area = checkArea.id,
+        //            shelfs = checkArea,
+        //            id_shelf = checkArea.id,
         //            id_product = dataNew.id,
         //            location = item.location.Value,
         //            products = dataNew,
@@ -276,12 +276,12 @@ namespace quanlykhodl.Service
         //            quantity = item.quantity,
         //            supplier = checkSupplier.id,
         //            supplier_id = checkSupplier,
-        //            area = checkArea,
-        //            area_id = checkArea.id,
+        //            shelfs = checkArea,
+        //            shelf_id = checkArea.id,
         //            location = item.location
         //        };
 
-        //        _context.productImportforms.Add(productImportData);
+        //        _context.productimportforms.Add(productImportData);
 
         //        _context.SaveChanges();
 
@@ -297,13 +297,13 @@ namespace quanlykhodl.Service
                 uploadCloud.CloudInaryIFromAccount(item, TokenViewModel.PRODUCT + dataPr.id.ToString(), _cloud);
                 var imageProduct = new ImageProduct
                 {
-                    Link = uploadCloud.Link,
+                    link = uploadCloud.Link,
                     public_id = uploadCloud.publicId,
-                    productMap = dataPr.id,
+                    productmap = dataPr.id,
                     products_id = dataPr
                 };
 
-                _context.imageProducts.Add(imageProduct);
+                _context.imageproducts.Add(imageProduct);
                 _context.SaveChanges();
             }
         }
@@ -331,13 +331,13 @@ namespace quanlykhodl.Service
                 uploadCloud.CloudInaryAccount(item, TokenViewModel.PRODUCT + dataPr.id.ToString(), _cloud);
                 var imageProduct = new ImageProduct
                 {
-                    Link = uploadCloud.Link,
+                    link = uploadCloud.Link,
                     public_id = uploadCloud.publicId,
-                    productMap = dataPr.id,
+                    productmap = dataPr.id,
                     products_id = dataPr
                 };
 
-                _context.imageProducts.Add(imageProduct);
+                _context.imageproducts.Add(imageProduct);
                 _context.SaveChanges();
             }
         }
@@ -345,7 +345,7 @@ namespace quanlykhodl.Service
         {
             foreach(var item in data)
             {
-                var checkProductLocation = _context.productlocations.Include(p => p.products).Where(x => x.id_area == item.areaId && x.location == item.location && !x.Deleted && x.isAction).FirstOrDefault();
+                var checkProductLocation = _context.productlocations.Include(p => p.products).Where(x => x.id_shelf == item.shelfId && x.location == item.location && !x.deleted && x.isaction).FirstOrDefault();
                 if(checkProductLocation != null)
                 {
                     if(checkProductLocation.products != null)
@@ -361,11 +361,11 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var checkId = _context.importforms.Where(x => x.id == id && !x.Deleted).FirstOrDefault();
+                var checkId = _context.importforms.Where(x => x.id == id && !x.deleted).FirstOrDefault();
                 if (checkId == null)
                     return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
 
-                checkId.Deleted = true;
+                checkId.deleted = true;
                 _context.importforms.Update(checkId);
 
                 _context.SaveChanges();
@@ -381,7 +381,7 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var data = _context.importforms.Where(x => !x.Deleted).ToList();
+                var data = _context.importforms.Where(x => !x.deleted).ToList();
 
                 if (!string.IsNullOrEmpty(name))
                     data = data.Where(x => x.tite.Contains(name)).ToList();
@@ -416,31 +416,31 @@ namespace quanlykhodl.Service
 
         private ImportformGetAll LoadOneData(Importform item)
         {
-            var checkAccount = _context.accounts.Where(x => x.id == item.account_idMap && !x.Deleted).FirstOrDefault();
+            var checkAccount = _context.accounts.Where(x => x.id == item.account_idmap && !x.deleted).FirstOrDefault();
             var mapData = _mapper.Map<ImportformGetAll>(item);
             mapData.Id = item.id;
             mapData.accountName = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.username;
             mapData.accountImage = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.image;
             mapData.products = loadProductImportData(item.id);
-            mapData.totalProduct = _context.productImportforms.Where(x => x.importform == item.id && !x.Deleted).Count();
-            mapData.totalQuanTity = _context.productImportforms.Where(x => x.importform == item.id && !x.Deleted).Sum(x => x.quantity);
+            mapData.totalProduct = _context.productimportforms.Where(x => x.importform == item.id && !x.deleted).Count();
+            mapData.totalQuanTity = _context.productimportforms.Where(x => x.importform == item.id && !x.deleted).Sum(x => x.quantity);
             return mapData;
         }
 
         private List<productImportformAndDeliveerrynote> loadProductImportData(int id)
         {
             var list = new List<productImportformAndDeliveerrynote>();
-            var checkProductImport = _context.productImportforms.Where(x => x.importform == id && !x.Deleted).ToList();
+            var checkProductImport = _context.productimportforms.Where(x => x.importform == id && !x.deleted).ToList();
             if(checkProductImport != null)
             {
                 foreach(var item in checkProductImport)
                 {
-                    var checkProduct = _context.products1.Where(x => x.id == item.product && !x.Deleted).FirstOrDefault();
+                    var checkProduct = _context.products1.Where(x => x.id == item.product && !x.deleted).FirstOrDefault();
                     if(checkProduct != null)
                     {
-                        var checkCategory = _context.categories.Where(x => x.id == checkProduct.category_map && !x.Deleted).FirstOrDefault();
-                        var checkSupplier = _context.suppliers.Where(x => x.id == checkProduct.suppliers && !x.Deleted).FirstOrDefault();
-                        var checkAccount = _context.accounts.Where(x => x.id == checkProduct.account_map && !x.Deleted).FirstOrDefault();
+                        var checkCategory = _context.categories.Where(x => x.id == checkProduct.category_map && !x.deleted).FirstOrDefault();
+                        var checkSupplier = _context.suppliers.Where(x => x.id == checkProduct.suppliers && !x.deleted).FirstOrDefault();
+                        var checkAccount = _context.accounts.Where(x => x.id == checkProduct.account_map && !x.deleted).FirstOrDefault();
 
                         var dataItem = _mapper.Map<productImportformAndDeliveerrynote>(checkProduct);
                         dataItem.id = checkProduct.id;
@@ -467,12 +467,12 @@ namespace quanlykhodl.Service
         {
             var list = new List<string>();
 
-            var checkImageProduct = _context.imageProducts.Where(x => x.productMap == id && !x.Deleted).ToList();
+            var checkImageProduct = _context.imageproducts.Where(x => x.productmap == id && !x.deleted).ToList();
             if(checkImageProduct.Count > 0)
             {
                 foreach(var item in checkImageProduct)
                 {
-                    list.Add(item.Link);
+                    list.Add(item.link);
                 }
             }
 
@@ -482,27 +482,34 @@ namespace quanlykhodl.Service
         private listArea loadDataAreaProductAreaLocation(productImportform data)
         {
             var dataItem = new listArea();
-            var checkproductLocationData = _context.productlocations.Where(x => x.id_product == data.product && x.id_area == data.area_id && x.location == data.location && !x.Deleted).FirstOrDefault();
+            var checkproductLocationData = _context.productlocations.Where(x => x.id_product == data.product && x.id_shelf == data.shelf_id && x.location == data.location && !x.deleted).FirstOrDefault();
             if (checkproductLocationData != null)
             {
-                var checkArea = _context.areas.Include(f => f.floor_id).Where(x => x.id == checkproductLocationData.id_area && !x.Deleted).FirstOrDefault();
-                if (checkArea != null)
+                var checkShelf = _context.shelfs.Include(f => f.area_id).Where(x => x.id == checkproductLocationData.id_shelf && !x.deleted).FirstOrDefault();
+                if (checkShelf != null)
                 {
-                    var checkCodeArea = _context.codelocations.Where(x => x.id_area == checkArea.id && x.location == checkproductLocationData.location && !x.Deleted).FirstOrDefault();
-                    if (checkArea.floor_id != null)
+                    var checkCodeArea = _context.codelocations.Where(x => x.id_helf == checkShelf.id && x.location == checkproductLocationData.location && !x.deleted).FirstOrDefault();
+                    var checkArea = _context.areas.Include(f => f.floor_id).Where(x => x.id == checkShelf.area && !x.deleted).FirstOrDefault();
+                    if(checkArea != null)
                     {
-                        var checkWarehourse = _context.warehouses.Where(x => x.id == checkArea.floor_id.warehouse && !x.Deleted).FirstOrDefault();
-                        if (checkWarehourse != null)
+                        if (checkArea.floor_id != null)
                         {
+                            var checkWarehourse = _context.warehouses.Where(x => x.id == checkArea.floor_id.warehouse && !x.deleted).FirstOrDefault();
+                            if (checkWarehourse != null)
+                            {
 
-                            dataItem.location = checkproductLocationData.location;
-                            dataItem.area = checkArea.name;
-                            dataItem.floor = checkArea.floor_id.name;
-                            dataItem.warehourse = checkWarehourse.name;
-                            dataItem.code = checkCodeArea == null ? Status.CODEFAILD : checkCodeArea.code;
-                            dataItem.isAction = checkproductLocationData.isAction;
+                                dataItem.location = checkproductLocationData.location;
+                                dataItem.shelf = checkShelf.name;
+                                dataItem.floor = checkArea.floor_id.name;
+                                dataItem.area = checkArea.name;
+                                dataItem.warehourse = checkWarehourse.name;
+                                dataItem.code = checkCodeArea == null ? "No Code" : checkCodeArea.code;
+                                dataItem.codeShelf = checkShelf == null ? "No Code" : checkShelf.code;
+                                dataItem.isAction = checkproductLocationData.isaction;
+                            }
                         }
                     }
+                    
 
                 }
             }
@@ -512,32 +519,40 @@ namespace quanlykhodl.Service
         private List<listArea> loadDataAreaProduct(int id)
         {
             var list = new List<listArea>();
-            var checkproductLocationData = _context.productlocations.Where(x => x.id_product == id && !x.Deleted).ToList();
-            if(checkproductLocationData != null)
+            var checkproductLocationData = _context.productlocations.Where(x => x.id_product == id && !x.deleted).ToList();
+            if (checkproductLocationData != null)
             {
                 foreach (var item in checkproductLocationData)
                 {
-                    var checkArea = _context.areas.Include(f => f.floor_id).Where(x => x.id == item.id_area && !x.Deleted).FirstOrDefault();
-                    if(checkArea != null)
+                    var checkShelf = _context.shelfs.Include(f => f.area_id).Where(x => x.id == item.id_shelf && !x.deleted).FirstOrDefault();
+                    if (checkShelf != null)
                     {
-                        if(checkArea.floor_id != null)
-                        {
-                            var checkWarehourse = _context.warehouses.Where(x => x.id == checkArea.floor_id.warehouse && !x.Deleted).FirstOrDefault();
-                            if (checkWarehourse != null)
-                            {
-                                var dataItem = new listArea
-                                {
-                                    location = item.location,
-                                    area = checkArea.name,
-                                    floor = checkArea.floor_id.name,
-                                    warehourse = checkWarehourse.name,
-                                    isAction = item.isAction
-                                };
+                        var checkCodeLocation = _context.codelocations.Where(x => x.id_helf == checkShelf.id && x.location == item.location && !x.deleted).FirstOrDefault();
 
-                                list.Add(dataItem);
+                        var checkArea = _context.areas.Include(f => f.floor_id).Where(x => x.id == checkShelf.area && !x.deleted).FirstOrDefault();
+                        if(checkArea != null)
+                        {
+                            if (checkArea.floor_id != null)
+                            {
+                                var checkWarehourse = _context.warehouses.Where(x => x.id == checkArea.floor_id.warehouse && !x.deleted).FirstOrDefault();
+                                if (checkWarehourse != null)
+                                {
+                                    var dataItem = new listArea
+                                    {
+                                        area = checkArea.name,
+                                        code = checkCodeLocation == null ? Status.CODEFAILD : checkCodeLocation.code,
+                                        codeShelf = checkShelf == null ? Status.CODEFAILD : checkShelf.code,
+                                        location = item.location,
+                                        shelf = checkShelf.name,
+                                        floor = checkArea.floor_id.name,
+                                        warehourse = checkWarehourse.name,
+                                        isAction = item.isaction
+                                    };
+
+                                    list.Add(dataItem);
+                                }
                             }
                         }
-                            
                     }
                 }
             }
@@ -548,7 +563,7 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var checkId = _context.importforms.Where(x => x.id == id && !x.Deleted).FirstOrDefault();
+                var checkId = _context.importforms.Where(x => x.id == id && !x.deleted).FirstOrDefault();
 
                 if (checkId == null)
                     return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
@@ -566,12 +581,12 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var checkId = _context.importforms.Where(x => x.id == id && !x.Deleted).FirstOrDefault();
+                var checkId = _context.importforms.Where(x => x.id == id && !x.deleted).FirstOrDefault();
                 if (checkId == null)
                     return await Task.FromResult(PayLoad<ImportformUpdate>.CreatedFail(Status.DATANULL));
 
-                checkId.isPercentage = data.isPercentage;
-                checkId.Tax = data.Tax;
+                checkId.ispercentage = data.isPercentage;
+                checkId.tax = data.Tax;
                 checkId.total = data.total;
 
                 _context.importforms.Update(checkId);
@@ -588,7 +603,7 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var checkData = _context.importforms.Where(x => x.code == code && !x.Deleted).FirstOrDefault();
+                var checkData = _context.importforms.Where(x => x.code == code && !x.deleted).FirstOrDefault();
                 if (checkData == null)
                     return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
 
@@ -603,12 +618,12 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var checkCode = _context.importforms.Where(x => x.code == code.code && !x.Deleted).FirstOrDefault();
+                var checkCode = _context.importforms.Where(x => x.code == code.code && !x.deleted).FirstOrDefault();
                 if (checkCode == null)
                     return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
 
-                checkCode.isAction = true;
-                checkCode.ActualQuantity = code.ActualQuantity;
+                checkCode.isaction = true;
+                checkCode.actualquantity = code.ActualQuantity;
                 _context.importforms.Update(checkCode);
                 _context.SaveChanges();
 
@@ -624,19 +639,19 @@ namespace quanlykhodl.Service
 
         private void updateLocation(Importform data)
         {
-            var checkData = _context.productImportforms.Where(x => x.importform == data.id && !x.Deleted).ToList();
+            var checkData = _context.productimportforms.Where(x => x.importform == data.id && !x.deleted).ToList();
             if(checkData.Any())
             {
                 foreach(var item in checkData) 
                 {
                     var checkLocation = _context.productlocations.Where(x => x.id_product == item.product 
-                    && x.location == item.location && x.id_area == item.area_id && !x.Deleted).FirstOrDefault();
+                    && x.location == item.location && x.id_shelf == item.shelf_id && !x.deleted).FirstOrDefault();
 
                     if(checkLocation != null)
                     {
-                        if (!data.isProductNew)
+                        if (!data.isproductnew)
                         {
-                            var checkProduct = _context.products1.Where(x => x.id == item.product && !x.Deleted).FirstOrDefault();
+                            var checkProduct = _context.products1.Where(x => x.id == item.product && !x.deleted).FirstOrDefault();
                             if (checkProduct != null)
                             {
                                 checkProduct.quantity += item.quantity;
@@ -645,10 +660,10 @@ namespace quanlykhodl.Service
                                 _context.products1.Update(checkProduct);
                             }
                         }
-                        checkLocation.isAction = true;
-                        item.isAction = true;
+                        checkLocation.isaction = true;
+                        item.isaction = true;
 
-                        _context.productImportforms.Update(item);
+                        _context.productimportforms.Update(item);
                         _context.productlocations.Update(checkLocation);
                         _context.SaveChanges();
                     }
@@ -660,28 +675,28 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var checkCode = _context.productImportforms.Where(x => x.code == code && !x.Deleted).FirstOrDefault();
+                var checkCode = _context.productimportforms.Where(x => x.code == code && !x.deleted).FirstOrDefault();
                 if (checkCode == null)
                     return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
-                var checkImportFrom = _context.importforms.Where(x => x.id == checkCode.importform && !x.Deleted).FirstOrDefault();
+                var checkImportFrom = _context.importforms.Where(x => x.id == checkCode.importform && !x.deleted).FirstOrDefault();
                 if (checkImportFrom == null)
                     return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
 
                 var checkProductLocation = _context.productlocations.Where(x => x.id_product == checkCode.product
-                    && x.location == checkCode.location && x.id_area == checkCode.area_id &&
-                    !x.Deleted).FirstOrDefault();
+                    && x.location == checkCode.location && x.id_shelf == checkCode.shelf_id &&
+                    !x.deleted).FirstOrDefault();
 
                 if (checkProductLocation == null)
                     return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
 
-                if (checkImportFrom.isProductNew)
+                if (checkImportFrom.isproductnew)
                 {
-                    if (!checkProductLocation.isAction)
+                    if (!checkProductLocation.isaction)
                         return await Task.FromResult(PayLoad<object>.Successfully(true));
                 }
                 else
                 {
-                    if(checkProductLocation.isAction)
+                    if(checkProductLocation.isaction)
                         return await Task.FromResult(PayLoad<object>.Successfully(true));
                 }
                 return await Task.FromResult(PayLoad<object>.Successfully(false));

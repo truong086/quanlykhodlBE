@@ -52,10 +52,12 @@ namespace quanlykhodl.ViewModel
 
     public class listArea
     {
+        public string? shelf { get; set; }
         public string? area { get; set; }
         public string? floor { get; set; }
         public string? warehourse { get; set; }
         public string? code { get; set; }
+        public string? codeShelf { get; set; }
         public int? location { get; set; }
         public bool isAction { get; set; }
     }

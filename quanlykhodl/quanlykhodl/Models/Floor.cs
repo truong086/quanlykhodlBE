@@ -12,8 +12,7 @@ namespace quanlykhodl.Models
         public int? warehouse { get; set; }
         public int? account_id { get; set; }
         public Warehouse? warehouse_id { get; set; }
-        public Account? accounts { get; set; }
-
-        public ICollection<Area>? areas { get; set; }
+        public accounts? accounts { get; set; }
+        public ICollection<areas>? areas { get; set; }
 	}
 }

@@ -18,32 +18,36 @@ namespace quanlykhodl.QuartzService
         }
         public Task Execute(IJobExecutionContext context)
         { 
-            var checkAccount = _dbContext.accounts.Where(x => !x.Deleted && !x.Action).ToList();
-            var checkAccountActionUpdatePassword = _dbContext.accounts.Where(x => !x.Deleted && x.Action).ToList();
-            LoadAccount(checkAccount);
+            var checkAccount = _dbContext.accounts.Where(x => !x.deleted && !x.action).ToList();
+            if(checkAccount != null && checkAccount.Count > 0)
+            {
+                var checkAccountActionUpdatePassword = _dbContext.accounts.Where(x => !x.deleted && x.action).ToList();
+                LoadAccount(checkAccount);
+            }
+            
 
             return Task.CompletedTask;
         }
 
-        private void LoadAccount(List<Account> accounts)
+        private void LoadAccount(List<accounts> accounts)
         {
             if(accounts.Any())
             {
-                var listAccount = new List<Account>();
+                var listAccount = new List<accounts>();
                 foreach(var item in accounts)
                 {
-                    var checkTokenCreate = _dbContext.tokens.Include(a => a.account).Where(x => x.account_id == item.id && x.Status == Status.CREATEPASSWORD)
-                        .OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+                    var checkTokenCreate = _dbContext.tokens.Include(a => a.account).Where(x => x.account_id == item.id && x.status == Status.CREATEPASSWORD)
+                        .OrderByDescending(x => x.createdat).FirstOrDefault();
 
-                    var checkDateAccount = checkDateChenhLech(item.CreatedAt);
+                    var checkDateAccount = checkDateChenhLech(item.createdat);
                     if (checkTokenCreate != null)
                     {
-                        var checkDate = checkDateChenhLech(checkTokenCreate.CreatedAt);
+                        var checkDate = checkDateChenhLech(checkTokenCreate.createdat);
                         
                         if (checkDate >= 1)
                         {
                             var deleteTokens = _dbContext.tokens.Include(a => a.account)
-                                .Where(x => x.account_id == item.id && x.Status == Status.CREATEPASSWORD).ToList();
+                                .Where(x => x.account_id == item.id && x.status == Status.CREATEPASSWORD).ToList();
 
                             uploadCloud.DeleteAllImageAndFolder(item.email, _cloud);
                             if (deleteTokens.Count > 0)
@@ -69,7 +73,7 @@ namespace quanlykhodl.QuartzService
             }
         }
 
-        private void deleteAccount(Account account)
+        private void deleteAccount(accounts account)
         {
             if(account != null)
             {
@@ -87,22 +91,22 @@ namespace quanlykhodl.QuartzService
                 _dbContext.SaveChanges();
             }
         }
-        private void LoadAccountActionUpdatePassword(List<Account> data)
+        private void LoadAccountActionUpdatePassword(List<accounts> data)
         {
             if (data.Any())
             {
                 foreach(var item in data)
                 {
-                    var checkTokenUpdate = _dbContext.tokens.Include(a => a.account).Where(x => x.account_id == item.id && x.Status == Status.UPDATEPASSWORD)
-                        .OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+                    var checkTokenUpdate = _dbContext.tokens.Include(a => a.account).Where(x => x.account_id == item.id && x.status == Status.UPDATEPASSWORD)
+                        .OrderByDescending(x => x.createdat).FirstOrDefault();
 
                     if(checkTokenUpdate != null)
                     {
-                        var checkDate = checkDateChenhLech(checkTokenUpdate.CreatedAt);
+                        var checkDate = checkDateChenhLech(checkTokenUpdate.createdat);
                         if (checkDate >= 30)
                         {
                             var deleteToken = _dbContext.tokens.Include(a => a.account)
-                                .Where(x => x.account_id == item.id && x.Status == Status.UPDATEPASSWORD).ToList();
+                                .Where(x => x.account_id == item.id && x.status == Status.UPDATEPASSWORD).ToList();
 
                             _dbContext.tokens.RemoveRange(deleteToken);
 

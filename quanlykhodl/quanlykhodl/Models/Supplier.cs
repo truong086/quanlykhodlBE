@@ -11,7 +11,7 @@ namespace quanlykhodl.Models
 		public string? publicid { get; set; }
 		public string? phone { get; set; }
 		public int? account_id { get; set; }
-		public Account? accounts { get; set; }
+		public accounts? accounts { get; set; }
 
 		public ICollection<product>? products { get; set; }
 		public ICollection<productImportform>? productimportforms { get; set; }

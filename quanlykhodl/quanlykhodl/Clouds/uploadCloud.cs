@@ -91,7 +91,7 @@ namespace quanlykhodl.Clouds
             publicId = uploads.PublicId.ToString();
             Link = uploads.Uri.ToString();
 
-            //return (publicId, Link); // Trả ra 2 giá trị bằng return
+            //return (publicid, link); // Trả ra 2 giá trị bằng return
         }
 
         public static void UpdateImageCloudIFrom(IFormFile path, string id)

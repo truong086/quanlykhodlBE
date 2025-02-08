@@ -48,24 +48,20 @@ namespace quanlykhodl.Service
             try
             {
                 var checkData = _context.accounts.Where(x => (x.email == accountDTO.email ||
-                x.phone == accountDTO.phone || x.username == accountDTO.username) && !x.Deleted && x.Action).FirstOrDefault();
+                x.phone == accountDTO.phone || x.username == accountDTO.username) && !x.deleted && x.action).FirstOrDefault();
 
-                var checkRole = _context.roles.Where(x => x.name.ToLower() == TokenViewModel.USER.ToLower() 
-                && !x.Deleted).FirstOrDefault();
+                var checkRole = _context.roles.Where(x => x.name.ToLower() == TokenViewModel.USER.ToLower()
+                && !x.deleted).FirstOrDefault();
+
                 if (checkData != null)
                     return await Task.FromResult(PayLoad<AccountDTO>.CreatedFail(Status.DATATONTAI));
 
                 
-                var mapData = _mapper.Map<Account>(accountDTO);
-                if (accountDTO.image != null)
-                {
-                    uploadCloud.CloudInaryIFromAccount(accountDTO.image, accountDTO.email, _cloud);
-                    mapData.image = uploadCloud.Link;
-                    mapData.publicid = uploadCloud.publicId;
-                }
+                var mapData = _mapper.Map<accounts>(accountDTO);
+                
                 mapData.password = EncryptionHelper.CreatePasswordHash(accountDTO.password, _jwt.Key);
-                mapData.Action = false;
-                mapData.Deleted = false;
+                mapData.action = false;
+                mapData.deleted = false;
                 mapData.role = checkRole;
                 mapData.role_id = checkRole.id;
 
@@ -81,7 +77,7 @@ namespace quanlykhodl.Service
                 
                 _context.accounts.Add(mapData);
 
-                var checkToken = _context.tokens.Where(x => x.account_id == mapData.id && !x.Deleted && x.Status == Status.CREATEPASSWORD).ToList();
+                var checkToken = _context.tokens.Where(x => x.account_id == mapData.id && !x.deleted && x.status == Status.CREATEPASSWORD).ToList();
                 if(checkToken.Any() || checkToken != null)
                 {
                     _context.tokens.RemoveRange(checkToken);
@@ -93,12 +89,22 @@ namespace quanlykhodl.Service
                     account_id = mapData.id,
                     account = mapData,
                     code = descriptEmail.active,
-                    Status = Status.CREATEPASSWORD
+                    status = Status.CREATEPASSWORD
                 };
 
                 _context.tokens.Add(tokenOTP);
                 await _context.SaveChangesAsync();
 
+                var dataNew = _context.accounts.Where(x => !x.deleted && !x.action).OrderByDescending(x => x.createdat).FirstOrDefault();
+                if (accountDTO.image != null)
+                {
+                    uploadCloud.CloudInaryIFromAccount(accountDTO.image, accountDTO.email + "_" + dataNew.id.ToString(), _cloud);
+                    dataNew.image = uploadCloud.Link;
+                    dataNew.publicid = uploadCloud.publicId;
+
+                    _context.accounts.Update(dataNew);
+                    _context.SaveChanges();
+                }
                 var tempalte = Status.TEMPLATEVIEW;
 
                 var tempalateEmail = await _emails.RenderViewToStringAsync(tempalte, descriptEmail);
@@ -151,7 +157,7 @@ namespace quanlykhodl.Service
         {
             try 
             {
-                var data = _context.accounts.Where(x => !x.Deleted).ToList();
+                var data = _context.accounts.Where(x => !x.deleted).ToList();
 
                 if (!string.IsNullOrEmpty(name))
                     data = data.Where(x => x.username.Contains(name) || x.email.Contains(name)).ToList();
@@ -173,7 +179,7 @@ namespace quanlykhodl.Service
             }
         }
 
-        private List<AccountgetAll> loadData(List<Account> data)
+        private List<AccountgetAll> loadData(List<accounts> data)
         {
             var list = new List<AccountgetAll>();
             foreach(var item in data)
@@ -192,7 +198,7 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var checkAccount = _context.accounts.Include(r => r.role).Where(x => x.id == id && !x.Deleted).FirstOrDefault();
+                var checkAccount = _context.accounts.Include(r => r.role).Where(x => x.id == id && !x.deleted).FirstOrDefault();
                 if (checkAccount == null)
                     return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
 
@@ -203,7 +209,7 @@ namespace quanlykhodl.Service
                     email = checkAccount.email,
                     phone = checkAccount.phone,
                     image = checkAccount.image,
-                    action = checkAccount.Action,
+                    action = checkAccount.action,
                     role_name = checkRole(checkAccount.role_id.Value) == null ? Status.ROLENOTFOULD : checkRole(checkAccount.role_id.Value).name,
                     role_id = checkRole(checkAccount.role_id.Value) == null ? Status.ROLENOTFOULD : checkRole(checkAccount.role_id.Value).id.ToString()
                 }));
@@ -253,7 +259,7 @@ namespace quanlykhodl.Service
 
         private role checkRole(int id)
         {
-            var roleId = _context.roles.Where(x => x.id == id && !x.Deleted).FirstOrDefault();
+            var roleId = _context.roles.Where(x => x.id == id && !x.deleted).FirstOrDefault();
             if (roleId == null)
                 return null;
 
@@ -278,8 +284,8 @@ namespace quanlykhodl.Service
             try {
                 //var user = _userService.name();
                 //var chuyenDoi = Convert.ToInt32(user);
-                var checkId = _context.accounts.Include(r => r.role).Where(x => x.id == id && !x.Deleted).FirstOrDefault();
-                var checkRole = _context.roles.Where(x => x.id == accountDTO.role_id && !x.Deleted).FirstOrDefault();
+                var checkId = _context.accounts.Include(r => r.role).Where(x => x.id == id && !x.deleted).FirstOrDefault();
+                var checkRole = _context.roles.Where(x => x.id == accountDTO.role_id && !x.deleted).FirstOrDefault();
                 if (checkId == null || checkRole == null)
                     return await Task.FromResult(PayLoad<AccountUpdate>.CreatedFail(Status.DATANULL));
 
@@ -295,7 +301,7 @@ namespace quanlykhodl.Service
                 checkId.username = accountDTO.username;
                 checkId.email = accountDTO.email;
                 checkId.address = accountDTO.address;
-                checkId.UpdatedAt = DateTimeOffset.UtcNow;
+                checkId.updatedat = DateTimeOffset.UtcNow;
                 checkId.role = checkRole;
                 checkId.role_id = accountDTO.role_id;
 
@@ -317,7 +323,7 @@ namespace quanlykhodl.Service
             try
             {
                 var checkToken = _context.tokens.Include(a => a.account)
-                    .Where(x => x.account_id == token.account_id && x.Status == token.Status && !x.Deleted)
+                    .Where(x => x.account_id == token.account_id && x.status == token.status && !x.deleted)
                     .ToList();
 
                 if(checkToken != null)
@@ -339,7 +345,7 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var checkData = _context.accounts.Where(x => !x.Action && !x.Deleted).ToList();
+                var checkData = _context.accounts.Where(x => !x.action && !x.deleted).ToList();
                 deleteAccountAndTokenNoAction(checkData);
 
                 return await Task.FromResult(PayLoad<string>.Successfully(Status.SUCCESS));
@@ -350,17 +356,17 @@ namespace quanlykhodl.Service
             }
         }
 
-        private void deleteAccountAndTokenNoAction(List<Account> data)
+        private void deleteAccountAndTokenNoAction(List<accounts> data)
         {
             if (data.Any())
             {
 
                 foreach (var item in data)
                 {
-                    var checkTokenCreate = _context.tokens.Where(x => x.account_id == item.id).OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+                    var checkTokenCreate = _context.tokens.Where(x => x.account_id == item.id).OrderByDescending(x => x.createdat).FirstOrDefault();
                     if (checkTokenCreate != null)
                     {
-                        var dateChenhLenh = checkDateChenhLech(checkTokenCreate.CreatedAt);
+                        var dateChenhLenh = checkDateChenhLech(checkTokenCreate.createdat);
                         if (dateChenhLenh >= 1)
                         {
                             var deleteData = _context.tokens.Include(a => a.account).Where(x => x.account_id == item.id).ToList();
@@ -368,7 +374,7 @@ namespace quanlykhodl.Service
                         }
                     }
 
-                    var checkDateAccount = checkDateChenhLech(item.CreatedAt);
+                    var checkDateAccount = checkDateChenhLech(item.createdat);
                     if (checkDateAccount >= 1)
                     {
                         uploadCloud.DeleteAllImageAndFolder(item.email, _cloud);
@@ -419,19 +425,19 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var checkEmail = _context.accounts.Where(x => x.email ==  data.email && !x.Deleted && data.type.ToLower() == Status.UPDATEPASSWORD.ToLower() ? x.Action : !x.Action).FirstOrDefault();
+                var checkEmail = _context.accounts.Where(x => x.email ==  data.email && !x.deleted && data.type.ToLower() == Status.UPDATEPASSWORD.ToLower() ? x.action : !x.action).FirstOrDefault();
                 if (checkEmail == null)
                     return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
 
                 var checkDate = _context.tokens.Include(a => a.account)
-                    .Where(x => x.account_id == checkEmail.id && !x.Deleted)
-                    .OrderByDescending(x => x.CreatedAt)
+                    .Where(x => x.account_id == checkEmail.id && !x.deleted)
+                    .OrderByDescending(x => x.createdat)
                     .FirstOrDefault();
 
-                if(checkDateChenhLechMinutes(checkDate == null ? DateTimeOffset.Parse("2025-02-03T10:30:00+07:00") : checkDate.CreatedAt) > 1)
+                if(checkDateChenhLechMinutes(checkDate == null ? DateTimeOffset.Parse("2025-02-03T10:30:00+07:00") : checkDate.createdat) > 1)
                 {
                     var checkToken = _context.tokens.Include(a => a.account)
-                    .Where(x => x.account_id == checkEmail.id && !x.Deleted)
+                    .Where(x => x.account_id == checkEmail.id && !x.deleted)
                     .ToList();
 
                     if (checkToken.Any() || checkToken != null)
@@ -453,7 +459,7 @@ namespace quanlykhodl.Service
                         account_id = checkEmail.id,
                         account = checkEmail,
                         code = descriptEmail.active,
-                        Status = data.type.ToLower() == Status.UPDATEPASSWORD.ToLower() ? Status.UPDATEPASSWORD : Status.CREATEPASSWORD
+                        status = data.type.ToLower() == Status.UPDATEPASSWORD.ToLower() ? Status.UPDATEPASSWORD : Status.CREATEPASSWORD
                     };
 
                     _context.tokens.Add(tokenOTP);
@@ -487,24 +493,24 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var checkData = _context.accounts.Where(x => x.email == data.email && !x.Deleted && x.Action).FirstOrDefault();
+                var checkData = _context.accounts.Where(x => x.email == data.email && !x.deleted && x.action).FirstOrDefault();
                 if (checkData == null)
                     return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
 
                 var checkToken = _context.tokens.Where(x => x.account_id == checkData.id && x.code == data.code
-                && x.Status == Status.UPDATEPASSWORD).OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+                && x.status == Status.UPDATEPASSWORD).OrderByDescending(x => x.createdat).FirstOrDefault();
 
                 if(checkToken == null)
                     return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
 
-                if (checkDateChenhLech(checkToken.CreatedAt) > 20)
+                if (checkDateChenhLech(checkToken.createdat) > 20)
                     return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
 
                 if (checkData.password != EncryptionHelper.CreatePasswordHash(data.passwordOld, _jwt.Key))
                     return await Task.FromResult(PayLoad<string>.CreatedFail(Status.PASSWORDOLDFAILD));
 
                 checkData.password = EncryptionHelper.CreatePasswordHash(data.passwordNew, _jwt.Key);
-                checkData.UpdatedAt = DateTimeOffset.UtcNow;
+                checkData.updatedat = DateTimeOffset.UtcNow;
 
                 _context.tokens.Remove(checkToken);
                 _context.accounts.Update(checkData);
@@ -523,7 +529,7 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var checkEmail = _context.accounts.Where(x => x.email == data.email && !x.Action && !x.Deleted).FirstOrDefault();
+                var checkEmail = _context.accounts.Where(x => x.email == data.email && !x.action && !x.deleted).FirstOrDefault();
                 if (checkEmail == null)
                     return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
 
@@ -531,11 +537,11 @@ namespace quanlykhodl.Service
                 if (checkToken == null)
                     return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
 
-                if (checkDateChenhLech(checkToken.CreatedAt) > 1)
+                if (checkDateChenhLech(checkToken.createdat) > 1)
                     return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
 
                 var deleteToken = _context.tokens.Include(a => a.account).Where(x => x.account_id == checkEmail.id).ToList();
-                checkEmail.Action = true;
+                checkEmail.action = true;
                 _context.accounts.Update(checkEmail);
                 _context.tokens.RemoveRange(deleteToken);
 
@@ -552,7 +558,7 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var checkEmail = _context.accounts.Where(x => x.email == data.email && !x.Deleted && x.Action).FirstOrDefault();
+                var checkEmail = _context.accounts.Where(x => x.email == data.email && !x.deleted && x.action).FirstOrDefault();
                 if(checkEmail == null)
                     return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
 
@@ -560,7 +566,7 @@ namespace quanlykhodl.Service
                 if (checkToken == null)
                     return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
 
-                if (checkDateChenhLech(checkToken.CreatedAt) > 1)
+                if (checkDateChenhLech(checkToken.createdat) > 1)
                     return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
 
                 return await Task.FromResult(PayLoad<string>.Successfully(Status.SUCCESS));
@@ -572,8 +578,8 @@ namespace quanlykhodl.Service
 
         private Token checkTokenAccount(int id_account, string code, string status)
         {
-            var checkToken = _context.tokens.Include(a => a.account).Where(x => x.account_id == id_account && x.code == code && x.Status == status)
-                    .OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+            var checkToken = _context.tokens.Include(a => a.account).Where(x => x.account_id == id_account && x.code == code && x.status == status)
+                    .OrderByDescending(x => x.createdat).FirstOrDefault();
 
             return checkToken == null ? null : checkToken;
         }
@@ -589,7 +595,7 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var checkEmail = _context.accounts.Where(x => x.email == data.email && !x.Deleted).FirstOrDefault();
+                var checkEmail = _context.accounts.Where(x => x.email == data.email && !x.deleted).FirstOrDefault();
                 if (checkEmail == null)
                     return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
 
@@ -597,7 +603,7 @@ namespace quanlykhodl.Service
                 if(checkToken == null)
                     return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
 
-                if(checkDateChenhLech(checkToken.CreatedAt) > 20)
+                if(checkDateChenhLech(checkToken.createdat) > 20)
                     return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
                 checkEmail.password = EncryptionHelper.CreatePasswordHash(data.passwordNew, _jwt.Key);
 
@@ -618,7 +624,7 @@ namespace quanlykhodl.Service
             try
             {
                 var user = _userService.name();
-                var checkAccount = _context.accounts.Where(x => x.id == int.Parse(user) && !x.Deleted).FirstOrDefault();
+                var checkAccount = _context.accounts.Where(x => x.id == int.Parse(user) && !x.deleted).FirstOrDefault();
                 if (checkAccount == null)
                     return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
 
@@ -639,8 +645,8 @@ namespace quanlykhodl.Service
             try
             {
                 var user = _userService.name();
-                var checkAccount = _context.accounts.Where(x => x.id == data.account_id && !x.Deleted).FirstOrDefault();
-                var checkAccountEdit = _context.accounts.FirstOrDefault(x => x.id == Convert.ToInt32(user) && !x.Deleted);
+                var checkAccount = _context.accounts.Where(x => x.id == data.account_id && !x.deleted).FirstOrDefault();
+                var checkAccountEdit = _context.accounts.FirstOrDefault(x => x.id == Convert.ToInt32(user) && !x.deleted);
                 var checkRole = _context.roles.Where(x => x.id == data.role_id).FirstOrDefault();
 
                 if (checkAccount == null || checkAccountEdit == null || checkRole == null)
@@ -648,8 +654,8 @@ namespace quanlykhodl.Service
 
                 checkAccount.role = checkRole;
                 checkAccount.role_id = data.role_id;
-                checkAccount.CretorEdit = checkAccountEdit.username + " Đã sửa bán ghi vào lúc " + DateTimeOffset.UtcNow;
-                checkAccount.UpdatedAt = DateTimeOffset.UtcNow;
+                checkAccount.cretoredit = checkAccountEdit.username + " Đã sửa bán ghi vào lúc " + DateTimeOffset.UtcNow;
+                checkAccount.updatedat = DateTimeOffset.UtcNow;
 
                 _context.accounts.Update(checkAccount);
                 _context.SaveChanges();
@@ -678,7 +684,7 @@ namespace quanlykhodl.Service
             try
             {
                 var user = _userService.name();
-                var checkAccount = _context.accounts.Where(x => x.id == Convert.ToInt32(user) && !x.Deleted).FirstOrDefault();
+                var checkAccount = _context.accounts.Where(x => x.id == Convert.ToInt32(user) && !x.deleted).FirstOrDefault();
                 if (checkAccount == null)
                     return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
 
@@ -740,23 +746,23 @@ namespace quanlykhodl.Service
             try
             {
                 var user = _userService.name();
-                var checkAccount = _context.accounts.Where(x => x.id == Convert.ToInt32(user) && !x.Deleted).FirstOrDefault();
+                var checkAccount = _context.accounts.Where(x => x.id == Convert.ToInt32(user) && !x.deleted).FirstOrDefault();
                 if (checkAccount == null)
                     return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
 
-                var checkAccountOnline = _context.onlineUsersUser.Where(x => x.account_id == checkAccount.id && x.IsOnline).ToList();
+                var checkAccountOnline = _context.onlineusersuser.Where(x => x.account_id == checkAccount.id && x.isonline).ToList();
                 if (checkAccountOnline.Any())
                 {
                     foreach(var item in checkAccountOnline)
                     {
-                        item.IsOnline = false;
-                        item.UpdatedAt = DateTimeOffset.UtcNow;
-                        _context.onlineUsersUser.Update(item);
+                        item.isonline = false;
+                        item.updatedat = DateTimeOffset.UtcNow;
+                        _context.onlineusersuser.Update(item);
                         _context.SaveChanges();
                     }
                 }
 
-                var getAllDataOnline = _context.onlineUsersUser.Where(x => x.IsOnline).ToList();
+                var getAllDataOnline = _context.onlineusersuser.Where(x => x.isonline).ToList();
                 await _hubContext.Clients.All.SendAsync("UserData", AccountOnline.GetAll(getAllDataOnline, _mapper, _context));
 
                 _userService.Logout();
@@ -772,7 +778,7 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var checkEmail = _context.accounts.Where(x => x.email == Email && !x.Action && !x.Deleted).FirstOrDefault();
+                var checkEmail = _context.accounts.Where(x => x.email == Email && !x.action && !x.deleted).FirstOrDefault();
                 if (checkEmail == null)
                     return await Task.FromResult(PayLoad<string>.CreatedFail(Status.DATANULL));
 

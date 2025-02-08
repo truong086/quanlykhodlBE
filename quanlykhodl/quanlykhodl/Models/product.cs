@@ -9,7 +9,7 @@ namespace quanlykhodl.Models
 		public string? title { get; set; }
 		public string? description { get; set; }
 		public double price { get; set; }
-		public string? DonViTinh { get; set; }
+		public string? donvitinh { get; set; }
 		public int quantity { get; set; }
 		public int star { get; set; }
 		//public int location { get; set; }
@@ -18,9 +18,9 @@ namespace quanlykhodl.Models
 		public int? category_map { get; set; }
 		public int? account_map { get; set; }
 		public int? suppliers { get; set; }
-		public category? categoryid123 { get; set; }
+		public categories? categoryid123 { get; set; }
 		public Supplier? supplier_id { get; set; }
-		public Account? account { get; set; }
+		public accounts? account { get; set; }
 
 		public virtual ICollection<ImageProduct>? imageProducts { get; set; }
 		public virtual ICollection<productDeliverynote>? productDeliverynotes { get; set; }

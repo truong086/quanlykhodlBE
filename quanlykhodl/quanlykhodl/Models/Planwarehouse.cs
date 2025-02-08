@@ -14,9 +14,9 @@ namespace quanlykhodl.Models
         public int? warehouse { get; set; }
         public int? area { get; set; }
         public int? floor { get; set; }
-        public Account? Receiver_id { get; set; }
+        public accounts? Receiver_id { get; set; }
         public Warehouse? warehouse_id { get; set; }
-        public Area? areaid { get; set; }
+        public Shelf? areaid { get; set; }
         public Floor? floor_id { get; set; }
         public virtual ICollection<Warehousetransferstatus>? warehousetransferstatuses { get; set; }
     }

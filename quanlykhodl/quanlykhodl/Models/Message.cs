@@ -5,15 +5,15 @@ namespace quanlykhodl.Models
 {
     public class Message : BaseEntity
     {
-        public int? SenderId { get; set; } // Id người gửi
-        public int? ReceiverId { get; set; } // Id người nhận
-        public string Content { get; set; } = string.Empty; // Nội dung tin nhắn
+        public int? senderid { get; set; } // Id người gửi
+        public int? receiverid { get; set; } // Id người nhận
+        public string content { get; set; } = string.Empty; // Nội dung tin nhắn
         public string? image { get; set; }
-        public string? publicId { get; set; }
-        public bool IsRead { get; set; } = false; // Đã đọc hay chưa
+        public string? publicid { get; set; }
+        public bool isread { get; set; } = false; // Đã đọc hay chưa
 
         // Quan hệ
-        public Account? Sender { get; set; }
-        public Account? Receiver { get; set; }
+        public accounts? Sender { get; set; }
+        public accounts? Receiver { get; set; }
     }
 }

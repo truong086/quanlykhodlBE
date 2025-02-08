@@ -61,7 +61,7 @@ namespace quanlykhodl.Common
 
         public static PayLoad<T> DeletedFail(string message = "", object data = null)
         {
-            return new PayLoad<T>((T?)data, (int)HttpStatusCode.ExpectationFailed, string.IsNullOrEmpty(message) ? "Deleted Fail!" : message);
+            return new PayLoad<T>((T?)data, (int)HttpStatusCode.ExpectationFailed, string.IsNullOrEmpty(message) ? "deleted Fail!" : message);
         }
 
         public static PayLoad<T> RequestInvalid(string message = "", object data = null)

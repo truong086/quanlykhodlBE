@@ -18,17 +18,21 @@
         public string? localtionNewCode { get; set; }
         public string? warehouseOld { get; set; }
         public string? areaOld { get; set; }
+        public string? shelfOld { get; set; }
         public string? floorOld { get; set; }
         public string? warehouse { get; set; }
         public string? area { get; set; }
+        public string? shelf { get; set; }
         public string? floor { get; set; }
         public string? Account_creatPlan { get; set; }
         public string? CodeWarehourseNew { get; set; }
         public string? CodeFloorNew { get; set; }
         public string? CodeAreaeNew { get; set; }
+        public string? CodeShelfNew { get; set; }
         public string? CodeWarehourseOld { get; set; }
         public string? CodeFloorOld { get; set; }
         public string? CodeAreaeOld { get; set; }
+        public string? CodeShelfOld { get; set; }
         public string? ImageFloorNew { get; set; }
         public string? ImageAreaeNew { get; set; }
         public string? ImageWarehourseOld { get; set; }
