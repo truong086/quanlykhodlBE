@@ -351,6 +351,8 @@ namespace quanlykhodl.Service
             mapData.ImageFloorNew = checkFloorNew == null ? Status.NOFLOOR : checkFloorNew.image;
             mapData.ImageAreaeOld = checkAreaOld == null ? Status.NOAREA : checkAreaOld.image;
             mapData.ImageAreaeNew = checkAreaNew == null ? Status.NOFLOOR : checkAreaNew.image;
+            mapData.ImageShelfeNew = checkShelfNew == null ? Status.NOFLOOR : checkShelfNew.image;
+            mapData.ImageShelfeOld = checkShelfOld == null ? Status.NOFLOOR : checkShelfOld.image;
 
             return mapData;
         }

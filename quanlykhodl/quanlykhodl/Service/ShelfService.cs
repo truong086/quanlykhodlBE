@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CloudinaryDotNet.Core;
 using Microsoft.Extensions.Options;
 using quanlykhodl.Clouds;
 using quanlykhodl.Common;
@@ -209,6 +210,7 @@ namespace quanlykhodl.Service
                 mapData.totalLocationExsis = item.quantity - checkLocationAreaExsis(item);
                 mapData.productShefl = findAreaproduct(item);
                 mapData.totalQuantityUseds = totalQuantityUsedsData(item);
+                mapData.quantityExceptions = dataLocationException(item);
 
                 list.Add(mapData);
 

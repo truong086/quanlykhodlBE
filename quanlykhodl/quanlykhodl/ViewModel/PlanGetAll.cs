@@ -35,6 +35,8 @@
         public string? CodeShelfOld { get; set; }
         public string? ImageFloorNew { get; set; }
         public string? ImageAreaeNew { get; set; }
+        public string? ImageShelfeNew { get; set; }
+        public string? ImageShelfeOld { get; set; }
         public string? ImageWarehourseOld { get; set; }
         public string? ImageWarehourseNew { get; set; }
         public string? ImageFloorOld { get; set; }

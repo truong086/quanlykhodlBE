@@ -103,6 +103,8 @@ namespace quanlykhodl.Service
                        location = null,
                        shelfs = null,
                        shelf_id = null,
+                       productlocations = null,
+                       productlocation_id = null,
                        deliverynote = deliverynote.id,
                        deliverynote_id1 = deliverynote,
                        product = checkProduct,
@@ -259,8 +261,10 @@ namespace quanlykhodl.Service
                         dataItem.suppliers = checkSupplier == null ? Status.DATANULL : checkSupplier.name;
                         dataItem.suppliersImage = checkSupplier == null ? Status.ACCOUNTNOTFOULD : checkSupplier.image;
                         dataItem.data = loadDataAreaProduct(checkProduct.id);
+                        dataItem.dataItem = loadDataAreaProductAreaLocation(item);
                         dataItem.id_productDelivenote = item.id;
                         dataItem.code_productDelivenote = item.code;
+                        dataItem.quantityDeliverynote = item.quantity;
 
                         list.Add(dataItem);
                     }
@@ -268,6 +272,44 @@ namespace quanlykhodl.Service
                 }
             }
             return list;
+        }
+
+        private listArea loadDataAreaProductAreaLocation(productDeliverynote data)
+        {
+            var dataItem = new listArea();
+            var checkproductLocationData = _context.productlocations.Where(x => x.id_product == data.product_map && x.id_shelf == data.shelf_id && x.location == data.location && !x.deleted).FirstOrDefault();
+            if (checkproductLocationData != null)
+            {
+                var checkShelf = _context.shelfs.Include(f => f.area_id).Where(x => x.id == checkproductLocationData.id_shelf && !x.deleted).FirstOrDefault();
+                if (checkShelf != null)
+                {
+                    var checkCodeArea = _context.codelocations.Where(x => x.id_helf == checkShelf.id && x.location == checkproductLocationData.location && !x.deleted).FirstOrDefault();
+                    var checkArea = _context.areas.Include(f => f.floor_id).Where(x => x.id == checkShelf.area && !x.deleted).FirstOrDefault();
+                    if (checkArea != null)
+                    {
+                        if (checkArea.floor_id != null)
+                        {
+                            var checkWarehourse = _context.warehouses.Where(x => x.id == checkArea.floor_id.warehouse && !x.deleted).FirstOrDefault();
+                            if (checkWarehourse != null)
+                            {
+
+                                dataItem.location = checkproductLocationData.location;
+                                dataItem.shelf = checkShelf.name;
+                                dataItem.floor = checkArea.floor_id.name;
+                                dataItem.area = checkArea.name;
+                                dataItem.warehourse = checkWarehourse.name;
+                                dataItem.code = checkCodeArea == null ? "No Code" : checkCodeArea.code;
+                                dataItem.codeShelf = checkShelf == null ? "No Code" : checkShelf.code;
+                                dataItem.isAction = checkproductLocationData.isaction;
+                            }
+                        }
+                    }
+
+
+                }
+            }
+
+            return dataItem;
         }
 
         private List<listArea> loadDataAreaProduct(int id)
@@ -299,6 +341,7 @@ namespace quanlykhodl.Service
                                         floor = checkFloor.name,
                                         warehourse = checkWarehourse.name,
                                         isAction = item.isaction,
+                                        codeShelf = checkShelf.code,
                                         code = checkCodeLocation == null ? Status.CODEFAILD : checkCodeLocation.code
                                     };
 
@@ -453,6 +496,8 @@ namespace quanlykhodl.Service
                     if(checkLocation.quantity < checkId.quantity) return false;
                     if(checkProduct.quantity < checkId.quantity) return false;
 
+                    checkId.productlocations = checkLocation;
+                    checkId.productlocation_id = checkLocation.id;
                     checkId.location = checkLocation.location;
                     checkId.shelfs = checkShelf;
                     checkId.shelf_id = checkShelf.id;

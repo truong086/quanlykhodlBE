@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Org.BouncyCastle.Asn1.Pkcs;
 using quanlykhodl.Clouds;
@@ -658,7 +659,8 @@ namespace quanlykhodl.Service
                     mapData.categoryName= checkCategory.name;
                 }
                 mapData.images = ListImage(checkId.id);
-                mapData.listAreaOfproducts = loadDataAreaAndFloorAndWerahourse(checkId.id);
+                //mapData.listAreaOfproducts = loadDataAreaAndFloorAndWerahourse(checkId.id);
+                mapData.oneDataShelfOfProducts = dataListShelfOrProduct(checkId.id);
 
                 return await Task.FromResult(PayLoad<ProductGetAll>.Successfully(mapData));
 
@@ -669,6 +671,83 @@ namespace quanlykhodl.Service
             }
         }
 
+        private List<OneDataShelfOfProduct> dataListShelfOrProduct(int id)
+        {
+            var list = new List<OneDataShelfOfProduct>();
+            var checkDataWarehouse = new List<int?>();
+
+            var checkProductLocation = _context.productlocations.Where(x => x.id_product == id && !x.deleted && x.isaction).ToList();
+            if(checkProductLocation != null && checkProductLocation.Count > 0)
+            {
+                foreach(var item in checkProductLocation)
+                {
+                    var checkShelf = _context.shelfs.Include(a => a.area_id).Where(x => x.id == item.id_shelf && !x.deleted).FirstOrDefault();
+                    if(checkShelf != null && checkShelf.area_id != null)
+                    {
+                        var checkFloor = _context.floors.Include(w => w.warehouse_id).Where(x => x.id == checkShelf.area_id.floor && !x.deleted).FirstOrDefault();
+                        var checkAccount = _context.accounts.Where(x => x.id == checkFloor.warehouse_id.account_map && !x.deleted).FirstOrDefault();
+                        if (checkDataWarehouse.Contains(checkFloor.warehouse))
+                        {
+                            var updateData = list.FirstOrDefault(x => x.Id == checkFloor.warehouse);
+                            var dataUpdate = dataOneProductWarehouse(item, checkShelf, checkFloor.warehouse_id, checkShelf.area_id, checkFloor, checkAccount);
+                            updateData.listShelfOfproducts.Add(dataUpdate);
+                            updateData.quantity += dataUpdate.quantity.Value;
+                        }
+                        else
+                        {
+                            var dataListShelfOfproducts = new List<listAreaOfproduct>();
+                            dataListShelfOfproducts.Add(dataOneProductWarehouse(item, checkShelf, checkFloor.warehouse_id, checkShelf.area_id, checkFloor, checkAccount));
+
+                            var dataItem = new OneDataShelfOfProduct
+                            {
+                                Id = checkFloor.warehouse.Value,
+                                account_image = checkAccount.image,
+                                account_name = checkAccount.username,
+                                addressWarehouse = checkFloor.warehouse_id.country + ", " + checkFloor.warehouse_id.city + ", " + checkFloor.warehouse_id.district + ", " + checkFloor.warehouse_id.street,
+                                warehouse_image = checkFloor.warehouse_id.image,
+                                warehouse_name = checkFloor.warehouse_id.name,
+                                quantity = item.quantity,
+                                listShelfOfproducts = dataListShelfOfproducts
+                            };
+
+                            list.Add(dataItem);
+                            checkDataWarehouse.Add(checkFloor.warehouse);
+                        }
+                    }
+                }
+            }
+
+            return list;
+        }
+
+        private listAreaOfproduct dataOneProductWarehouse(productlocation item, Shelf checkShelf, Warehouse checkWarehourse, areas checkArea, Floor checkFloor, accounts checkAccount)
+        {
+            var checkLocationShelfCode = _context.codelocations.Where(x => x.id_helf == checkShelf.id && x.location == item.location && !x.deleted).FirstOrDefault();
+            
+            var dataItem = new listAreaOfproduct
+            {
+                account_image = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.image,
+                account_name = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.username,
+                addressWarehouse = checkWarehourse.country + ", " + checkWarehourse.city + ", " + checkWarehourse.district + ", " + checkWarehourse.street,
+                warehouse_name = checkWarehourse == null ? Status.NOWAREHOURSE : checkWarehourse.name,
+                warehouse_image = checkWarehourse == null ? Status.NOWAREHOURSE : checkWarehourse.image,
+                floor_image = checkFloor == null ? Status.NOFLOOR : checkFloor.image,
+                floor_name = checkFloor == null ? Status.NOFLOOR : checkFloor.name,
+                area_image = checkArea == null ? Status.NOAREA : checkArea.image,
+                area_name = checkArea == null ? Status.NOAREA : checkArea.name,
+                shelf_image = checkShelf == null ? Status.NOSHELF : checkShelf.image,
+                shelf_name = checkShelf == null ? Status.NOSHELF : checkShelf.name,
+                quantity = item.quantity,
+                Id_productlocation = item.id,
+                location = item.location,
+                idShelf = checkShelf.id,
+                MaxlocationExceps = QuantityAreaMax(checkShelf.id, item.location),
+                MaxlocationShelf = checkShelf.max,
+                code = checkLocationShelfCode == null ? Status.CODEFAILD : checkLocationShelfCode.code
+            };
+
+            return dataItem;
+        }
         private List<listAreaOfproduct> loadDataAreaAndFloorAndWerahourse(int id)
         {
             var list = new List<listAreaOfproduct>();
@@ -887,7 +966,7 @@ namespace quanlykhodl.Service
                 mapData.area_name = checkArea == null ? Status.NOAREA : checkArea.image;
                 mapData.shelf_image = checkShelf == null ? Status.NOAREA : checkShelf.image;
                 mapData.shelf_name = checkShelf == null ? Status.NOAREA : checkShelf.image;
-                mapData.code = checkLocationCode == null ? Status.CODEFAILD : checkLocationCode.code;
+                mapData.codeLocation = checkLocationCode == null ? Status.CODEFAILD : checkLocationCode.code;
                 mapData.TotalLocationEmty = checkQuantityEmty(checkShelf);
                 return await Task.FromResult(PayLoad<object>.Successfully(mapData));
                 
@@ -948,12 +1027,16 @@ namespace quanlykhodl.Service
                                     var checkWarehourse = _context.warehouses.Where(x => x.id == checkFloor.warehouse && !x.deleted).FirstOrDefault();
                                     if (checkWarehourse != null)
                                     {
-                                        var checkLocationCode = _context.codelocations.Where(x => x.location == item.location && x.id_helf == checkArea.id && !x.deleted).FirstOrDefault();
+                                        var checkLocationCode = _context.codelocations.Where(x => x.location == item.location && x.id_helf == checkShelf.id && !x.deleted).FirstOrDefault();
                                         mapData.warehouse_image = checkWarehourse.image;
                                         mapData.warehouse_name = checkWarehourse.name;
                                         mapData.floor_image = checkFloor.image;
                                         mapData.floor_name = checkFloor.name;
-                                        mapData.code = checkLocationCode == null ? Status.CODEFAILD : checkLocationCode.code;
+                                        mapData.area_name = checkArea.name;
+                                        mapData.area_image = checkArea.image;
+                                        mapData.shelf_image = checkShelf.image;
+                                        mapData.shelf_name = checkShelf.name;
+                                        mapData.codeLocation = checkLocationCode == null ? Status.CODEFAILD : checkLocationCode.code;
                                         mapData.TotalLocationEmty = checkQuantityEmty(checkShelf);
                                     }
                                 }

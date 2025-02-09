@@ -34,6 +34,7 @@ namespace quanlykhodl.ViewModel
         public List<string>? image { get; set; }
         public int quantity { get; set; }
         public int quantityImportFrom { get; set; }
+        public int quantityDeliverynote { get; set; }
         public int star { get; set; }
         public int id_productDelivenote { get; set; }
         public string? code_productDelivenote { get; set; }

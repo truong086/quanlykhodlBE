@@ -13,6 +13,19 @@
         public int quantity { get; set; }
         public int star { get; set; }
         public List<listAreaOfproduct>? listAreaOfproducts { get; set; }
+        public List<OneDataShelfOfProduct>? oneDataShelfOfProducts { get; set; }
+    }
+
+    public class OneDataShelfOfProduct
+    {
+        public int Id { get; set; }
+        public string? account_name { get; set; }
+        public string? account_image { get; set; }
+        public string? addressWarehouse { get; set; }
+        public string? warehouse_name { get; set; }
+        public string? warehouse_image { get; set; }
+        public int quantity { get; set; }
+        public List<listAreaOfproduct>? listShelfOfproducts { get; set; }
     }
 
     public class listAreaOfproduct
@@ -46,6 +59,7 @@
         public List<string>? images { get; set; }
         public double price { get; set; }
         public string? DonViTinh { get; set; }
+        public string? code { get; set; }
         public int quantity { get; set; }
         public int star { get; set; }
         public string? account_name { get; set; }
@@ -59,7 +73,7 @@
         public string? area_image { get; set; }
         public string? shelf_name { get; set; }
         public string? shelf_image { get; set; }
-        public string? code { get; set; }
+        public string? codeLocation { get; set; }
         public int? quantityArea { get; set; }
         public int? TotalLocationEmty { get; set; }
     }

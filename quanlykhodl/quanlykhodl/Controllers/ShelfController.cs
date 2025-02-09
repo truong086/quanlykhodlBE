@@ -48,8 +48,8 @@ namespace quanlykhodl.Controllers
         }
 
         [HttpGet]
-        [Route(nameof(FindByFloor))]
-        public async Task<PayLoad<object>> FindByFloor(int id, int page = 1, int pageSize = 20)
+        [Route(nameof(FindByArea))]
+        public async Task<PayLoad<object>> FindByArea(int id, int page = 1, int pageSize = 20)
         {
             return await _areaService.FindOneArea(id, page, pageSize);
         }
