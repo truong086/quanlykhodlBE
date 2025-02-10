@@ -14,5 +14,6 @@ namespace quanlykhodl.Models
         public string? codelocation { get; set; }
         public virtual ICollection<Plan>? plans { get; set; }
         public virtual ICollection<productDeliverynote>? ProductDeliverynotes { get; set; }
+        public virtual ICollection<productImportform>? ProductImportforms { get; set; }
     }
 }

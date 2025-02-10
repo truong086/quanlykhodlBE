@@ -50,7 +50,10 @@ namespace quanlykhodl.Service
                 var checkData = _context.accounts.Where(x => (x.email == accountDTO.email ||
                 x.phone == accountDTO.phone || x.username == accountDTO.username) && !x.deleted && x.action).FirstOrDefault();
 
-                var checkRole = _context.roles.Where(x => x.name.ToLower() == TokenViewModel.USER.ToLower()
+                //var checkRole = _context.roles.Where(x => x.name.ToLower() == TokenViewModel.USER.ToLower()
+                //&& !x.deleted).FirstOrDefault();
+
+                var checkRole = _context.roles.Where(x => x.name.ToLower() == TokenViewModel.ADMIN.ToLower()
                 && !x.deleted).FirstOrDefault();
 
                 if (checkData != null)

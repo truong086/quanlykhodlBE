@@ -16,6 +16,7 @@ namespace quanlykhodl.Mapper
             CreateMap<productNew, product>();
             CreateMap<product, productImportformAndDeliveerrynote>();
             CreateMap<product, PrepareToExportGetAll>();
+            CreateMap<product, productWarehouse>();
         }
     }
 }

@@ -134,7 +134,19 @@ namespace quanlykhodl.Models
 				.HasForeignKey(p => p.productlocation_map)
 				 .OnDelete(DeleteBehavior.Restrict);// Map cho trường "categoryId" trong product
 
-			modelBuilder.Entity<accounts>()
+            modelBuilder.Entity<productlocation>()
+                .HasMany(c => c.ProductDeliverynotes)
+                .WithOne(p => p.productlocations) // Trường "categoryid" trong product liên kết đến id của categories
+                .HasForeignKey(p => p.productlocation_id)
+                 .OnDelete(DeleteBehavior.Restrict);// Map cho trường "categoryId" trong product
+
+            modelBuilder.Entity<productlocation>()
+                .HasMany(c => c.ProductImportforms)
+                .WithOne(p => p.productlocations) // Trường "categoryid" trong product liên kết đến id của categories
+                .HasForeignKey(p => p.productlocation_id)
+                 .OnDelete(DeleteBehavior.Restrict);// Map cho trường "categoryId" trong product
+
+            modelBuilder.Entity<accounts>()
 				.HasMany(c => c.shelfs)
 				.WithOne(p => p.account_id) // Trường "categoryid" trong product liên kết đến id của categories
 				.HasForeignKey(p => p.account)

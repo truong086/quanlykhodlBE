@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace quanlykhodl.Migrations
 {
-    public partial class updatedb28 : Migration
+    public partial class updb : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -35,7 +35,7 @@ namespace quanlykhodl.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Retailcustomers", x => x.id);
+                    table.PrimaryKey("PK_retailcustomers", x => x.id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -75,7 +75,7 @@ namespace quanlykhodl.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_userTokenApps", x => x.id);
+                    table.PrimaryKey("PK_usertokenapps", x => x.id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -190,7 +190,7 @@ namespace quanlykhodl.Migrations
                         principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_deliverynotes_Retailcustomers_retailcustomers",
+                        name: "FK_deliverynotes_retailcustomers_retailcustomers",
                         column: x => x.retailcustomers,
                         principalTable: "retailcustomers",
                         principalColumn: "id",
@@ -262,15 +262,15 @@ namespace quanlykhodl.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Messages", x => x.id);
+                    table.PrimaryKey("PK_messages", x => x.id);
                     table.ForeignKey(
-                        name: "FK_Messages_accounts_receiverid",
+                        name: "FK_messages_accounts_receiverid",
                         column: x => x.receiverid,
                         principalTable: "accounts",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Messages_accounts_senderid",
+                        name: "FK_messages_accounts_senderid",
                         column: x => x.senderid,
                         principalTable: "accounts",
                         principalColumn: "id",
@@ -296,9 +296,9 @@ namespace quanlykhodl.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_onlineUsersUser", x => x.id);
+                    table.PrimaryKey("PK_onlineusersuser", x => x.id);
                     table.ForeignKey(
-                        name: "FK_onlineUsersUser_accounts_account_id",
+                        name: "FK_onlineusersuser_accounts_account_id",
                         column: x => x.account_id,
                         principalTable: "accounts",
                         principalColumn: "id",
@@ -433,21 +433,21 @@ namespace quanlykhodl.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Conversations", x => x.id);
+                    table.PrimaryKey("PK_conversations", x => x.id);
                     table.ForeignKey(
-                        name: "FK_Conversations_accounts_user1id",
+                        name: "FK_conversations_accounts_user1id",
                         column: x => x.user1id,
                         principalTable: "accounts",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Conversations_accounts_user2id",
+                        name: "FK_conversations_accounts_user2id",
                         column: x => x.user2id,
                         principalTable: "accounts",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Conversations_Messages_lastmessageid",
+                        name: "FK_conversations_messages_lastmessageid",
                         column: x => x.lastmessageid,
                         principalTable: "messages",
                         principalColumn: "id",
@@ -564,15 +564,15 @@ namespace quanlykhodl.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_userConversations", x => x.id);
+                    table.PrimaryKey("PK_userconversations", x => x.id);
                     table.ForeignKey(
-                        name: "FK_userConversations_accounts_userid",
+                        name: "FK_userconversations_accounts_userid",
                         column: x => x.userid,
                         principalTable: "accounts",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_userConversations_Conversations_conversationid",
+                        name: "FK_userconversations_conversations_conversationid",
                         column: x => x.conversationid,
                         principalTable: "conversations",
                         principalColumn: "id",
@@ -599,9 +599,9 @@ namespace quanlykhodl.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_imageProducts", x => x.id);
+                    table.PrimaryKey("PK_imageproducts", x => x.id);
                     table.ForeignKey(
-                        name: "FK_imageProducts_products1_productmap",
+                        name: "FK_imageproducts_products1_productmap",
                         column: x => x.productmap,
                         principalTable: "products1",
                         principalColumn: "id",
@@ -707,14 +707,14 @@ namespace quanlykhodl.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_deliverynotePrepareToEs", x => x.id);
+                    table.PrimaryKey("PK_deliverynotepreparetoes", x => x.id);
                     table.ForeignKey(
-                        name: "FK_deliverynotePrepareToEs_deliverynotes_deliverynotesid",
+                        name: "FK_deliverynotepreparetoes_deliverynotes_deliverynotesid",
                         column: x => x.deliverynotesid,
                         principalTable: "deliverynotes",
                         principalColumn: "id");
                     table.ForeignKey(
-                        name: "FK_deliverynotePrepareToEs_PrepareToExport_id_preparetoexport",
+                        name: "FK_deliverynotepreparetoes_PrepareToExport_id_preparetoexport",
                         column: x => x.id_preparetoexport,
                         principalTable: "PrepareToExport",
                         principalColumn: "id",
@@ -811,62 +811,11 @@ namespace quanlykhodl.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_locationExceptions", x => x.id);
+                    table.PrimaryKey("PK_locationexceptions", x => x.id);
                     table.ForeignKey(
-                        name: "FK_locationExceptions_shelfs_id_shelf",
+                        name: "FK_locationexceptions_shelfs_id_shelf",
                         column: x => x.id_shelf,
                         principalTable: "shelfs",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Restrict);
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
-                name: "productimportforms",
-                columns: table => new
-                {
-                    id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    importform = table.Column<int>(type: "int", nullable: true),
-                    product = table.Column<int>(type: "int", nullable: true),
-                    quantity = table.Column<int>(type: "int", nullable: false),
-                    supplier = table.Column<int>(type: "int", nullable: true),
-                    location = table.Column<int>(type: "int", nullable: true),
-                    shelf_id = table.Column<int>(type: "int", nullable: true),
-                    isaction = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    code = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    deleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    cretoredit = table.Column<string>(type: "longtext", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    createdat = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
-                    updatedat = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_productImportforms", x => x.id);
-                    table.ForeignKey(
-                        name: "FK_productImportforms_importforms_importform",
-                        column: x => x.importform,
-                        principalTable: "importforms",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_productImportforms_products1_product",
-                        column: x => x.product,
-                        principalTable: "products1",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_productImportforms_shelfs_shelf_id",
-                        column: x => x.shelf_id,
-                        principalTable: "shelfs",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_productImportforms_suppliers_supplier",
-                        column: x => x.supplier,
-                        principalTable: "suppliers",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
                 })
@@ -998,7 +947,6 @@ namespace quanlykhodl.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     shelf_id = table.Column<int>(type: "int", nullable: true),
                     productlocation_id = table.Column<int>(type: "int", nullable: true),
-                    productlocationsid = table.Column<int>(type: "int", nullable: true),
                     shelfsid = table.Column<int>(type: "int", nullable: true),
                     deleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     cretoredit = table.Column<string>(type: "longtext", nullable: true)
@@ -1008,29 +956,88 @@ namespace quanlykhodl.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_productDeliverynotes", x => x.id);
+                    table.PrimaryKey("PK_productdeliverynotes", x => x.id);
                     table.ForeignKey(
-                        name: "FK_productDeliverynotes_deliverynotes_deliverynote",
+                        name: "FK_productdeliverynotes_deliverynotes_deliverynote",
                         column: x => x.deliverynote,
                         principalTable: "deliverynotes",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_productDeliverynotes_productlocations_productlocationsid",
-                        column: x => x.productlocationsid,
+                        name: "FK_productdeliverynotes_productlocations_productlocation_id",
+                        column: x => x.productlocation_id,
                         principalTable: "productlocations",
-                        principalColumn: "id");
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_productDeliverynotes_products1_product_map",
+                        name: "FK_productdeliverynotes_products1_product_map",
                         column: x => x.product_map,
                         principalTable: "products1",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_productDeliverynotes_shelfs_shelfsid",
+                        name: "FK_productdeliverynotes_shelfs_shelfsid",
                         column: x => x.shelfsid,
                         principalTable: "shelfs",
                         principalColumn: "id");
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "productimportforms",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    importform = table.Column<int>(type: "int", nullable: true),
+                    product = table.Column<int>(type: "int", nullable: true),
+                    quantity = table.Column<int>(type: "int", nullable: false),
+                    supplier = table.Column<int>(type: "int", nullable: true),
+                    location = table.Column<int>(type: "int", nullable: true),
+                    shelf_id = table.Column<int>(type: "int", nullable: true),
+                    productlocation_id = table.Column<int>(type: "int", nullable: true),
+                    isaction = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    code = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    deleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    cretoredit = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    createdat = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false),
+                    updatedat = table.Column<DateTimeOffset>(type: "datetime(6)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_productimportforms", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_productimportforms_importforms_importform",
+                        column: x => x.importform,
+                        principalTable: "importforms",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_productimportforms_productlocations_productlocation_id",
+                        column: x => x.productlocation_id,
+                        principalTable: "productlocations",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_productimportforms_products1_product",
+                        column: x => x.product,
+                        principalTable: "products1",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_productimportforms_shelfs_shelf_id",
+                        column: x => x.shelf_id,
+                        principalTable: "shelfs",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_productimportforms_suppliers_supplier",
+                        column: x => x.supplier,
+                        principalTable: "suppliers",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Restrict);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -1080,9 +1087,9 @@ namespace quanlykhodl.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_statusItems", x => x.id);
+                    table.PrimaryKey("PK_statusitems", x => x.id);
                     table.ForeignKey(
-                        name: "FK_statusItems_warehousetransferstatuses_warehousetransferstatus",
+                        name: "FK_statusitems_warehousetransferstatuses_warehousetransferstatus",
                         column: x => x.warehousetransferstatus,
                         principalTable: "warehousetransferstatuses",
                         principalColumn: "id",
@@ -1111,7 +1118,7 @@ namespace quanlykhodl.Migrations
                 {
                     table.PrimaryKey("PK_imagestatusitems", x => x.id);
                     table.ForeignKey(
-                        name: "FK_imagestatusitems_statusItems_statusitemmap",
+                        name: "FK_imagestatusitems_statusitems_statusitemmap",
                         column: x => x.statusitemmap,
                         principalTable: "statusitems",
                         principalColumn: "id",
@@ -1145,27 +1152,27 @@ namespace quanlykhodl.Migrations
                 column: "id_helf");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Conversations_lastmessageid",
+                name: "IX_conversations_lastmessageid",
                 table: "conversations",
                 column: "lastmessageid");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Conversations_user1id",
+                name: "IX_conversations_user1id",
                 table: "conversations",
                 column: "user1id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Conversations_user2id",
+                name: "IX_conversations_user2id",
                 table: "conversations",
                 column: "user2id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_deliverynotePrepareToEs_deliverynotesid",
+                name: "IX_deliverynotepreparetoes_deliverynotesid",
                 table: "deliverynotepreparetoes",
                 column: "deliverynotesid");
 
             migrationBuilder.CreateIndex(
-                name: "IX_deliverynotePrepareToEs_id_preparetoexport",
+                name: "IX_deliverynotepreparetoes_id_preparetoexport",
                 table: "deliverynotepreparetoes",
                 column: "id_preparetoexport");
 
@@ -1190,7 +1197,7 @@ namespace quanlykhodl.Migrations
                 column: "warehouse");
 
             migrationBuilder.CreateIndex(
-                name: "IX_imageProducts_productmap",
+                name: "IX_imageproducts_productmap",
                 table: "imageproducts",
                 column: "productmap");
 
@@ -1205,22 +1212,22 @@ namespace quanlykhodl.Migrations
                 column: "account_idmap");
 
             migrationBuilder.CreateIndex(
-                name: "IX_locationExceptions_id_shelf",
+                name: "IX_locationexceptions_id_shelf",
                 table: "locationexceptions",
                 column: "id_shelf");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Messages_receiverid",
+                name: "IX_messages_receiverid",
                 table: "messages",
                 column: "receiverid");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Messages_senderid",
+                name: "IX_messages_senderid",
                 table: "messages",
                 column: "senderid");
 
             migrationBuilder.CreateIndex(
-                name: "IX_onlineUsersUser_account_id",
+                name: "IX_onlineusersuser_account_id",
                 table: "onlineusersuser",
                 column: "account_id");
 
@@ -1265,42 +1272,47 @@ namespace quanlykhodl.Migrations
                 column: "productid");
 
             migrationBuilder.CreateIndex(
-                name: "IX_productDeliverynotes_deliverynote",
+                name: "IX_productdeliverynotes_deliverynote",
                 table: "productdeliverynotes",
                 column: "deliverynote");
 
             migrationBuilder.CreateIndex(
-                name: "IX_productDeliverynotes_product_map",
+                name: "IX_productdeliverynotes_product_map",
                 table: "productdeliverynotes",
                 column: "product_map");
 
             migrationBuilder.CreateIndex(
-                name: "IX_productDeliverynotes_productlocationsid",
+                name: "IX_productdeliverynotes_productlocation_id",
                 table: "productdeliverynotes",
-                column: "productlocationsid");
+                column: "productlocation_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_productDeliverynotes_shelfsid",
+                name: "IX_productdeliverynotes_shelfsid",
                 table: "productdeliverynotes",
                 column: "shelfsid");
 
             migrationBuilder.CreateIndex(
-                name: "IX_productImportforms_importform",
+                name: "IX_productimportforms_importform",
                 table: "productimportforms",
                 column: "importform");
 
             migrationBuilder.CreateIndex(
-                name: "IX_productImportforms_product",
+                name: "IX_productimportforms_product",
                 table: "productimportforms",
                 column: "product");
 
             migrationBuilder.CreateIndex(
-                name: "IX_productImportforms_shelf_id",
+                name: "IX_productimportforms_productlocation_id",
+                table: "productimportforms",
+                column: "productlocation_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_productimportforms_shelf_id",
                 table: "productimportforms",
                 column: "shelf_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_productImportforms_supplier",
+                name: "IX_productimportforms_supplier",
                 table: "productimportforms",
                 column: "supplier");
 
@@ -1340,7 +1352,7 @@ namespace quanlykhodl.Migrations
                 column: "area");
 
             migrationBuilder.CreateIndex(
-                name: "IX_statusItems_warehousetransferstatus",
+                name: "IX_statusitems_warehousetransferstatus",
                 table: "statusitems",
                 column: "warehousetransferstatus");
 
@@ -1355,12 +1367,12 @@ namespace quanlykhodl.Migrations
                 column: "account_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_userConversations_conversationid",
+                name: "IX_userconversations_conversationid",
                 table: "userconversations",
                 column: "conversationid");
 
             migrationBuilder.CreateIndex(
-                name: "IX_userConversations_userid",
+                name: "IX_userconversations_userid",
                 table: "userconversations",
                 column: "userid");
 

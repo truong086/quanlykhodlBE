@@ -16,6 +16,7 @@ namespace quanlykhodl.Service
         private readonly IMapper _mapper;
         private readonly Cloud _cloud;
         private readonly IUserService _userService;
+        private List<productWarehouse> productWarehousesData;
         public ProductService(DBContext context, IOptions<Cloud> cloud, IMapper mapper, IUserService userService)
         {
             _context = context;
@@ -326,7 +327,6 @@ namespace quanlykhodl.Service
 
             return data;
         }
-
         private int checkLocationUsed(Shelf shelf, int location)
         {
             var checkData = _context.productlocations.Where(x => x.id_shelf == shelf.id && x.location == location && !x.deleted && x.isaction).Sum(x => x.quantity);
@@ -977,15 +977,18 @@ namespace quanlykhodl.Service
             }
         }
 
-        public async Task<PayLoad<object>> FindAllProductInWarehourse(string? name, int page = 1, int pageSize = 20)
+        public async Task<PayLoad<object>> FindAllProductInWarehourse(int id, int page = 1, int pageSize = 20)
         {
             try
             {
-                var data = _context.productlocations.Where(x => !x.deleted && x.isaction).ToList();
-                var dataMap = loadDataProductInLocation(data);
-                if (!string.IsNullOrEmpty(name))
-                    dataMap = dataMap.Where(x => x.title.Contains(name)).ToList();
+                //var data = _context.productlocations.Where(x => !x.deleted && x.isaction).ToList();
+                //var dataMap = loadDataProductInLocation(data);
+                //if (!string.IsNullOrEmpty(name))
+                //    dataMap = dataMap.Where(x => x.title.Contains(name)).ToList();
 
+                var data = _context.warehouses.Include(f => f.floors).Where(x => x.id == id && !x.deleted).FirstOrDefault();
+                var dataMap = dataOneProductByWarehouse(data);
+                Console.WriteLine(data?.id.GetType().Name); // Kiểm tra kiểu dữ liệu của id
                 var pageList = new PageList<object>(dataMap, page - 1, pageSize);
 
                 return await Task.FromResult(PayLoad<object>.Successfully(new
@@ -1003,6 +1006,62 @@ namespace quanlykhodl.Service
             }
         }
 
+        private List<productWarehouse> dataOneProductByWarehouse(Warehouse data)
+        {
+            productWarehousesData = new List<productWarehouse>();
+
+            if (data.floors != null && data.floors.Count > 0)
+            {
+                foreach(var itemFloor in data.floors)
+                {
+                    var checkArea = _context.areas.Include(s => s.shelfsl).Where(x => x.floor == itemFloor.id && !x.deleted).FirstOrDefault();
+                    if(checkArea != null && checkArea.shelfsl != null && checkArea.shelfsl.Count > 0)
+                    {
+                        dataProductByWarehouse(checkArea, itemFloor, data);
+                    }
+                }
+            }
+            return productWarehousesData;
+        }
+
+        private void dataProductByWarehouse(areas checkArea, Floor floor, Warehouse warehouse)
+        {
+            foreach (var item in checkArea.shelfsl)
+            {
+                var checkProductLocation = _context.productlocations.Where(x => x.id_shelf == item.id && !x.deleted && x.isaction).ToList();
+                if (checkProductLocation != null && checkProductLocation.Count > 0)
+                {
+                    foreach(var itemProductLocation in checkProductLocation)
+                    {
+                        var checkProduct = _context.products1.Where(x => x.id == itemProductLocation.id_product && !x.deleted).FirstOrDefault();
+                        if(checkProduct != null)
+                        {
+                            var checkCategory = _context.categories.Where(x => x.id == checkProduct.category_map && !x.deleted).FirstOrDefault();
+                            var checkCodeLocation = _context.codelocations.Where(x => x.id_helf == item.id && x.location == itemProductLocation.location && !x.deleted).FirstOrDefault();
+                            var checkImageProduct = _context.imageproducts.Where(x => x.productmap == checkProduct.id && !x.deleted).ToList();
+                            var dataMap = _mapper.Map<productWarehouse>(checkProduct);
+                            dataMap.images = checkImageProduct.Select(x => x.link).ToList();
+                            dataMap.categoryImage = checkCategory.image;
+                            dataMap.categoryName = checkCategory.name;
+                            dataMap.codeLocation = checkCodeLocation.code;
+                            dataMap.quantityLocaton = itemProductLocation.quantity;
+                            dataMap.warehouse_name = warehouse.name;
+                            dataMap.warehouse_image = warehouse.image;
+                            dataMap.floor_name = floor.name;
+                            dataMap.floor_image = floor.image;
+                            dataMap.area_image = checkArea.image;
+                            dataMap.area_name = checkArea.name;
+                            dataMap.shelf_image = item.image;
+                            dataMap.shelf_name = item.name;
+                            dataMap.location = itemProductLocation.location;
+
+                            productWarehousesData.Add(dataMap);
+                        }
+                        
+                    }
+                }
+            }
+        }
         private List<ProductOneLocation> loadDataProductInLocation(List<productlocation> data)
         {
             var list = new List<ProductOneLocation>();

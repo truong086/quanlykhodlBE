@@ -70,9 +70,9 @@ namespace quanlykhodl.Controllers
 
         [HttpGet]
         [Route(nameof(FindAllProductInWarehourse))]
-        public async Task<PayLoad<object>> FindAllProductInWarehourse(string? name, int page = 1, int pageSize = 20)
+        public async Task<PayLoad<object>> FindAllProductInWarehourse(int id, int page = 1, int pageSize = 20)
         {
-            return await _productService.FindAllProductInWarehourse(name, page, pageSize);
+            return await _productService.FindAllProductInWarehourse(id, page, pageSize);
         }
 
         [HttpGet]

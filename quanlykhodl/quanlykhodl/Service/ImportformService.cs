@@ -47,10 +47,19 @@ namespace quanlykhodl.Service
                     if(data.productNew != null && data.productNew.Any())
                     {
                         if (!checkCategoryProduct(data.productNew))
+                        {
+                            _context.importforms.Remove(dataNew);
+                            _context.SaveChanges();
                             return await Task.FromResult(PayLoad<ImportformDTO>.CreatedFail(Status.NOCATEGORY));
+                        }
+                            
 
                         if (!AddProductLocation(data.productNew, checkAccount, dataNew))
+                        {
+                            _context.importforms.Remove(dataNew);
+                            _context.SaveChanges();
                             return await Task.FromResult(PayLoad<ImportformDTO>.CreatedFail(Status.FULLQUANTITY));
+                        }
                     }
                 }
                 else
@@ -152,6 +161,10 @@ namespace quanlykhodl.Service
                 var checkArea = _context.shelfs.Where(x => x.id == item.shelfId && !x.deleted).FirstOrDefault();
                 var checkSupplier = _context.suppliers.Where(x => x.id == item.suppliers && !x.deleted).FirstOrDefault();
                 var checkCategory = _context.categories.Where(x => x.id == item.category_map && !x.deleted).FirstOrDefault();
+                var checkName = _context.products1.Where(x => x.title == item.title && !x.deleted).FirstOrDefault();
+                
+                if(checkName != null)
+                    return false;
 
                 if (!CheckQuantity.checkLocationQuantity(checkArea, item.location.Value, item.quantityLocation, _context))
                     return false;

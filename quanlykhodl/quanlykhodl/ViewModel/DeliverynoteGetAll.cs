@@ -24,4 +24,26 @@
         public bool? isPack { get; set; }
         public List<productImportformAndDeliveerrynote>? products { get; set; }
     }
+
+    public class WarehouseSalesPercentage
+    {
+        public int idWarerouse { get; set;}
+        public string? warehouseName { get; set;}
+        public string? warehouseImage { get; set;}
+
+        public int idFloor { get; set; }
+        public string? floorName { get; set; }
+        public string? floorImage { get; set; }
+
+        public int idArea { get; set; }
+        public string? areaName { get; set; }
+        public string? areaImage { get; set; }
+
+        public int idShelf { get; set; }
+        public string? shelfName { get; set; }
+        public string? shelfImage { get; set; }
+        public string? code { get; set; }
+        public int? location { get; set; }
+        public double Percentage { get; set; }
+    }
 }

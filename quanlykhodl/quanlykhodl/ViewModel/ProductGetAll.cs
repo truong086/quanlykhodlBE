@@ -28,6 +28,31 @@
         public List<listAreaOfproduct>? listShelfOfproducts { get; set; }
     }
 
+    public class productWarehouse
+    {
+        public int Id { get; set; }
+        public string? title { get; set; }
+        public string? description { get; set; }
+        public List<string>? images { get; set; }
+        public double price { get; set; }
+        public string? DonViTinh { get; set; }
+        public string? categoryName { get; set; }
+        public string? categoryImage { get; set; }
+        public int quantity { get; set; }
+        public int star { get; set; }
+        public string? warehouse_name { get; set; }
+        public string? warehouse_image { get; set; }
+        public string? floor_name { get; set; }
+        public string? floor_image { get; set; }
+        public string? area_name { get; set; }
+        public string? area_image { get; set; }
+        public string? shelf_name { get; set; }
+        public string? shelf_image { get; set; }
+        public string? codeLocation { get; set; }
+        public int? quantityLocaton { get; set; }
+        public int? location { get; set; }
+    }
+
     public class listAreaOfproduct
     {
         public string? account_name { get; set; }

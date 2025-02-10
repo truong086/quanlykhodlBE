@@ -125,6 +125,13 @@ namespace quanlykhodl.Controllers
             return await _deliverynoteService.FindAccountOkPack(name, page, pageSie);
         }
 
+        [HttpGet]
+        [Route(nameof(GetWarehouseSalesPercentage))]
+        public async Task<PayLoad<object>> GetWarehouseSalesPercentage()
+        {
+            return await _deliverynoteService.GetWarehouseSalesPercentage();
+        }
+
         [HttpPost]
         [Route(nameof(Add))]
         public async Task<PayLoad<DeliverynoteDTO>> Add(DeliverynoteDTO data)

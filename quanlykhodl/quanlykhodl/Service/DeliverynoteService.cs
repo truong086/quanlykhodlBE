@@ -816,7 +816,7 @@ namespace quanlykhodl.Service
                 if (checkAccount == null)
                     return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
                 var data = _context.deliverynotes.Where(x => !x.deleted && x.ispack && x.accountmap == checkAccount.id).ToList();
-
+                
                 if (!string.IsNullOrEmpty(name))
                     data = data.Where(x => x.title.Contains(name)).ToList();
 
@@ -835,6 +835,70 @@ namespace quanlykhodl.Service
             {
                 return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
             }
+        }
+
+        public async Task<PayLoad<object>> GetWarehouseSalesPercentage()
+        {
+            try
+            {
+                var data = _context.productdeliverynotes.Include(s => s.shelfs).Where(x => !x.deleted && x.location != null && x.shelf_id != null).ToList();
+
+                var totalImportProduct = _context.productimportforms.Where(x => x.isaction && !x.deleted).Sum(x => x.quantity);
+                return await Task.FromResult(PayLoad<object>.Successfully(WarehousePercentageData(data, totalImportProduct).OrderByDescending(x => x.Percentage)));
+            }catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
+
+        private List<WarehouseSalesPercentage> WarehousePercentageData(List<productDeliverynote> data, int totalDataImportFormProduct)
+        {
+            var list = new List<WarehouseSalesPercentage>();
+            var listCheck = new List<object>();
+            var total = totalDataImportFormProduct;
+
+            foreach (var item in data)
+            {
+                var checkId = listCheck.Where(x => ((dynamic)x).id == item.shelf_id && ((dynamic)x).location == item.location).FirstOrDefault();
+                if(checkId == null)
+                {
+                    var checkTotal = _context.productdeliverynotes.Where(x => x.shelf_id == item.shelf_id && x.location == item.location && !x.deleted).Sum(x => x.quantity);
+                    var checkArea = _context.areas.Include(f => f.floor_id).Where(x => x.id == item.shelfs.area && !x.deleted).FirstOrDefault();
+                    var checkWarehouse = _context.warehouses.Where(x => x.id == checkArea.floor_id.warehouse && !x.deleted).FirstOrDefault();
+
+                    var checkCodeLocation = _context.codelocations.Where(x => x.id_helf == item.shelf_id && x.location == item.location && !x.deleted).FirstOrDefault();
+                    var percentage = (double)checkTotal / total * 100;
+                    var dataItem = new WarehouseSalesPercentage
+                    {
+                        idArea = checkArea == null ? 0 : checkArea.id,
+                        areaName = checkArea == null ? Status.NOAREA : checkArea.name,
+                        areaImage = checkArea == null ? Status.NOAREA : checkArea.image,
+
+                        idWarerouse = checkWarehouse == null ? 0 : checkWarehouse.id,
+                        warehouseName = checkWarehouse == null ? Status.NOWAREHOURSE : checkWarehouse.name,
+                        warehouseImage = checkWarehouse == null ? Status.NOWAREHOURSE : checkWarehouse.image,
+                        idFloor = checkArea.floor_id == null ? 0 : checkArea.floor_id.id,
+                        floorImage = checkArea.floor_id == null ? Status.NOFLOOR : checkArea.floor_id.image,
+                        floorName = checkArea.floor_id == null ? Status.NOFLOOR : checkArea.floor_id.name,
+
+                        idShelf = item.shelfs.id,
+                        shelfName = item.shelfs.name,
+                        shelfImage = item.shelfs.image,
+                        code = checkCodeLocation == null ? Status.CODEFAILD : checkCodeLocation.code,
+                        location = item.location,
+                        Percentage = percentage,
+                    };
+
+                    list.Add(dataItem);
+                    listCheck.Add(new
+                    {
+                        id = item.shelf_id,
+                        location = item.location
+                    });
+                }
+            }
+
+            return list;
         }
     }
 }
