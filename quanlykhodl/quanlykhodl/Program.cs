@@ -198,7 +198,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<KiemTraBase64>();
 
-builder.WebHost.UseUrls("http://127.0.0.1:5000");
+builder.WebHost.UseUrls("http://0.0.0.0:5000");
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -218,7 +218,6 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.Urls.Add("http://0.0.0.0:5000");
 app.MapControllers();
 
 //app.UseEndpoints(endpoints =>
