@@ -6,6 +6,7 @@ using quanlykhodl.Clouds;
 using quanlykhodl.Common;
 using quanlykhodl.Models;
 using quanlykhodl.ViewModel;
+using System.Drawing;
 using Twilio.Rest.Trunking.V1;
 
 namespace quanlykhodl.Service
@@ -1014,8 +1015,8 @@ namespace quanlykhodl.Service
             {
                 foreach(var itemFloor in data.floors)
                 {
-                    var checkArea = _context.areas.Include(s => s.shelfsl).Where(x => x.floor == itemFloor.id && !x.deleted).FirstOrDefault();
-                    if(checkArea != null && checkArea.shelfsl != null && checkArea.shelfsl.Count > 0)
+                    var checkArea = _context.areas.Include(s => s.shelfsl).Where(x => x.floor == itemFloor.id && !x.deleted).ToList();
+                    if(checkArea != null && checkArea.Count > 0)
                     {
                         dataProductByWarehouse(checkArea, itemFloor, data);
                     }
@@ -1024,18 +1025,28 @@ namespace quanlykhodl.Service
             return productWarehousesData;
         }
 
-        private void dataProductByWarehouse(areas checkArea, Floor floor, Warehouse warehouse)
+        private void dataProductByWarehouse(List<areas> checkArea, Floor floor, Warehouse warehouse)
         {
-            foreach (var item in checkArea.shelfsl)
+            foreach(var itemArea in checkArea)
+            {
+                dataProductByShelf(itemArea, floor, warehouse);
+            }
+            
+        }
+
+        private void dataProductByShelf(areas itemArea, Floor floor, Warehouse warehouse)
+        {
+            foreach (var item in itemArea.shelfsl)
             {
                 var checkProductLocation = _context.productlocations.Where(x => x.id_shelf == item.id && !x.deleted && x.isaction).ToList();
                 if (checkProductLocation != null && checkProductLocation.Count > 0)
                 {
-                    foreach(var itemProductLocation in checkProductLocation)
+                    foreach (var itemProductLocation in checkProductLocation)
                     {
                         var checkProduct = _context.products1.Where(x => x.id == itemProductLocation.id_product && !x.deleted).FirstOrDefault();
-                        if(checkProduct != null)
+                        if (checkProduct != null)
                         {
+                            var checkSupplier = _context.suppliers.Where(x => x.id == checkProduct.suppliers && !x.deleted).FirstOrDefault();
                             var checkCategory = _context.categories.Where(x => x.id == checkProduct.category_map && !x.deleted).FirstOrDefault();
                             var checkCodeLocation = _context.codelocations.Where(x => x.id_helf == item.id && x.location == itemProductLocation.location && !x.deleted).FirstOrDefault();
                             var checkImageProduct = _context.imageproducts.Where(x => x.productmap == checkProduct.id && !x.deleted).ToList();
@@ -1049,15 +1060,17 @@ namespace quanlykhodl.Service
                             dataMap.warehouse_image = warehouse.image;
                             dataMap.floor_name = floor.name;
                             dataMap.floor_image = floor.image;
-                            dataMap.area_image = checkArea.image;
-                            dataMap.area_name = checkArea.name;
+                            dataMap.area_image = itemArea.image;
+                            dataMap.area_name = itemArea.name;
                             dataMap.shelf_image = item.image;
                             dataMap.shelf_name = item.name;
+                            dataMap.suppliers_image = checkSupplier == null ? Status.DATANULL : checkSupplier.image;
+                            dataMap.suppliers_name = checkSupplier == null ? Status.DATANULL : checkSupplier.name;
                             dataMap.location = itemProductLocation.location;
 
                             productWarehousesData.Add(dataMap);
                         }
-                        
+
                     }
                 }
             }

@@ -48,6 +48,8 @@
         public string? area_image { get; set; }
         public string? shelf_name { get; set; }
         public string? shelf_image { get; set; }
+        public string? suppliers_name { get; set; }
+        public string? suppliers_image { get; set; }
         public string? codeLocation { get; set; }
         public int? quantityLocaton { get; set; }
         public int? location { get; set; }

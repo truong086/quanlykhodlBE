@@ -136,7 +136,7 @@ builder.Services.AddQuartz(q =>
     q.AddJob<TuDongMoiTuan>(Otp => Otp.WithIdentity(jobKey));
     q.AddTrigger(otps => otps.ForJob(jobKey).WithIdentity("WeeklyTrigger")
     .StartNow()
-    .WithCronSchedule("0 0/1 * * * ?"));
+    .WithCronSchedule("0 0/10 * * * ?"));
     //.WithCronSchedule("0 0/1 * * * ?")); // "0/1" là chạy mỗi phút, để "1" là chỉ chạy 1 phút lần đầu
 });
 
