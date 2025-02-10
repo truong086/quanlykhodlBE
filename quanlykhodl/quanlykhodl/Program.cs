@@ -20,6 +20,8 @@ using Quartz;
 using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
 using System.Text;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -59,7 +61,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
     };
 });
 #endregion
-
 
 // Đăng ký Firebase Key
 FirebaseApp.Create(new AppOptions()
@@ -216,6 +217,7 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.Urls.Add("http://0.0.0.0:5000");
 app.MapControllers();
 
 //app.UseEndpoints(endpoints =>
