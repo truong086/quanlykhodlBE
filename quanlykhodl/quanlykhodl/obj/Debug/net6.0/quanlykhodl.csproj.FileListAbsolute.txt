@@ -297,3 +297,4 @@ C:\Users\ASUS\source\repos\quanlykhodailoan\quanlykhodl\quanlykhodl\obj\Debug\ne
 C:\Users\ASUS\source\repos\quanlykhodailoan\quanlykhodl\quanlykhodl\obj\Debug\net6.0\quanlykhodl.pdb
 C:\Users\ASUS\source\repos\quanlykhodailoan\quanlykhodl\quanlykhodl\obj\Debug\net6.0\quanlykhodl.genruntimeconfig.cache
 C:\Users\ASUS\source\repos\quanlykhodailoan\quanlykhodl\quanlykhodl\obj\Debug\net6.0\ref\quanlykhodl.dll
+C:\Users\ASUS\source\repos\quanlykhodailoan\quanlykhodl\quanlykhodl\bin\Debug\net6.0\notification-bdf14-firebase-adminsdk-fbsvc-2af3aa7e8a.json
