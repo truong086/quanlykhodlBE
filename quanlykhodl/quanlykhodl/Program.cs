@@ -60,10 +60,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 });
 #endregion
 
+string credentialPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config", "notification-bdf14-firebase-adminsdk-fbsvc-2af3aa7e8a.json");
 // Đăng ký Firebase Key
 FirebaseApp.Create(new AppOptions()
 {
-    Credential = GoogleCredential.FromFile("C:\\Users\\ASUS\\OneDrive\\Desktop\\VueJs\\SpringBoot\\notification-bdf14-firebase-adminsdk-fbsvc-2af3aa7e8a.json")
+    Credential = GoogleCredential.FromFile("notification-bdf14-firebase-adminsdk-fbsvc-2af3aa7e8a.json")
 });
 
 builder.Services.AddSwaggerGen(c =>
