@@ -148,7 +148,7 @@ namespace quanlykhodl.Controllers
 
         [HttpPut]
         [Route(nameof(UpdateActionLocation))]
-        public async Task<PayLoad<uploadDataLocationArea>> UpdateActionLocation(uploadDataLocationArea data)
+        public async Task<PayLoad<object>> UpdateActionLocation(List<uploadDataLocationArea> data)
         {
             return await _deliverynoteService.UpdateActionLocation(data);
         }

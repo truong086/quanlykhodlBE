@@ -443,33 +443,39 @@ namespace quanlykhodl.Service
             return list;
         }
 
-        public async Task<PayLoad<uploadDataLocationArea>> UpdateActionLocation(uploadDataLocationArea data)
+        public async Task<PayLoad<object>> UpdateActionLocation(List<uploadDataLocationArea> dataItem)
         {
             try
             {
-                if(data.products == null)
-                    return await Task.FromResult(PayLoad<uploadDataLocationArea>.CreatedFail(Status.DATANULL));
+                if(dataItem.Count > 0)
+                {
+                    foreach(var data in dataItem)
+                    {
+                        if (data.products == null)
+                            return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
 
-                var checkDataQuantity = _context.productdeliverynotes.Where(x => x.deliverynote == data.id && !x.deleted).Count();
-                if (checkDataQuantity < data.products.Count() || checkDataQuantity > data.products.Count())
-                    return await Task.FromResult(PayLoad<uploadDataLocationArea>.CreatedFail(Status.DATANULL));
+                        var checkDataQuantity = _context.productdeliverynotes.Where(x => x.deliverynote == data.id && !x.deleted).Count();
+                        if (checkDataQuantity < data.products.Count() || checkDataQuantity > data.products.Count())
+                            return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
 
 
-                var checkId = _context.deliverynotes.Where(x => (x.id == data.id || x.code == data.code) && !x.deleted).FirstOrDefault();
-                if (checkId == null)
-                    return await Task.FromResult(PayLoad<uploadDataLocationArea>.CreatedFail(Status.DATANULL));
+                        var checkId = _context.deliverynotes.Where(x => (x.id == data.id || x.code == data.code) && !x.deleted).FirstOrDefault();
+                        if (checkId == null)
+                            return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
 
-                if (!checkQuantityData(data.products, checkId))
-                    return await Task.FromResult(PayLoad<uploadDataLocationArea>.CreatedFail(Status.LOCATIONORPRODDUCTFAILD));
-                checkId.isaction = true;
+                        if (!checkQuantityData(data.products, checkId))
+                            return await Task.FromResult(PayLoad<object>.CreatedFail(Status.LOCATIONORPRODDUCTFAILD));
+                        checkId.isaction = true;
 
-                _context.deliverynotes.Update(checkId);
-                _context.SaveChanges();
+                        _context.deliverynotes.Update(checkId);
+                        _context.SaveChanges();
+                    }
+                }
 
-                return await Task.FromResult(PayLoad<uploadDataLocationArea>.Successfully(data));
+                return await Task.FromResult(PayLoad<object>.Successfully(dataItem));
             }catch(Exception ex)
             {
-                return await Task.FromResult(PayLoad<uploadDataLocationArea>.CreatedFail(ex.Message));
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
             }
         }
         private bool checkQuantityData(List<UploadproductDeliverynoteDTO> data, Deliverynote deliverynote)
