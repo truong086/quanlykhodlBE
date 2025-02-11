@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using CloudinaryDotNet.Core;
+using MailKit;
 using Microsoft.Extensions.Options;
 using quanlykhodl.Clouds;
 using quanlykhodl.Common;
@@ -527,6 +528,7 @@ namespace quanlykhodl.Service
                 mapData.Area_image = checkArea == null ? Status.NOAREA : checkArea.image;
                 mapData.Area_name = checkArea == null ? Status.NOAREA : checkArea.name;
                 mapData.Id_Area = checkArea == null ? null : checkArea.id;
+                mapData.imageShelf = checkData.image;
                 mapData.quantityExceptions = dataLocationException(checkData);
 
                 return await Task.FromResult(PayLoad<ShelfGetAll>.Successfully(mapData));
@@ -576,6 +578,9 @@ namespace quanlykhodl.Service
                 if (!checkQuantityproductInArea(checkId.id, shelf.quantity))
                     return await Task.FromResult(PayLoad<ShelfDTO>.CreatedFail(Status.DATANULL));
 
+                if(!checkQuantitylocationMax(checkId.id, shelf.max.Value))
+                    return await Task.FromResult(PayLoad<ShelfDTO>.CreatedFail(Status.FULLQUANTITY));
+
                 if (shelf.locationExceptionsDTOs != null && shelf.locationExceptionsDTOs.Count() > 0)
                 {
                     if (!checkLocationException(shelf.locationExceptionsDTOs))
@@ -615,7 +620,8 @@ namespace quanlykhodl.Service
                     updateLocationCode(checkId, checkTotal, shelf.quantity.Value);
                 }
 
-                checkId.quantity = shelf.quantity;
+                checkId.max = shelf.max;
+                checkId.quantity += shelf.quantity;
                 checkId.status = shelf.Status;
                 checkId.area = checkArea.id;
                 checkId.area_id = checkArea;
@@ -631,6 +637,27 @@ namespace quanlykhodl.Service
             }
         }
 
+        private bool checkQuantitylocationMax(int shelf, int max)
+        {
+            var checkListProductLocation = _context.productlocations.Where(x => x.id_shelf == shelf && !x.deleted && x.isaction).ToList();
+            var checkLocation = new List<int>();
+            if(checkListProductLocation != null && checkListProductLocation.Any())
+            {
+                foreach(var item in checkListProductLocation)
+                {
+                    var checkLocationException = _context.locationexceptions.Where(x => x.id_shelf == shelf && x.location == item.location && !x.deleted).FirstOrDefault();
+                    if (!checkLocation.Contains(item.location) && checkLocationException == null)
+                    {
+                        var checkQuantityLocation = _context.productlocations.Where(x => x.id_shelf == shelf && x.location == item.location && !x.deleted && x.isaction).Sum(x => x.quantity);
+                        if(checkQuantityLocation > max)
+                            return false;
+
+                        checkLocation.Add(item.location);
+                    }
+                }
+            }
+            return true;
+        }
         private bool checkLocationException(List<locationExceptionsDTO> data)
         {
             foreach(var item in data)
@@ -654,7 +681,7 @@ namespace quanlykhodl.Service
                     shelf = area,
                     id_helf = area.id,
                     location = totalLocation,
-                    code = RanDomCode.geneAction(8) + area.id.ToString()
+                    code = RanDomCode.geneAction(8) + area.id.ToString() + totalLocation.ToString()
                 };
 
                 _context.codelocations.Add(dataItem); 

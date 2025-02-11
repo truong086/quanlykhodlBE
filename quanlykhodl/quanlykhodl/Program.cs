@@ -65,8 +65,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 // Đăng ký Firebase Key
 FirebaseApp.Create(new AppOptions()
 {
-    //Credential = GoogleCredential.FromFile("/home/tsustedu2025_ADMIN/quanlykhodlBE/quanlykhodl/quanlykhodl/notification-bdf14-firebase-adminsdk-fbsvc-87b7743b04.json")
-    Credential = GoogleCredential.FromFile("C:\\Users\\ASUS\\OneDrive\\Desktop\\VueJs\\SpringBoot\\notification-bdf14-firebase-adminsdk-fbsvc-87b7743b04.json")
+    Credential = GoogleCredential.FromFile("/home/tsustedu2025_ADMIN/quanlykhodlBE/quanlykhodl/quanlykhodl/notification-bdf14-firebase-adminsdk-fbsvc-87b7743b04.json")
+    //Credential = GoogleCredential.FromFile("C:\\Users\\ASUS\\OneDrive\\Desktop\\VueJs\\SpringBoot\\notification-bdf14-firebase-adminsdk-fbsvc-87b7743b04.json")
 });
 
 builder.Services.AddSwaggerGen(c =>
@@ -139,7 +139,7 @@ builder.Services.AddQuartz(q =>
     q.AddJob<TuDongMoiTuan>(Otp => Otp.WithIdentity(jobKey));
     q.AddTrigger(otps => otps.ForJob(jobKey).WithIdentity("WeeklyTrigger")
     .StartNow()
-    .WithCronSchedule("0 0/10 * * * ?"));
+    .WithCronSchedule("0 0 0/1 * * ?"));
     //.WithCronSchedule("0 0/1 * * * ?")); // "0/1" là chạy mỗi phút, để "1" là chỉ chạy 1 phút lần đầu
 });
 

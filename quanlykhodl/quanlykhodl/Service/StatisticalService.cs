@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using CloudinaryDotNet.Core;
+using Microsoft.EntityFrameworkCore;
 using quanlykhodl.Common;
 using quanlykhodl.Models;
 using quanlykhodl.ViewModel;
@@ -251,14 +252,61 @@ namespace quanlykhodl.Service
                         id = x.Key.id,
                         customer_name = x.Key.customerName,
                         customer_email = x.Key.email,
-                        producSalesData = x.SelectMany(d => d.deliverynotes).SelectMany(ds => ds.productDeliverynotes).Select(ds1 => ds1.product).Select(dataItem => new producSales
+                        producSalesData = x.SelectMany(d => d.deliverynotes).SelectMany(ds => ds.productDeliverynotes).GroupBy(ds1 => ds1.product.id).Select(dataItem => new producSales
                         {
-                            ProductName = dataItem.title,
-                            Quantity = x.SelectMany(o => o.deliverynotes).SelectMany(d => d.productDeliverynotes).Sum(o => o.quantity),
-                            images = x.SelectMany(d => d.deliverynotes).SelectMany(ds => ds.productDeliverynotes).Select(ds1 => ds1.product).SelectMany(imageData => imageData.imageProducts).Select(ip => ip.link).ToList()
+                            ProductName = dataItem.First().product.title,
+                            Quantity = dataItem.Sum(o => o.quantity),
+                            images = dataItem.First().product.imageProducts.Select(x => x.link).ToList()
                         }).ToList(),
                         total = x.SelectMany(o => o.deliverynotes).SelectMany(d => d.productDeliverynotes).Sum(o => o.quantity),
                     }).OrderByDescending(x => x.total).ToList();
+
+                //var data = _dbcontext.deliverynotes.Include(a => a.retailcustomers_id).Include(s => s.productDeliverynotes)
+                //    .ThenInclude(d => d.product).ThenInclude(pi => pi.imageProducts).AsEnumerable()
+                //    .GroupBy(g => new
+                //    {
+                //        g.retailcustomers_id
+                //    }).Select(x => new 
+                //    {
+                //        id = x.First().retailcustomers_id.id,
+                //        email = x.First().retailcustomers_id.email,
+                //        customerName = x.First().retailcustomers_id.name,
+                //        product = x.First().productDeliverynotes,
+                //        total = x.SelectMany(x => x.productDeliverynotes).Sum(x => x.quantity),
+                //        productTotal = x.First().productDeliverynotes.Select(x => x.product),
+                //        productTotalQuantity = x.First().productDeliverynotes
+                //    }).GroupBy(x => x.id)
+                //    .Select(s2 => new
+                //    {
+                //        productId = s2.First().productTotal.Select(x => x.id),
+                //        id = s2.First().id,
+                //        email = s2.First().email,
+                //        customerName = s2.First().customerName,
+                //        product = s2.First().product,
+                //        total = s2.First().total,
+                //        productTotal = s2.First().productTotalQuantity
+
+                //    })
+                //    .GroupBy(x => x.productId)
+                //    .Select(s2 => new
+                //    {
+                //        data = s2.Select(s3 => new LySalesAccountByProductCustomer
+                //        {
+                //            id = s3.id,
+                //            customer_email = s3.email,
+                //            customer_name = s3.customerName,
+                //            total = s3.total,
+                //            producSalesData = s3.product.Select(p => p.product).Select(p2 => new producSales
+                //            {
+                //                id = p2.id,
+                //                ProductName = p2.title,
+                //                Quantity = s3.productTotal.Sum(x => x.quantity),
+                //                images = p2.imageProducts.Select(x => x.link).ToList()
+                //            }).ToList()
+                //        }),
+                //        total = s2.Sum(x => x.total),
+                //    })
+                //    .OrderByDescending(x => x.total).ToList();
 
                 return await Task.FromResult(PayLoad<object>.Successfully(data));
             }

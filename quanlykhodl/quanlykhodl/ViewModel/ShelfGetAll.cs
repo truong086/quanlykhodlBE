@@ -11,6 +11,7 @@
         public string? Status { get; set; }
         public string? code { get; set; }
         public string? image { get; set; }
+        public string? imageShelf { get; set; }
         public string? account_name { get; set; }
         public string? account_image { get; set; }
         public string? Area_image { get; set; }
