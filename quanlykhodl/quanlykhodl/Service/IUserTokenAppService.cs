@@ -8,5 +8,6 @@ namespace quanlykhodl.Service
         Task<PayLoad<UserTokenAppDTO>> AddToken(UserTokenAppDTO userTokenAppDTO);
         Task<PayLoad<UserTokenAppDTO>> RegisterTopic(UserTokenAppDTO userTokenAppDTO);
         Task<PayLoad<string>> SendNotify();
+        Task<PayLoad<string>> DeleteData();
     }
 }

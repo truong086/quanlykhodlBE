@@ -39,5 +39,12 @@ namespace quanlykhodl.Controllers
         {
             return await _userTokenAppService.SendNotify();
         }
+
+        [HttpDelete]
+        [Route(nameof(DeleteData))]
+        public async Task<PayLoad<string>> DeleteData()
+        {
+            return await _userTokenAppService.DeleteData();
+        }
     }
 }

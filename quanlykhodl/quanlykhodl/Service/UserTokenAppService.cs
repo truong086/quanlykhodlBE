@@ -36,6 +36,22 @@ namespace quanlykhodl.Service
             }
         }
 
+        public async Task<PayLoad<string>> DeleteData()
+        {
+            try
+            {
+                var data = _dBContext.usertokenapps.ToList();
+
+                _dBContext.usertokenapps.RemoveRange(data);
+                _dBContext.SaveChanges();
+
+                return await Task.FromResult(PayLoad<string>.Successfully(Status.SUCCESS));
+            }catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<string>.CreatedFail(ex.Message));
+            }
+        }
+
         public async Task<PayLoad<UserTokenAppDTO>> RegisterTopic(UserTokenAppDTO userTokenAppDTO)
         {
             try

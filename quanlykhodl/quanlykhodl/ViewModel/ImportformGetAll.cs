@@ -12,6 +12,7 @@ namespace quanlykhodl.ViewModel
         public string? accountName { get; set; }
         public string? accountImage { get; set; }
         public bool isProductNew { get; set; }
+        public bool isaction { get; set; }
         public int? quantity { get; set; }
         public double price { get; set; }
         public double total { get; set; }
