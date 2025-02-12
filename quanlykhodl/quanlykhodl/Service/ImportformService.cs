@@ -495,36 +495,38 @@ namespace quanlykhodl.Service
         private listArea loadDataAreaProductAreaLocation(productImportform data)
         {
             var dataItem = new listArea();
-            var checkproductLocationData = _context.productlocations.Where(x => x.id_product == data.product && x.id_shelf == data.shelf_id && x.location == data.location && !x.deleted).FirstOrDefault();
-            if (checkproductLocationData != null)
-            {
-                var checkShelf = _context.shelfs.Include(f => f.area_id).Where(x => x.id == checkproductLocationData.id_shelf && !x.deleted).FirstOrDefault();
-                if (checkShelf != null)
-                {
-                    var checkCodeArea = _context.codelocations.Where(x => x.id_helf == checkShelf.id && x.location == checkproductLocationData.location && !x.deleted).FirstOrDefault();
-                    var checkArea = _context.areas.Include(f => f.floor_id).Where(x => x.id == checkShelf.area && !x.deleted).FirstOrDefault();
-                    if(checkArea != null)
-                    {
-                        if (checkArea.floor_id != null)
-                        {
-                            var checkWarehourse = _context.warehouses.Where(x => x.id == checkArea.floor_id.warehouse && !x.deleted).FirstOrDefault();
-                            if (checkWarehourse != null)
-                            {
+            //var checkproductLocationData = _context.productlocations.Where(x => x.id_product == data.product && x.id_shelf == data.shelf_id && x.location == data.location && !x.deleted).FirstOrDefault();
+            //if (checkproductLocationData != null)
+            //{
+                
+            //}
 
-                                dataItem.location = checkproductLocationData.location;
-                                dataItem.shelf = checkShelf.name;
-                                dataItem.floor = checkArea.floor_id.name;
-                                dataItem.area = checkArea.name;
-                                dataItem.warehourse = checkWarehourse.name;
-                                dataItem.code = checkCodeArea == null ? "No Code" : checkCodeArea.code;
-                                dataItem.codeShelf = checkShelf == null ? "No Code" : checkShelf.code;
-                                dataItem.isAction = checkproductLocationData.isaction;
-                            }
+            var checkShelf = _context.shelfs.Include(f => f.area_id).Where(x => x.id == data.shelf_id && !x.deleted).FirstOrDefault();
+            if (checkShelf != null)
+            {
+                var checkCodeArea = _context.codelocations.Where(x => x.id_helf == checkShelf.id && x.location == data.location && !x.deleted).FirstOrDefault();
+                var checkArea = _context.areas.Include(f => f.floor_id).Where(x => x.id == checkShelf.area && !x.deleted).FirstOrDefault();
+                if (checkArea != null)
+                {
+                    if (checkArea.floor_id != null)
+                    {
+                        var checkWarehourse = _context.warehouses.Where(x => x.id == checkArea.floor_id.warehouse && !x.deleted).FirstOrDefault();
+                        if (checkWarehourse != null)
+                        {
+
+                            dataItem.location = data.location;
+                            dataItem.shelf = checkShelf.name;
+                            dataItem.floor = checkArea.floor_id.name;
+                            dataItem.area = checkArea.name;
+                            dataItem.warehourse = checkWarehourse.name;
+                            dataItem.code = checkCodeArea == null ? "No Code" : checkCodeArea.code;
+                            dataItem.codeShelf = checkShelf == null ? "No Code" : checkShelf.code;
+                            dataItem.isAction = data.isaction;
                         }
                     }
-                    
-
                 }
+
+
             }
 
             return dataItem;
