@@ -11,5 +11,6 @@ namespace quanlykhodl.Service
         Task<PayLoad<object>> FinAll(string? name, int page = 1, int pageSize = 20);
         Task<PayLoad<ShelfGetAll>> FindOneId(int id);
         Task<PayLoad<object>> FindOneArea(int id, int page = 1, int pageSize = 20);
+        Task<PayLoad<object>> FindByDataAreaLineByFloor(int id, int page = 1, int pageSize = 20);
     }
 }

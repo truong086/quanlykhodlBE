@@ -37,7 +37,7 @@ namespace quanlykhodl.Service
                 if(checkLcoation == null)
                     return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATANULL));
 
-                var checkLocationExsis = _context.plans.Where(x => x.shelfOld == planDTO.shelfOld && x.localtionold == planDTO.locationOld && !x.deleted && x.status.ToLower() != Status.DONE.ToLower()).FirstOrDefault();
+                var checkLocationExsis = _context.plans.Where(x => ((x.shelfOld == planDTO.shelfOld && x.localtionold == planDTO.locationOld) || (x.shelf == planDTO.shelf && x.localtionnew == planDTO.localtionNew)) && !x.deleted && x.status.ToLower() != Status.DONE.ToLower()).FirstOrDefault();
                 if (checkLocationExsis != null)
                     return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATATONTAIPLAN));
                 if (!checkAddToday())
@@ -49,7 +49,7 @@ namespace quanlykhodl.Service
                 if (checkShelf == null)
                     return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATANULL));
 
-                var checkArea = _context.areas.Where(x => x.id == checkShelf.area && !x.deleted).FirstOrDefault();
+                var checkArea = _context.areas.Where(x => x.id == checkShelf.line && !x.deleted).FirstOrDefault();
                 if (checkArea == null)
                     return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATANULL));
 
@@ -563,7 +563,13 @@ namespace quanlykhodl.Service
             try
             {
                 var user = _userService.name();
+                var checkLocationExsis = _context.plans.Where(x => (x.shelfOld == planDTO.shelfOld && x.localtionold == planDTO.locationOld) 
+                && (x.shelfOld != planDTO.shelfOld && x.localtionold != planDTO.locationOld) 
+                && !x.deleted && x.status.ToLower() != Status.DONE.ToLower())
+                    .FirstOrDefault();
 
+                if (checkLocationExsis != null)
+                    return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATATONTAIPLAN));
                 var checkId = _context.plans.Where(x => x.id == id && !x.deleted).FirstOrDefault();
                 if(checkId == null)
                     return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATANULL));
@@ -620,7 +626,7 @@ namespace quanlykhodl.Service
                     if(checkShelfOld == null)
                         return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATANULL));
 
-                    var checkAreaOld = _context.areas.Where(x => x.id == checkShelfOld.area && !x.deleted).FirstOrDefault();
+                    var checkAreaOld = _context.areas.Where(x => x.id == checkShelfOld.line && !x.deleted).FirstOrDefault();
                     if (checkAreaOld == null)
                         return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATANULL));
 
@@ -636,8 +642,8 @@ namespace quanlykhodl.Service
                     mapDataUpdate.areaold = checkAreaOld.id;
                     mapDataUpdate.floorold = checkFloorOld.id;
                     mapDataUpdate.warehouseold = checkWarehourseOla.id;
-                    mapDataUpdate.localtionnew = null;
-                    mapDataUpdate.localtionold = null;
+                    mapDataUpdate.localtionnew = planDTO.localtionNew;
+                    mapDataUpdate.localtionold = planDTO.locationOld;
                     mapDataUpdate.productidlocation = null;
                     mapDataUpdate.productlocation_map = null;
                 }

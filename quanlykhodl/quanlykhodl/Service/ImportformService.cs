@@ -501,11 +501,11 @@ namespace quanlykhodl.Service
                 
             //}
 
-            var checkShelf = _context.shelfs.Include(f => f.area_id).Where(x => x.id == data.shelf_id && !x.deleted).FirstOrDefault();
+            var checkShelf = _context.shelfs.Include(f => f.line_id).Where(x => x.id == data.shelf_id && !x.deleted).FirstOrDefault();
             if (checkShelf != null)
             {
                 var checkCodeArea = _context.codelocations.Where(x => x.id_helf == checkShelf.id && x.location == data.location && !x.deleted).FirstOrDefault();
-                var checkArea = _context.areas.Include(f => f.floor_id).Where(x => x.id == checkShelf.area && !x.deleted).FirstOrDefault();
+                var checkArea = _context.areas.Include(f => f.floor_id).Where(x => x.id == checkShelf.line && !x.deleted).FirstOrDefault();
                 if (checkArea != null)
                 {
                     if (checkArea.floor_id != null)
@@ -539,12 +539,12 @@ namespace quanlykhodl.Service
             {
                 foreach (var item in checkproductLocationData)
                 {
-                    var checkShelf = _context.shelfs.Include(f => f.area_id).Where(x => x.id == item.id_shelf && !x.deleted).FirstOrDefault();
+                    var checkShelf = _context.shelfs.Include(f => f.line_id).Where(x => x.id == item.id_shelf && !x.deleted).FirstOrDefault();
                     if (checkShelf != null)
                     {
                         var checkCodeLocation = _context.codelocations.Where(x => x.id_helf == checkShelf.id && x.location == item.location && !x.deleted).FirstOrDefault();
 
-                        var checkArea = _context.areas.Include(f => f.floor_id).Where(x => x.id == checkShelf.area && !x.deleted).FirstOrDefault();
+                        var checkArea = _context.areas.Include(f => f.floor_id).Where(x => x.id == checkShelf.line && !x.deleted).FirstOrDefault();
                         if(checkArea != null)
                         {
                             if (checkArea.floor_id != null)

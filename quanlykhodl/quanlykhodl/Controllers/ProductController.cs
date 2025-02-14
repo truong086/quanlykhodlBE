@@ -110,6 +110,13 @@ namespace quanlykhodl.Controllers
             return await _productService.FindAllProductInFloor(id_floor, page, pageSize);
         }
 
+        [HttpGet]
+        [Route(nameof(FindAllProductSearch))]
+        public async Task<PayLoad<object>> FindAllProductSearch(int? idWarehouse, int? idFloor, int? idArea, int? idShelf, int? supplier, int? category, int? pricefrom, int? priceto, string? name, int page = 1, int pageSize = 20)
+        {
+            return await _productService.FindAllProductSearch(idWarehouse, idFloor, idArea, idShelf, supplier, category, pricefrom, priceto, name, page, pageSize);
+        }
+
 
         [HttpPost]
         [Route(nameof(Add))]

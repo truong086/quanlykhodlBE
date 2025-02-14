@@ -26,10 +26,12 @@ namespace quanlykhodl.Models
 		public DbSet<product> products1 { get; set; }
 		public DbSet<productDeliverynote> productdeliverynotes { get; set; }
 		public DbSet<DeliverynotePrepareToExport> deliverynotepreparetoes { get; set; }
+		public DbSet<producthisstorylocation> producthisstorylocations { get; set; }
 		public DbSet<productImportform> productimportforms { get; set; }
 		public DbSet<Retailcustomers> retailcustomers { get; set; }
 		public DbSet<role> roles { get; set; }
-		public DbSet<StatusItem> statusitems { get; set; }
+        public DbSet<Line> linespage { get; set; }
+        public DbSet<StatusItem> statusitems { get; set; }
 		public DbSet<Supplier> suppliers { get; set; }
 		public DbSet<Warehouse> warehouses { get; set; }
 		public DbSet<Token> tokens { get; set; }
@@ -108,6 +110,12 @@ namespace quanlykhodl.Models
                 .HasMany(c => c.imageProducts)
                 .WithOne(p => p.products_id) // Trường "categoryid" trong product liên kết đến id của categories
                 .HasForeignKey(p => p.productmap)
+                 .OnDelete(DeleteBehavior.Restrict); // Cấm xóa hoặc cập nhật dữ liệu liên quan
+
+            modelBuilder.Entity<product>()
+                .HasMany(c => c.Producthisstorylocations)
+                .WithOne(p => p.products) // Trường "categoryid" trong product liên kết đến id của categories
+                .HasForeignKey(p => p.product_id)
                  .OnDelete(DeleteBehavior.Restrict); // Cấm xóa hoặc cập nhật dữ liệu liên quan
 
             modelBuilder.Entity<PrepareToExport>()
@@ -243,9 +251,9 @@ namespace quanlykhodl.Models
                  .OnDelete(DeleteBehavior.Restrict);// Map cho trường "categoryId" trong product
 
             modelBuilder.Entity<areas>()
-                .HasMany(c => c.shelfsl)
-                .WithOne(p => p.area_id) // Trường "categoryid" trong product liên kết đến id của categories
-                .HasForeignKey(p => p.area)
+                .HasMany(c => c.lines)
+                .WithOne(p => p.areasids) // Trường "categoryid" trong product liên kết đến id của categories
+                .HasForeignKey(p => p.id_area)
                  .OnDelete(DeleteBehavior.Restrict);// Map cho trường "categoryId" trong product
 
             modelBuilder.Entity<Deliverynote>()
@@ -284,7 +292,13 @@ namespace quanlykhodl.Models
 				.HasForeignKey(p => p.plan)
 				 .OnDelete(DeleteBehavior.Restrict);// Map cho trường "categoryId" trong product
 
-			modelBuilder.Entity<role>()
+            modelBuilder.Entity<Plan>()
+                .HasMany(c => c.Producthisstorylocations)
+                .WithOne(p => p.plans) // Trường "categoryid" trong product liên kết đến id của categories
+                .HasForeignKey(p => p.plan_id)
+                 .OnDelete(DeleteBehavior.Restrict);// Map cho trường "categoryId" trong product
+
+            modelBuilder.Entity<role>()
 				.HasMany(c => c.account)
 				.WithOne(p => p.role) // Trường "categoryid" trong product liên kết đến id của categories
 				.HasForeignKey(p => p.role_id)
@@ -319,6 +333,12 @@ namespace quanlykhodl.Models
 				.WithOne(p => p.Warehousetransferstatus_id) // Trường "categoryid" trong product liên kết đến id của categories
 				.HasForeignKey(p => p.warehousetransferstatus)
 				.OnDelete(DeleteBehavior.Restrict); // Xóa liên quan khi sản phẩm bị xóa
+
+            modelBuilder.Entity<Line>()
+                .HasMany(c => c.shelfs)
+                .WithOne(p => p.line_id) // Trường "categoryid" trong product liên kết đến id của categories
+                .HasForeignKey(p => p.line)
+                .OnDelete(DeleteBehavior.Restrict); // Xóa liên quan khi sản phẩm bị xóa
         }
 	}
 }

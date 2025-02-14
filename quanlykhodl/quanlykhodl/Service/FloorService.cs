@@ -123,7 +123,7 @@ namespace quanlykhodl.Service
             {
                 var checkAccount = _context.accounts.Where(x => x.id == item.account_id && !x.deleted).FirstOrDefault();
                 var checkWareHouser = _context.warehouses.Where(x => x.id == item.warehouse).FirstOrDefault();
-                var checkShelf = _context.shelfs.Where(x => x.area == item.id && !x.deleted).Count();
+                var checkShelf = _context.shelfs.Where(x => x.line == item.id && !x.deleted).Count();
                 var mapData = _mapper.Map<FloorGetAll>(item);
                 mapData.Id = item.id;
                 mapData.account_name = checkAccount == null ? Status.ACCOUNTNOTFOULD : checkAccount.username;

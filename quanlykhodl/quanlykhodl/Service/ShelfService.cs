@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using CloudinaryDotNet.Core;
 using MailKit;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using quanlykhodl.Clouds;
 using quanlykhodl.Common;
@@ -34,11 +35,14 @@ namespace quanlykhodl.Service
                 if (checkName != null)
                     return await Task.FromResult(PayLoad<ShelfDTO>.CreatedFail(Status.DATANULL));
 
-                var checkArea = _context.areas.Where(x => x.id == areaDTO.area && !x.deleted).FirstOrDefault();
-                if (checkArea == null)
+                var checkLine = _context.linespage.Where(x => x.id == areaDTO.area && !x.deleted).FirstOrDefault();
+                if (checkLine == null)
                     return await Task.FromResult(PayLoad<ShelfDTO>.CreatedFail(Status.DATANULL));
 
-                if (!checkFullQuantity(checkArea, checkArea.id))
+                var checkLineArea = _context.linespage.Include(x => x.areasids).Where(x => x.id_area == checkLine.id_area && !x.deleted).ToList();
+                var indexData = checkLineArea.FindIndex(x => x.id == checkLine.id && !x.deleted);
+
+                if (!checkFullQuantity(checkLine, checkLine.id))
                     return await Task.FromResult(PayLoad<ShelfDTO>.CreatedFail(Status.FULLQUANTITY));
 
                 var checkAccount = _context.accounts.Where(x => x.id == int.Parse(user) && !x.deleted).FirstOrDefault();
@@ -46,13 +50,15 @@ namespace quanlykhodl.Service
                 var mapData = _mapper.Map<Shelf>(areaDTO);
                 mapData.account = checkAccount.id;
                 mapData.account_id = checkAccount;
-                mapData.area = checkArea.id;
-                mapData.area_id = checkArea;
+                mapData.line = checkLine.id;
+                mapData.line_id = checkLine;
 
                 _context.shelfs.Add(mapData);
                 _context.SaveChanges();
 
                 var dataNew = _context.shelfs.Where(x => !x.deleted).OrderByDescending(x => x.createdat).FirstOrDefault();
+                var codeIndexLine = indexData >= 1 && indexData <= 9 ? "0" + indexData.ToString() : indexData.ToString();
+
                 if (areaDTO.image != null)
                 {
                     if (!_kiemtrabase64.kiemtra(areaDTO.image))
@@ -74,9 +80,11 @@ namespace quanlykhodl.Service
                     updateLocationExcep(areaDTO.locationExceptionsDTOs, dataNew);
                 }
 
-                dataNew.code = RanDomCode.geneAction(8) + dataNew.id.ToString();
+                //dataNew.code = RanDomCode.geneAction(8) + dataNew.id.ToString();
+                
+                dataNew.code = checkLine.areasids.name + codeIndexLine + dataNew.id;
 
-                addCodeLocation(dataNew, dataNew.quantity.Value);
+                addCodeLocation(dataNew, dataNew.quantity.Value, dataNew.code);
                 _context.shelfs.Update(dataNew);
                 _context.SaveChanges();
                 return await Task.FromResult(PayLoad<ShelfDTO>.Successfully(areaDTO));
@@ -95,14 +103,14 @@ namespace quanlykhodl.Service
             return chuyenDoiStringBase64.chuyendoi(data, fileName);
         }
 
-        private void addCodeLocation(Shelf shelf, int location)
+        private void addCodeLocation(Shelf shelf, int location, string code)
         {
             for(var i = 1; i <= location; i++)
             {
                 var dataItem = new Codelocation
                 {
                     shelf = shelf,
-                    code = RanDomCode.geneAction(8) + shelf.id.ToString(),
+                    code = code + i,
                     id_helf = shelf.id,
                     location = i
                 };
@@ -140,10 +148,10 @@ namespace quanlykhodl.Service
                 }
             }
         }
-        private bool checkFullQuantity(areas arae, int id)
+        private bool checkFullQuantity(Line line, int id)
         {
-            var checkAreaQuantity = _context.shelfs.Where(x => x.area == id && !x.deleted).Count();
-            if (arae.storage < checkAreaQuantity)
+            var checkAreaQuantity = _context.shelfs.Where(x => x.line == id && !x.deleted).Count();
+            if (line.quantityshelf < checkAreaQuantity)
                 return false;
 
             return true;
@@ -197,25 +205,57 @@ namespace quanlykhodl.Service
 
             foreach (var item in data)
             {
-                var checkAccount = _context.accounts.Where(x => x.id == item.account && !x.deleted).FirstOrDefault();
-                var checkArea = _context.areas.Where(x => x.id == item.area && !x.deleted).FirstOrDefault();
-                var checkProductLocation = _context.productlocations.Where(x => x.id_shelf == item.id && !x.deleted && x.isaction).Count();
-                var mapData = _mapper.Map<ShelfGetAll>(item);
-                mapData.Id = item.id;
-                mapData.Area_name = checkArea.name;
-                mapData.Id_Area = checkArea.id;
-                mapData.Area_image = checkArea.image;
-                mapData.account_name = checkAccount.username;
-                mapData.account_image = checkAccount.image;
-                mapData.quantityEmtity = item.quantity - checkProductLocation;
-                mapData.totalLocationExsis = item.quantity - checkLocationAreaExsis(item);
-                mapData.productShefl = findAreaproduct(item);
-                mapData.totalQuantityUseds = totalQuantityUsedsData(item);
-                mapData.quantityExceptions = dataLocationException(item);
-
-                list.Add(mapData);
+                
+                list.Add(dataFindOneShelf(item));
 
             }
+            return list;
+        }
+
+        private ShelfGetAll dataFindOneShelf(Shelf item)
+        {
+            var checkAccount = _context.accounts.Where(x => x.id == item.account && !x.deleted).FirstOrDefault();
+            var checkLine = _context.linespage.Where(x => x.id == item.line && !x.deleted).FirstOrDefault();
+            var checkArea = _context.areas.Where(x => x.id == checkLine.id_area && !x.deleted).FirstOrDefault();
+            var checkProductLocation = _context.productlocations.Where(x => x.id_shelf == item.id && !x.deleted && x.isaction).Count();
+
+            var mapData = _mapper.Map<ShelfGetAll>(item);
+            mapData.Id = item.id;
+            mapData.Area_name = checkArea.name;
+            mapData.Id_Area = checkArea.id;
+            mapData.Area_image = checkArea.image;
+            mapData.linenames = checkLine.name;
+            mapData.lineidsdata = checkLine.id;
+            mapData.account_name = checkAccount.username;
+            mapData.account_image = checkAccount.image;
+            mapData.quantityEmtity = item.quantity - checkProductLocation;
+            mapData.totalLocationExsis = item.quantity - checkLocationAreaExsis(item);
+            mapData.productShefl = findAreaproduct(item);
+            mapData.totalQuantityUseds = totalQuantityUsedsData(item);
+            mapData.quantityExceptions = dataLocationException(item);
+            mapData.productInPlans = dataProductInPlan(item);
+
+            return mapData;
+        }
+        private List<productInPlan> dataProductInPlan(Shelf item)
+        {
+            var list = new List<productInPlan>();
+
+            var checkPlan = _context.plans.Where(x => (x.shelf == item.id || x.shelfOld == item.id) && x.status.ToLower() != Status.DONE.ToLower() && !x.deleted).ToList();
+            foreach(var itemPlan in checkPlan)
+            {
+                var dataItem = new productInPlan
+                {
+                    shelfsNew = itemPlan.shelf,
+                    shelfsOld = itemPlan.shelfOld,
+                    locationNew = itemPlan.localtionnew,
+                    locationOld = itemPlan.localtionold,
+                    title = itemPlan.title
+                };
+
+                list.Add(dataItem);
+            }
+
             return list;
         }
         private List<totalQuantityUsed> totalQuantityUsedsData(Shelf shelf)
@@ -341,7 +381,7 @@ namespace quanlykhodl.Service
                     if (checkShelf != null)
                     {
                         DataItem.shelf = checkShelf.name;
-                        var checkArea = _context.areas.Where(x => x.id == checkShelf.area && !x.deleted).FirstOrDefault();
+                        var checkArea = _context.areas.Where(x => x.id == checkShelf.line && !x.deleted).FirstOrDefault();
                         if (checkArea != null)
                         {
                             DataItem.area = checkArea.name;
@@ -493,7 +533,7 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var data = _context.shelfs.Where(x => x.area == id && !x.deleted).ToList();
+                var data = _context.shelfs.Where(x => x.line == id && !x.deleted).ToList();
 
                 var pageList = new PageList<object>(LoadData(data), page - 1, pageSize);
 
@@ -520,7 +560,7 @@ namespace quanlykhodl.Service
                 if (checkData == null)
                     return await Task.FromResult(PayLoad<ShelfGetAll>.CreatedFail(Status.DATANULL));
                 var checkAccount = _context.accounts.Where(x => x.id == checkData.account && !x.deleted).FirstOrDefault();
-                var checkArea = _context.areas.Where(x => x.id == checkData.area && !x.deleted).FirstOrDefault();
+                var checkArea = _context.areas.Where(x => x.id == checkData.line && !x.deleted).FirstOrDefault();
 
                 var mapData = _mapper.Map<ShelfGetAll>(checkData);
                 mapData.account_name = checkAccount == null ? Status.ACCOUNTFAILD : checkAccount.username;
@@ -566,13 +606,13 @@ namespace quanlykhodl.Service
                 var user = _userService.name();
                 var checkId = _context.shelfs.Where(x => x.id == id && !x.deleted).FirstOrDefault();
                 var checkAccount = _context.accounts.Where(x => x.id == Convert.ToInt32(user) && !x.deleted).FirstOrDefault();
-                var checkArea = _context.areas.Where(x => x.id == shelf.area && !x.deleted).FirstOrDefault();
+                var checkLine = _context.linespage.Where(x => x.id == shelf.area && !x.deleted).FirstOrDefault();
                 var checkName = _context.shelfs.Where(x => x.name == shelf.name && x.name != checkId.name && !x.deleted).FirstOrDefault();
 
-                if (checkId == null || checkAccount == null || checkArea == null || checkName != null)
+                if (checkId == null || checkAccount == null || checkLine == null || checkName != null)
                     return await Task.FromResult(PayLoad<ShelfDTO>.CreatedFail(Status.DATANULL));
 
-                if (!checkFullQuantity(checkArea, checkArea.id))
+                if (!checkFullQuantity(checkLine, checkLine.id))
                     return await Task.FromResult(PayLoad<ShelfDTO>.CreatedFail(Status.DATANULL));
 
                 if (!checkQuantityproductInArea(checkId.id, shelf.quantity))
@@ -623,8 +663,8 @@ namespace quanlykhodl.Service
                 checkId.max = shelf.max;
                 checkId.quantity += shelf.quantity;
                 checkId.status = shelf.Status;
-                checkId.area = checkArea.id;
-                checkId.area_id = checkArea;
+                checkId.line = checkLine.id;
+                checkId.line_id = checkLine;
                 checkId.name = shelf.name;
 
                 _context.shelfs.Update(checkId);
@@ -703,6 +743,83 @@ namespace quanlykhodl.Service
             }
 
             return true;
+        }
+
+        public async Task<PayLoad<object>> FindByDataAreaLineByFloor(int id, int page = 1, int pageSize = 20)
+        {
+            try
+            {
+                var checkArea = _context.areas.Include(f => f.floor_id).Where(x => x.floor == id && !x.deleted).ToList();
+                if(checkArea == null || checkArea.Count <= 0)
+                    return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+
+                var pageList = new PageList<object>(loadDataAreaLineShelfByFloor(checkArea), page - 1, pageSize);
+                return await Task.FromResult(PayLoad<object>.Successfully(new
+                {
+                    data = pageList,
+                    page,
+                    pageList.pageSize,
+                    pageList.totalCounts,
+                    pageList.totalPages
+                }));
+            }
+            catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
+
+        private List<AreagetAllData> loadDataAreaLineShelfByFloor(List<areas> data)
+        {
+            var list = new List<AreagetAllData>();
+
+            foreach(var item in data)
+            {
+                var dataItem = new AreagetAllData
+                {
+                    id = item.id,
+                    name = item.name,
+                    data = dataLineByArea(item.id)
+                };
+
+                list.Add(dataItem);
+            }
+
+            return list;
+        }
+
+        private List<dataListLineBtArea> dataLineByArea(int areaId)
+        {
+            var list = new List<dataListLineBtArea>();
+
+            var checkLine = _context.linespage.Where(x => x.id_area == areaId && !x.deleted).ToList();
+            foreach(var item in checkLine)
+            {
+                var dataItem = new dataListLineBtArea
+                {
+                    id = item.id,
+                    name = item.name,
+                    quantityshelf = item.quantityshelf,
+                    shelfGetAlls = loadDataShelfByLine(item.id)
+                };
+
+                list.Add(dataItem);
+            }
+
+            return list;
+        }
+
+        private List<ShelfGetAll> loadDataShelfByLine(int line)
+        {
+            var list = new List<ShelfGetAll>();
+
+            var checkShelf = _context.shelfs.Where(x => x.line == line && !x.deleted).ToList();
+            foreach( var item in checkShelf)
+            {
+                list.Add(dataFindOneShelf(item));
+            }
+
+            return list;
         }
     }
 }

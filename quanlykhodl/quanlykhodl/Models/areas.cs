@@ -15,7 +15,7 @@ namespace quanlykhodl.Models
         public Floor? floor_id { get; set; }
         public accounts? account { get; set; }
 
-        public ICollection<Shelf>? shelfsl { get; set; }
+        public ICollection<Line>? lines { get; set; }
         public ICollection<Plan>? plans { get; set; }
 
     }

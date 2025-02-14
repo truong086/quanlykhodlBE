@@ -52,5 +52,7 @@
         public static string CODEFAILD = "Chưa có Code";
         public static string LOCATIONORPRODDUCTFAILD = "Vị trí không tồn tại hoặc dữ liệu chuyền vào null";
         public static string ACCOUNTFAILD = "accounts Faild !!!";
+        public static string NEW = "New";
+        public static string OLD = "Old";
     }
 }

@@ -16,12 +16,23 @@
         public string? account_image { get; set; }
         public string? Area_image { get; set; }
         public string? Area_name { get; set; }
+        public int? lineidsdata { get; set; }
+        public string? linenames { get; set; }
         public int? Id_Area { get; set; }
         public productShelf? productShefl { get; set; }
         public List<quantityException>? quantityExceptions { get; set; }
         public List<totalQuantityUsed>? totalQuantityUseds { get; set; }
+        public List<productInPlan>? productInPlans { get; set; }
     }
 
+    public class productInPlan
+    {
+        public string? title { get; set; }
+        public int? locationNew { get; set; }
+        public int? locationOld { get; set; }
+        public int? shelfsOld { get; set; }
+        public int? shelfsNew { get; set; }
+    }
     public class totalQuantityUsed
     {
         public int location { get; set; }

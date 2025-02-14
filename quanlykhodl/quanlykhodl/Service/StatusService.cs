@@ -180,7 +180,7 @@ namespace quanlykhodl.Service
                 var checkCodeLocationNew = _context.codelocations.Where(x => x.id_helf == checkPlan.shelf && x.location == checkPlan.localtionnew && !x.deleted).FirstOrDefault();
 
                 var checkShelfOld = _context.shelfs.Where(x => x.id == checkPlan.shelfOld && !x.deleted).FirstOrDefault();
-                var checkAreaOld = _context.areas.Where(x => x.id == checkShelfOld.area && !x.deleted).FirstOrDefault();
+                var checkAreaOld = _context.areas.Where(x => x.id == checkShelfOld.line && !x.deleted).FirstOrDefault();
                 var checkFloorOld = _context.floors.Where(x => x.id == checkAreaOld.floor && !x.deleted).FirstOrDefault();
                 var checkWarehourseOld = _context.warehouses.Where(x => x.id == checkFloorOld.warehouse && !x.deleted).FirstOrDefault();
                 
@@ -274,6 +274,8 @@ namespace quanlykhodl.Service
 
                         if(checkProductLocationNew != null && checkShelOld != null)
                             updateAreaNew(checkShelOld, checkProductLocationNew, checkPlan.localtionold.Value);
+
+                        addProductHistory(checkProductLocationOld, checkProductLocationNew, checkPlan);
                     }
 
                     checkPlan.status = Status.DONE.ToLower();
@@ -301,6 +303,52 @@ namespace quanlykhodl.Service
             }
         }
 
+        private void addProductHistory(List<productlocation> productlocationsNew, List<productlocation> productlocationsOld, Plan plan)
+        {
+            var listNew = new List<producthisstorylocation>();
+            var listOld = new List<producthisstorylocation>();
+            foreach (var item in productlocationsNew)
+            {
+                var checkproduct = _context.products1.Where(x => x.id == item.id_product && !x.deleted).FirstOrDefault();
+
+                var dataItem = new producthisstorylocation
+                {
+                    plans = plan,
+                    plan_id = plan.id,
+                    locationnew = item.location,
+                    shelfnew = item.id_shelf,
+                    products = checkproduct == null ? null : checkproduct,
+                    product_id = checkproduct == null ? null : checkproduct.id
+                };
+
+                listNew.Add(dataItem);
+            }
+
+            _context.producthisstorylocations.AddRange(listNew);
+            _context.SaveChanges();
+
+            foreach(var item in productlocationsOld)
+            {
+                var checkProduct = _context.products1.Where(x => x.id == item.id_product && !x.deleted).FirstOrDefault();
+                var dataItem = new producthisstorylocation
+                {
+                    plans = plan,
+                    plan_id = plan.id,
+                    locationold = item.location,
+                    shelfold = item.id_shelf,
+                    product_old = checkProduct == null ? null : checkProduct.id
+                };
+
+                listOld.Add(dataItem);
+
+            }
+
+            if(listOld.Count > 0)
+            {
+                _context.producthisstorylocations.AddRange(listOld);
+                _context.SaveChanges();
+            }
+        }
         private void updateAreaNew(Shelf shelf, List<productlocation> data, int location)
         {
             foreach(var item in data)

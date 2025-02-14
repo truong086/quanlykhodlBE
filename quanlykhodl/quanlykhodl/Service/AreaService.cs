@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using quanlykhodl.Clouds;
 using quanlykhodl.Common;
@@ -181,7 +182,7 @@ namespace quanlykhodl.Service
                 if (checkId == null)
                     return await Task.FromResult(PayLoad<AreaDTO>.CreatedFail(Status.DATANULL));
 
-                var checkShelfQuantity = _context.shelfs.Where(x => x.area == checkId.id && !x.deleted).Count();
+                var checkShelfQuantity = _context.shelfs.Where(x => x.line == checkId.id && !x.deleted).Count();
                 if(checkShelfQuantity > areaDTO.storage)
                     return await Task.FromResult(PayLoad<AreaDTO>.CreatedFail(Status.FULLQUANTITY));
 
@@ -214,5 +215,6 @@ namespace quanlykhodl.Service
                 return await Task.FromResult(PayLoad<AreaDTO>.CreatedFail(ex.Message));
             }
         }
+
     }
 }

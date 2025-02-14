@@ -65,8 +65,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 // Đăng ký Firebase Key
 FirebaseApp.Create(new AppOptions()
 {
-    //Credential = GoogleCredential.FromFile("/home/tsustedu2025_ADMIN/quanlykhodlBE/quanlykhodl/quanlykhodl/notification-bdf14-firebase-adminsdk-fbsvc-87b7743b04.json")
-    Credential = GoogleCredential.FromFile("C:\\Users\\ASUS\\OneDrive\\Desktop\\VueJs\\SpringBoot\\notification-bdf14-firebase-adminsdk-fbsvc-87b7743b04.json")
+    Credential = GoogleCredential.FromFile("/home/tsustedu2025_ADMIN/quanlykhodlBE/quanlykhodl/quanlykhodl/notification-bdf14-firebase-adminsdk-fbsvc-87b7743b04.json")
+    //Credential = GoogleCredential.FromFile("C:\\Users\\ASUS\\OneDrive\\Desktop\\VueJs\\SpringBoot\\notification-bdf14-firebase-adminsdk-fbsvc-87b7743b04.json")
 });
 
 builder.Services.AddSwaggerGen(c =>
@@ -187,6 +187,7 @@ builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddScoped<IStatisticalService, StatisticalService>();
 builder.Services.AddScoped<IUserTokenAppService, UserTokenAppService>();
 builder.Services.AddScoped<IAreaService, AreaService>();
+builder.Services.AddScoped<ILineService, LineService>();
 builder.Services.AddScoped<UserTokenAppService>();
 builder.Services.AddScoped<onlineUser>();
 builder.Services.AddScoped<SendEmais>();

@@ -29,5 +29,6 @@ namespace quanlykhodl.Models
 		public Floor? floor_id { get; set; }
 		public areas? area_id { get; set; }
 		public virtual ICollection<Warehousetransferstatus>? warehousetransferstatuses { get; set; }
+		public virtual ICollection<producthisstorylocation>? Producthisstorylocations { get; set; }
 	}
 }

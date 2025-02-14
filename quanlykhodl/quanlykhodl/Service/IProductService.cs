@@ -26,7 +26,6 @@ namespace quanlykhodl.Service
         Task<PayLoad<object>> FindAllProductInFloor(int id_floor, int page = 1, int pageSize = 20);
         Task<PayLoad<object>> FindCode(string code);
         Task<PayLoad<object>> FindCodeLocation(string code);
-
-
+        Task<PayLoad<object>> FindAllProductSearch(int? idWarehouse, int? idFloor, int? idArea, int? idShelf, int? supplier, int? category, int? pricefrom, int? priceto, string? name, int page = 1, int pageSize = 20);
     }
 }

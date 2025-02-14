@@ -101,7 +101,7 @@ namespace quanlykhodl.Service
                 var dataNew = _context.accounts.Where(x => !x.deleted && !x.action).OrderByDescending(x => x.createdat).FirstOrDefault();
                 if (accountDTO.image != null)
                 {
-                    uploadCloud.CloudInaryIFromAccount(accountDTO.image, accountDTO.email + "_" + dataNew.id.ToString(), _cloud);
+                    uploadCloud.CloudInaryIFromAccount(accountDTO.image, accountDTO.email + "_1s" + dataNew.id.ToString(), _cloud);
                     dataNew.image = uploadCloud.Link;
                     dataNew.publicid = uploadCloud.publicId;
 

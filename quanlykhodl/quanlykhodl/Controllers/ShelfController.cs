@@ -53,5 +53,12 @@ namespace quanlykhodl.Controllers
         {
             return await _areaService.FindOneArea(id, page, pageSize);
         }
+
+        [HttpGet]
+        [Route(nameof(FindByDataAreaLineByFloor))]
+        public async Task<PayLoad<object>> FindByDataAreaLineByFloor(int id, int page = 1, int pageSize = 20)
+        {
+            return await _areaService.FindByDataAreaLineByFloor(id, page, pageSize);
+        }
     }
 }

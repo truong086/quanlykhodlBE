@@ -12,9 +12,9 @@ namespace quanlykhodl.Models
         public string? image { get; set; }
         public string? publicid { get; set; }
         public int? account { get; set; }
-		public int? area { get; set; }
+		public int? line { get; set; }
 		public accounts? account_id { get; set; }
-		public areas? area_id { get; set; }
+		public Line? line_id { get; set; }
 		public virtual ICollection<productlocation>? Productlocations { get; set; }
 		public virtual ICollection<LocationException>? LocationExceptions { get; set; }
 		public virtual ICollection<Codelocation>? Codelocations { get; set; }

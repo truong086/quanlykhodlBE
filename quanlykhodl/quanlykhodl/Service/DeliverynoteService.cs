@@ -284,11 +284,11 @@ namespace quanlykhodl.Service
             //}
 
             var checkDeliverynote = _context.deliverynotes.Where(x => x.id == data.deliverynote && !x.deleted).FirstOrDefault();
-            var checkShelf = _context.shelfs.Include(f => f.area_id).Where(x => x.id == data.shelf_id && !x.deleted).FirstOrDefault();
+            var checkShelf = _context.shelfs.Include(f => f.line_id).Where(x => x.id == data.shelf_id && !x.deleted).FirstOrDefault();
             if (checkShelf != null)
             {
                 var checkCodeArea = _context.codelocations.Where(x => x.id_helf == checkShelf.id && x.location == data.location && !x.deleted).FirstOrDefault();
-                var checkArea = _context.areas.Include(f => f.floor_id).Where(x => x.id == checkShelf.area && !x.deleted).FirstOrDefault();
+                var checkArea = _context.areas.Include(f => f.floor_id).Where(x => x.id == checkShelf.line && !x.deleted).FirstOrDefault();
                 if (checkArea != null)
                 {
                     if (checkArea.floor_id != null)
@@ -322,14 +322,15 @@ namespace quanlykhodl.Service
             {
                 foreach (var item in checkproductLocationData)
                 {
-                    var checkShelf = _context.shelfs.Include(f => f.area_id).Where(x => x.id == item.id_shelf && !x.deleted).FirstOrDefault();
+                    var checkShelf = _context.shelfs.Include(f => f.line_id).Where(x => x.id == item.id_shelf && !x.deleted).FirstOrDefault();
                     if (checkShelf != null)
                     {
-                        if (checkShelf.area_id != null)
+                        if (checkShelf.line_id != null)
                         {
+                            var checkArea = _context.areas.Where(x => x.id == checkShelf.line_id.id_area && !x.deleted).FirstOrDefault();
                             var checkCodeLocation = _context.codelocations.Where(x => x.id_helf == checkShelf.id
                             && x.location == item.location && !x.deleted).FirstOrDefault();
-                            var checkFloor = _context.floors.Where(x => x.id == checkShelf.area_id.floor && !x.deleted).FirstOrDefault();
+                            var checkFloor = _context.floors.Where(x => x.id == checkArea.floor && !x.deleted).FirstOrDefault();
                             if (checkFloor != null)
                             {
                                 var checkWarehourse = _context.warehouses.Where(x => x.id == checkFloor.warehouse && !x.deleted).FirstOrDefault();
@@ -337,7 +338,7 @@ namespace quanlykhodl.Service
                                 {
                                     var dataItem = new listArea
                                     {
-                                        area = checkShelf.area_id.name,
+                                        area = checkShelf.line_id.name,
                                         location = item.location,
                                         shelf = checkShelf.name,
                                         floor = checkFloor.name,
@@ -871,7 +872,7 @@ namespace quanlykhodl.Service
                 if(checkId == null)
                 {
                     var checkTotal = _context.productdeliverynotes.Where(x => x.shelf_id == item.shelf_id && x.location == item.location && !x.deleted).Sum(x => x.quantity);
-                    var checkArea = _context.areas.Include(f => f.floor_id).Where(x => x.id == item.shelfs.area && !x.deleted).FirstOrDefault();
+                    var checkArea = _context.areas.Include(f => f.floor_id).Where(x => x.id == item.shelfs.line && !x.deleted).FirstOrDefault();
                     var checkWarehouse = _context.warehouses.Where(x => x.id == checkArea.floor_id.warehouse && !x.deleted).FirstOrDefault();
 
                     var checkCodeLocation = _context.codelocations.Where(x => x.id_helf == item.shelf_id && x.location == item.location && !x.deleted).FirstOrDefault();
