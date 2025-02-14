@@ -82,6 +82,35 @@ namespace quanlykhodl.Controllers
             return await _productService.FindOneById(id);
         }
 
+        [HttpGet]
+        [Route(nameof(FindAllProductInFloorAndArea))]
+        public async Task<PayLoad<object>> FindAllProductInFloorAndArea(int id_floor, int id_area, int page = 1, int pageSize = 20)
+        {
+            return await _productService.FindAllProductInFloorAndArea(id_floor, id_area, page, pageSize);
+        }
+
+        [HttpGet]
+        [Route(nameof(FindAllProductInWarehouseAndFloorAndArea))]
+        public async Task<PayLoad<object>> FindAllProductInWarehouseAndFloorAndArea(int id_warehouse, int id_floor, int id_area, int page = 1, int pageSize = 20)
+        {
+            return await _productService.FindAllProductInWarehouseAndFloorAndArea(id_warehouse, id_floor, id_area, page, pageSize);
+        }
+
+        [HttpGet]
+        [Route(nameof(FindAllProductInWarehouseAndFloorAndAreaAndShelf))]
+        public async Task<PayLoad<object>> FindAllProductInWarehouseAndFloorAndAreaAndShelf(int id_warehouse, int id_floor, int id_area, int id_shelf, int page = 1, int pageSize = 20)
+        {
+            return await _productService.FindAllProductInWarehouseAndFloorAndAreaAndShelf(id_warehouse, id_floor, id_area, id_shelf, page, pageSize);
+        }
+
+        [HttpGet]
+        [Route(nameof(FindAllProductInFloor))]
+        public async Task<PayLoad<object>> FindAllProductInFloor(int id_floor, int page = 1, int pageSize = 20)
+        {
+            return await _productService.FindAllProductInFloor(id_floor, page, pageSize);
+        }
+
+
         [HttpPost]
         [Route(nameof(Add))]
         public async Task<PayLoad<ProductDTO>> Add([FromForm]ProductDTO data)

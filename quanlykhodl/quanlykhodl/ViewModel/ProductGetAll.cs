@@ -71,6 +71,9 @@
         public string? code { get; set; }
         public int? quantity { get; set; }
         public int? idShelf { get; set; }
+        public int? idArea { get; set; }
+        public int? idFloor { get; set; }
+        public int? idWarehouse { get; set; }
         public int? Id_productlocation { get; set; }
         public int? location { get; set; }
         public int? MaxlocationExceps { get; set; }

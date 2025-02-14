@@ -742,6 +742,9 @@ namespace quanlykhodl.Service
                 Id_productlocation = item.id,
                 location = item.location,
                 idShelf = checkShelf.id,
+                idArea = checkArea.id,
+                idFloor = checkFloor.id,
+                idWarehouse = checkWarehourse.id,
                 MaxlocationExceps = QuantityAreaMax(checkShelf.id, item.location),
                 MaxlocationShelf = checkShelf.max,
                 code = checkLocationShelfCode == null ? Status.CODEFAILD : checkLocationShelfCode.code
@@ -1075,6 +1078,46 @@ namespace quanlykhodl.Service
                 }
             }
         }
+        private List<productWarehouse> findOneDataShelf(Shelf item, Warehouse warehouse, Floor floor, areas itemArea)
+        {
+            var checkProductLocation = _context.productlocations.Where(x => x.id_shelf == item.id && !x.deleted && x.isaction).ToList();
+            if (checkProductLocation != null && checkProductLocation.Count > 0)
+            {
+                foreach (var itemProductLocation in checkProductLocation)
+                {
+                    var checkProduct = _context.products1.Where(x => x.id == itemProductLocation.id_product && !x.deleted).FirstOrDefault();
+                    if (checkProduct != null)
+                    {
+                        var checkSupplier = _context.suppliers.Where(x => x.id == checkProduct.suppliers && !x.deleted).FirstOrDefault();
+                        var checkCategory = _context.categories.Where(x => x.id == checkProduct.category_map && !x.deleted).FirstOrDefault();
+                        var checkCodeLocation = _context.codelocations.Where(x => x.id_helf == item.id && x.location == itemProductLocation.location && !x.deleted).FirstOrDefault();
+                        var checkImageProduct = _context.imageproducts.Where(x => x.productmap == checkProduct.id && !x.deleted).ToList();
+                        var dataMap = _mapper.Map<productWarehouse>(checkProduct);
+                        dataMap.images = checkImageProduct.Select(x => x.link).ToList();
+                        dataMap.categoryImage = checkCategory.image;
+                        dataMap.categoryName = checkCategory.name;
+                        dataMap.codeLocation = checkCodeLocation.code;
+                        dataMap.quantityLocaton = itemProductLocation.quantity;
+                        dataMap.warehouse_name = warehouse.name;
+                        dataMap.warehouse_image = warehouse.image;
+                        dataMap.floor_name = floor.name;
+                        dataMap.floor_image = floor.image;
+                        dataMap.area_image = itemArea.image;
+                        dataMap.area_name = itemArea.name;
+                        dataMap.shelf_image = item.image;
+                        dataMap.shelf_name = item.name;
+                        dataMap.suppliers_image = checkSupplier == null ? Status.DATANULL : checkSupplier.image;
+                        dataMap.suppliers_name = checkSupplier == null ? Status.DATANULL : checkSupplier.name;
+                        dataMap.location = itemProductLocation.location;
+
+                        productWarehousesData.Add(dataMap);
+                    }
+
+                }
+            }
+
+            return productWarehousesData;
+        }
         private List<ProductOneLocation> loadDataProductInLocation(List<productlocation> data)
         {
             var list = new List<ProductOneLocation>();
@@ -1214,6 +1257,94 @@ namespace quanlykhodl.Service
             catch(Exception ex)
             {
                 return await Task.FromResult(PayLoad<ProductAddAreas>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<object>> FindAllProductInFloorAndArea(int id_floor, int id_area, int page = 1, int pageSize = 20)
+        {
+            try
+            {
+                productWarehousesData = new List<productWarehouse>();
+                var checkFloor = _context.floors.Include(w => w.warehouse_id).Where(x => x.id == id_floor && !x.deleted).FirstOrDefault();
+                var checkArea = _context.areas.Include(s => s.shelfsl).Where(x => x.id == id_area && !x.deleted).FirstOrDefault();
+                if (checkFloor == null || checkArea == null || checkFloor.warehouse_id == null || checkArea.shelfsl == null || checkArea.shelfsl.Count <= 0)
+                    return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+
+                var checkWarehouse = _context.warehouses.Where(x => x.id == checkFloor.warehouse && !x.deleted).FirstOrDefault();
+
+                dataProductByShelf(checkArea, checkFloor, checkWarehouse);
+
+                return await Task.FromResult(PayLoad<object>.Successfully(productWarehousesData));
+
+            }
+            catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+            }
+        }
+
+        public async Task<PayLoad<object>> FindAllProductInWarehouseAndFloorAndArea(int id_warehouse, int id_floor, int id_area, int page = 1, int pageSize = 20)
+        {
+            try
+            {
+                productWarehousesData = new List<productWarehouse>();
+                var checkWarehouse = _context.warehouses.Where(x => x.id == id_warehouse && !x.deleted).FirstOrDefault();
+                var checkFloor = _context.floors.Where(x => x.id == id_floor && !x.deleted).FirstOrDefault();
+                var checkArea = _context.areas.Include(s => s.shelfsl).Where(x => x.id == id_area && !x.deleted).FirstOrDefault();
+
+                if (checkFloor == null || checkArea == null || checkArea.shelfsl == null || checkArea.shelfsl.Count <= 0 || checkWarehouse == null)
+                    return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+
+                dataProductByShelf(checkArea, checkFloor, checkWarehouse);
+
+                return await Task.FromResult(PayLoad<object>.Successfully(productWarehousesData));
+            }
+            catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<object>> FindAllProductInWarehouseAndFloorAndAreaAndShelf(int id_warehouse, int id_floor, int id_area, int id_shelf, int page = 1, int pageSize = 20)
+        {
+            try
+            {
+                productWarehousesData = new List<productWarehouse>();
+                var checkWarehouse = _context.warehouses.Where(x => x.id == id_warehouse && !x.deleted).FirstOrDefault();
+                var checkFloor = _context.floors.Where(x => x.id == id_floor && !x.deleted).FirstOrDefault();
+                var checkArea = _context.areas.Include(s => s.shelfsl).Where(x => x.id == id_area && !x.deleted).FirstOrDefault();
+                var checkShelf = _context.shelfs.Where(x => x.id == id_shelf && !x.deleted).FirstOrDefault();
+
+                if (checkFloor == null || checkArea == null || checkShelf == null || checkWarehouse == null)
+                    return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+
+                return await Task.FromResult(PayLoad<object>.Successfully(findOneDataShelf(checkShelf, checkWarehouse, checkFloor, checkArea)));
+            }
+            catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<object>> FindAllProductInFloor(int id_floor, int page = 1, int pageSize = 20)
+        {
+            try
+            {
+                productWarehousesData = new List<productWarehouse>();
+                var checkFloor = _context.floors.Where(x => x.id == id_floor && !x.deleted).FirstOrDefault();
+                
+                if (checkFloor == null)
+                    return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+
+                var checkWarehouse = _context.warehouses.Where(x => x.id == checkFloor.warehouse && !x.deleted).FirstOrDefault();
+                var checkArea = _context.areas.Where(x => x.floor == checkFloor.id && !x.deleted).ToList();
+                dataProductByWarehouse(checkArea, checkFloor, checkWarehouse);
+
+                return await Task.FromResult(PayLoad<object>.Successfully(productWarehousesData));
+            }
+            catch (Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
             }
         }
     }

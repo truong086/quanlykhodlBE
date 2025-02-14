@@ -20,6 +20,10 @@ namespace quanlykhodl.Service
         Task<PayLoad<object>> FindOneBySipplier(int id, int page = 1, int pageSize = 20);
         Task<PayLoad<object>> FindOneProductInWarehourse(int id);
         Task<PayLoad<object>> FindAllProductInWarehourse(int id, int page = 1, int pageSize = 20);
+        Task<PayLoad<object>> FindAllProductInFloorAndArea(int id_floor, int id_area, int page = 1, int pageSize = 20);
+        Task<PayLoad<object>> FindAllProductInWarehouseAndFloorAndArea(int id_warehouse, int id_floor, int id_area, int page = 1, int pageSize = 20);
+        Task<PayLoad<object>> FindAllProductInWarehouseAndFloorAndAreaAndShelf(int id_warehouse, int id_floor, int id_area, int id_shelf, int page = 1, int pageSize = 20);
+        Task<PayLoad<object>> FindAllProductInFloor(int id_floor, int page = 1, int pageSize = 20);
         Task<PayLoad<object>> FindCode(string code);
         Task<PayLoad<object>> FindCodeLocation(string code);
 
