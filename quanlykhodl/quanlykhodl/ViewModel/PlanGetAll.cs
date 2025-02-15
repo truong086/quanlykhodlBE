@@ -41,6 +41,11 @@
         public string? ImageWarehourseNew { get; set; }
         public string? ImageFloorOld { get; set; }
         public string? ImageAreaeOld { get; set; }
+        public int? idWarehouseNew { get; set; }
+        public int? idFloorNew { get; set; }
+        public int? idAreaNew { get; set; }
+        public int? idShelfNew { get; set; }
+        public int? idShelfOld { get; set; }
         public DateTimeOffset? UpdatedAt { get; set; }
     }
 }

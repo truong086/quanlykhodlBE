@@ -110,11 +110,11 @@ namespace quanlykhodl.Controllers
             return await _productService.FindAllProductInFloor(id_floor, page, pageSize);
         }
 
-        [HttpGet]
+        [HttpPost]
         [Route(nameof(FindAllProductSearch))]
-        public async Task<PayLoad<object>> FindAllProductSearch(int? idWarehouse, int? idFloor, int? idArea, int? idShelf, int? supplier, int? category, int? pricefrom, int? priceto, string? name, int page = 1, int pageSize = 20)
+        public async Task<PayLoad<object>> FindAllProductSearch(SerchData data)
         {
-            return await _productService.FindAllProductSearch(idWarehouse, idFloor, idArea, idShelf, supplier, category, pricefrom, priceto, name, page, pageSize);
+            return await _productService.FindAllProductSearch(data);
         }
 
 
@@ -172,6 +172,13 @@ namespace quanlykhodl.Controllers
         public async Task<PayLoad<bool>> checkLocation(checkLocation data)
         {
             return await _productService.checkLocation(data);
+        }
+
+        [HttpPost]
+        [Route(nameof(checkLocationProductExsis))]
+        public async Task<PayLoad<object>> checkLocationProductExsis(checkLocation data)
+        {
+            return await _productService.checkLocationProductExsis(data);
         }
     }
 }

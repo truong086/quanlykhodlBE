@@ -54,6 +54,14 @@
               "target": "Package",
               "version": "[1.26.2, )"
             },
+            "CsvHelper": {
+              "target": "Package",
+              "version": "[30.0.1, )"
+            },
+            "EPPlus": {
+              "target": "Package",
+              "version": "[7.0.1, )"
+            },
             "FirebaseAdmin": {
               "target": "Package",
               "version": "[3.1.0, )"

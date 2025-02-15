@@ -22,5 +22,8 @@ namespace quanlykhodl.Service
         Task<PayLoad<object>> FindDoneByAdmin(string? name, int page = 1, int pageSize = 20);
         Task<PayLoad<object>> FindDoneByAccount(string? name, int page = 1, int pageSize = 20);
         Task<PayLoad<object>> FindConfirmationByAccount(string? name, int page = 1, int pageSize = 20);
+        Task<PayLoad<object>> FindAllDataByDate(searchDatetimePlan datetimePlan, int page = 1, int pageSize = 20);
+        byte[] FindAllDataByDateExcel(searchDatetimePlan datetimePlan);
+        List<PlanGetAll> FindALlDataExcel(searchDatetimePlan datetimePlan);
     }
 }

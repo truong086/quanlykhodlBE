@@ -42,7 +42,7 @@
         public string? code { get; set; }
         public int? lcoation { get; set; }
 
-
+        public DateTimeOffset? createAt { get; set; }
     }
     public class OneDataShelfOfProduct
     {

@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
+using OfficeOpenXml;
+using OfficeOpenXml.Style;
 using Org.BouncyCastle.Asn1.Pkcs;
 using quanlykhodl.ChatHub;
 using quanlykhodl.Clouds;
@@ -354,6 +356,12 @@ namespace quanlykhodl.Service
             mapData.ImageShelfeNew = checkShelfNew == null ? Status.NOFLOOR : checkShelfNew.image;
             mapData.ImageShelfeOld = checkShelfOld == null ? Status.NOFLOOR : checkShelfOld.image;
 
+            mapData.idWarehouseNew = checkWarehourseNew == null ? null : checkWarehourseNew.id;
+            mapData.idFloorNew = checkFloorNew == null ? null : checkFloorNew.id;
+            mapData.idAreaNew = checkAreaNew == null ? null : checkAreaNew.id;
+            mapData.idShelfNew = checkShelfNew == null ? null : checkShelfNew.id;
+            mapData.idShelfOld = checkShelfOld == null ? null : checkShelfOld.id;
+
             return mapData;
         }
         public async Task<PayLoad<object>> FindConfirmationAndConsentAdmin(string? name, int page = 1, int pageSize = 20)
@@ -563,16 +571,49 @@ namespace quanlykhodl.Service
             try
             {
                 var user = _userService.name();
-                var checkLocationExsis = _context.plans.Where(x => (x.shelfOld == planDTO.shelfOld && x.localtionold == planDTO.locationOld) 
+
+                var checkId = _context.plans.Where(x => x.id == id && !x.deleted).FirstOrDefault();
+                if (checkId == null)
+                    return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATANULL));
+
+                var checkLcoation = _context.productlocations.Where(x => x.id_shelf == planDTO.shelfOld && x.location == planDTO.locationOld && !x.deleted && x.isaction).FirstOrDefault();
+                if (checkLcoation == null)
+                    return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATANULL));
+
+                var checkLocationExsis = _context.plans.Where(x => ((x.shelfOld == planDTO.shelfOld && x.localtionold == planDTO.locationOld) || (x.shelf == planDTO.shelf && x.localtionnew == planDTO.localtionNew)) && x.id != checkId.id && !x.deleted && x.status.ToLower() != Status.DONE.ToLower()).FirstOrDefault();
+                if (checkLocationExsis != null)
+                    return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATATONTAIPLAN));
+                if (!checkAddToday())
+                    return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.TODAYFULL));
+
+                var checkShelf = _context.shelfs.Where(x => x.id == planDTO.shelfOld && !x.deleted).FirstOrDefault();
+                if (checkShelf == null)
+                    return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATANULL));
+
+                var checkArea = _context.areas.Where(x => x.id == checkShelf.line && !x.deleted).FirstOrDefault();
+                if (checkArea == null)
+                    return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATANULL));
+
+                var checkFloor = _context.floors.Where(x => x.id == checkArea.floor && !x.deleted).FirstOrDefault();
+                if (checkFloor == null)
+                    return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATANULL));
+
+                var checkWarehourse = _context.warehouses.Where(x => x.id == checkFloor.warehouse && !x.deleted).FirstOrDefault();
+                if (checkWarehourse == null)
+                    return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATANULL));
+
+                if (!checkQuantityLocation(planDTO))
+                    return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.FULLQUANTITY));
+
+                var checkLocationExsiss = _context.plans.Where(x => (x.shelfOld == planDTO.shelfOld && x.localtionold == planDTO.locationOld) 
                 && (x.shelfOld != planDTO.shelfOld && x.localtionold != planDTO.locationOld) 
+                && x.id != checkId.id
                 && !x.deleted && x.status.ToLower() != Status.DONE.ToLower())
                     .FirstOrDefault();
 
-                if (checkLocationExsis != null)
+                if (checkLocationExsiss != null)
                     return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATATONTAIPLAN));
-                var checkId = _context.plans.Where(x => x.id == id && !x.deleted).FirstOrDefault();
-                if(checkId == null)
-                    return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATANULL));
+                
 
                 var checkShelfNew = _context.shelfs.Where(x => x.id == planDTO.shelf && !x.deleted).FirstOrDefault();
                 var checkAreaNew = _context.areas.Where(x => x.id == planDTO.area && !x.deleted).FirstOrDefault();
@@ -757,7 +798,7 @@ namespace quanlykhodl.Service
         {
             try
             {
-                var checkDone = _context.plans.Where(x => x.status.ToLower() == Status.DONE.ToLower()).ToList();
+                var checkDone = _context.plans.Where(x => x.status.ToLower() == Status.DONE.ToLower()).OrderByDescending(x => x.updatedat).ToList();
                 if(checkDone.Count <= 0)
                     return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
 
@@ -789,7 +830,7 @@ namespace quanlykhodl.Service
                 if(checkAccount == null)
                     return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
 
-                var checkDone = _context.plans.Where(x => x.status.ToLower() == Status.DONE.ToLower() && x.Receiver == checkAccount.id && x.isconfirmation).ToList();
+                var checkDone = _context.plans.Where(x => x.status.ToLower() == Status.DONE.ToLower() && x.Receiver == checkAccount.id && x.isconfirmation).OrderByDescending(x => x.updatedat).ToList();
                 if (checkDone.Count <= 0)
                     return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
 
@@ -842,6 +883,106 @@ namespace quanlykhodl.Service
             {
                 return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
             }
+        }
+
+        public async Task<PayLoad<object>> FindAllDataByDate(searchDatetimePlan datetimePlan, int page = 1, int pageSize = 20)
+        {
+            try
+            {
+                var checkData = _context.plans.Where(x => x.isconfirmation && x.status.ToLower() == Status.DONE.ToLower() && x.updatedat >= datetimePlan.datefrom && x.updatedat <= datetimePlan.dateto).ToList();
+                if (checkData == null)
+                    return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+
+                var pageList = new PageList<object>(LoadData(checkData), page - 1, pageSize);
+
+                return await Task.FromResult(PayLoad<object>.Successfully(new
+                {
+                    data = pageList,
+                    page, 
+                    pageList.pageSize,
+                    pageList.totalCounts,
+                    pageList.totalPages
+                }));
+            }
+            catch(Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
+
+        public byte[] FindAllDataByDateExcel(searchDatetimePlan datetimePlan)
+        {
+            var checkData = _context.plans.Where(x => x.isconfirmation && x.status.ToLower() == Status.DONE.ToLower() && x.updatedat >= datetimePlan.datefrom && x.updatedat <= datetimePlan.dateto).ToList();
+
+            using (var package = new ExcelPackage())
+            {
+                var worksheet = package.Workbook.Worksheets.Add("Products");
+                worksheet.Cells[1, 1].Value = "Id";
+                worksheet.Cells[1, 2].Value = "Title";
+                worksheet.Cells[1, 3].Value = "status";
+                worksheet.Cells[1, 4].Value = "localtionNew";
+                worksheet.Cells[1, 5].Value = "isConfirmation";
+                worksheet.Cells[1, 6].Value = "receiver_name";
+                worksheet.Cells[1, 7].Value = "localtionOld";
+                worksheet.Cells[1, 8].Value = "localtionOldCode";
+                worksheet.Cells[1, 9].Value = "localtionNewCode";
+                worksheet.Cells[1, 10].Value = "warehouseOld";
+                worksheet.Cells[1, 11].Value = "areaOld";
+                worksheet.Cells[1, 12].Value = "shelfOld";
+                worksheet.Cells[1, 13].Value = "floorOld";
+                worksheet.Cells[1, 14].Value = "warehouse";
+                worksheet.Cells[1, 15].Value = "area";
+                worksheet.Cells[1, 16].Value = "shelf";
+                worksheet.Cells[1, 17].Value = "floor";
+                worksheet.Cells[1, 18].Value = "account_creatPlan";
+                worksheet.Cells[1, 19].Value = "updatedAt";
+                worksheet.Cells[1, 20].Value = "codeWarehourseNew";
+
+                // Định dạng tiêu đề
+                using (var range = worksheet.Cells[1, 1, 1, 20])
+                {
+                    range.Style.Font.Bold = true; // Chữ in đậm
+                    range.Style.Fill.PatternType = ExcelFillStyle.Solid; // Nền đặc
+                    range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray); // Nền xám nhạt
+                    range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center; // Căn giữa nội dung
+                }
+
+                // Đổ dữ liệu vào file Excel
+                int row = 2;
+                foreach (var product in LoadData(checkData))
+                {
+                    worksheet.Cells[row, 1].Value = product.Id;
+                    worksheet.Cells[row, 2].Value = product.title;
+                    worksheet.Cells[row, 3].Value = product.status;
+                    worksheet.Cells[row, 4].Value = product.localtionNew;
+                    worksheet.Cells[row, 5].Value = product.isConfirmation;
+                    worksheet.Cells[row, 6].Value = product.Receiver_name;
+                    worksheet.Cells[row, 7].Value = product.localtionOld;
+                    worksheet.Cells[row, 8].Value = product.localtionOldCode;
+                    worksheet.Cells[row, 9].Value = product.localtionNewCode;
+                    worksheet.Cells[row, 10].Value = product.warehouseOld;
+                    worksheet.Cells[row, 11].Value = product.areaOld;
+                    worksheet.Cells[row, 12].Value = product.shelfOld;
+                    worksheet.Cells[row, 13].Value = product.floorOld;
+                    worksheet.Cells[row, 14].Value = product.warehouse;
+                    worksheet.Cells[row, 15].Value = product.area;
+                    worksheet.Cells[row, 16].Value = product.shelf;
+                    worksheet.Cells[row, 17].Value = product.floor;
+                    worksheet.Cells[row, 18].Value = product.Account_creatPlan;
+                    worksheet.Cells[row, 19].Value = product.UpdatedAt;
+                    worksheet.Cells[row, 20].Value = product.CodeWarehourseNew;
+                    row++;
+                }
+
+                worksheet.Cells.AutoFitColumns(); // Tự động chỉnh độ rộng cột
+                return package.GetAsByteArray();
+            }
+        }
+
+        public List<PlanGetAll> FindALlDataExcel(searchDatetimePlan datetimePlan)
+        {
+            var checkData = _context.plans.Where(x => x.isconfirmation && x.status.ToLower() == Status.DONE.ToLower() && x.updatedat >= datetimePlan.datefrom && x.updatedat <= datetimePlan.dateto).ToList();
+            return LoadData(checkData);
         }
     }
 }

@@ -161,6 +161,14 @@ namespace quanlykhodl.Service
                 if(checkShelf == null)
                     return await Task.FromResult(PayLoad<ProductAddAreas>.CreatedFail(Status.DATANULL));
 
+                var checkLocation = _context.productlocations.Where(x => x.id_product == checkProduct.id 
+                && x.id_shelf == productDTO.id_shefl 
+                && x.location == productDTO.location && !x.deleted)
+                    .FirstOrDefault();
+
+                if(checkLocation == null)
+                    return await Task.FromResult(PayLoad<ProductAddAreas>.CreatedFail(Status.DATANULL));
+
                 var totalQuantityProduct = _context.productlocations.Where(x => x.id_product == checkProduct.id && !x.deleted && x.isaction).Sum(x => x.quantity);
 
                 if(checkShelf == null)
@@ -323,8 +331,30 @@ namespace quanlykhodl.Service
             data.locationTotal = checkLocation(shelf.id);
             data.warehoursPlans = loadDataWarehoursePlan(shelf.id);
             data.totalLocatiExsis = shelf.quantity.Value - checkLocationAreaExsis(shelf);
-
+            data.productInPlans = dataProductInPlan(shelf);
             return data;
+        }
+
+        private List<productInPlan> dataProductInPlan(Shelf item)
+        {
+            var list = new List<productInPlan>();
+
+            var checkPlan = _context.plans.Where(x => (x.shelf == item.id || x.shelfOld == item.id) && x.status.ToLower() != Status.DONE.ToLower() && !x.deleted).ToList();
+            foreach (var itemPlan in checkPlan)
+            {
+                var dataItem = new productInPlan
+                {
+                    shelfsNew = itemPlan.shelf,
+                    shelfsOld = itemPlan.shelfOld,
+                    locationNew = itemPlan.localtionnew,
+                    locationOld = itemPlan.localtionold,
+                    title = itemPlan.title
+                };
+
+                list.Add(dataItem);
+            }
+
+            return list;
         }
         private int checkLocationUsed(Shelf shelf, int location)
         {
@@ -544,6 +574,7 @@ namespace quanlykhodl.Service
                                     name = checkProduct.title,
                                     quantity = itemPlan.quantity,
                                     Id_plan = item.id,
+                                    titlePlan = item.title,
                                     supplier = checkSupplier.name,
                                     supplier_image = checkSupplier.image,
                                     account_image = checkAccountCreate.image,
@@ -670,7 +701,7 @@ namespace quanlykhodl.Service
                 }
             }
 
-            return list;
+            return list.OrderByDescending(x => x.createAt).ToList();
         }
 
         private historyProductLocation loadDataLoctionHistoryNew(producthisstorylocation item)
@@ -696,6 +727,8 @@ namespace quanlykhodl.Service
             dataItem.Shelf_image = checkShelf == null ? Status.DATANULL : checkShelf.image;
             dataItem.code = checkCode == null ? Status.DATANULL : checkCode.code;
             dataItem.lcoation = item.locationnew;
+
+            dataItem.createAt = item.createdat;
 
             return dataItem;
 
@@ -726,6 +759,7 @@ namespace quanlykhodl.Service
             dataItem.code = checkCode == null ? Status.DATANULL : checkCode.code;
             dataItem.lcoation = item.locationold;
 
+            dataItem.createAt = item.createdat;
             return dataItem;
 
         }
@@ -737,6 +771,8 @@ namespace quanlykhodl.Service
                     return await Task.FromResult(PayLoad<ProductGetAll>.CreatedFail(Status.DATANULL));
 
                 var checkCategory = _context.categories.Where(x => x.id == checkId.category_map && !x.deleted).FirstOrDefault();
+                var checkSuuplier = _context.suppliers.Where(x => x.id == checkId.suppliers && !x.deleted).FirstOrDefault();
+
                 var mapData = _mapper.Map<ProductGetAll>(checkId);
                 if(checkCategory != null)
                 {
@@ -746,6 +782,10 @@ namespace quanlykhodl.Service
                 mapData.images = ListImage(checkId.id);
                 //mapData.listAreaOfproducts = loadDataAreaAndFloorAndWerahourse(checkId.id);
                 mapData.oneDataShelfOfProducts = dataListShelfOrProduct(checkId.id);
+                mapData.historyProductLocations = listDataHistory(checkId);
+                mapData.supplierId = checkSuuplier.id;
+                mapData.supplierImage = checkSuuplier.image;
+                mapData.supplierName = checkSuuplier.name;
 
                 return await Task.FromResult(PayLoad<ProductGetAll>.Successfully(mapData));
 
@@ -997,6 +1037,14 @@ namespace quanlykhodl.Service
             {
                 var checkLocationProduct = _context.productlocations.Where(x => x.id == id && !x.deleted && x.isaction).FirstOrDefault();
                 if (checkLocationProduct == null)
+                    return await Task.FromResult(PayLoad<ProductAddAreas>.CreatedFail(Status.DATANULL));
+
+                var checkLocation = _context.productlocations.Where(x => x.id_product == productDTO.id_product
+                && x.id_shelf == productDTO.id_shefl
+                && x.location == productDTO.location && !x.deleted)
+                    .FirstOrDefault();
+
+                if (checkLocation == null)
                     return await Task.FromResult(PayLoad<ProductAddAreas>.CreatedFail(Status.DATANULL));
 
                 var checkProduct = _context.products1.Where(x => x.id == checkLocationProduct.id_product && !x.deleted).FirstOrDefault();
@@ -1448,370 +1496,929 @@ namespace quanlykhodl.Service
             }
         }
 
-        public async Task<PayLoad<object>> FindAllProductSearch(int? idWarehouse, int? idFloor, int? idArea, int? idShelf, int? supplier, int? category ,int? pricefrom, int? priceto, string? name, int page = 1, int pageSize = 20)
+        public async Task<PayLoad<object>> FindAllProductSearch(SerchData data)
         {
             try
             {
                 var checkdata = _context.products1.Where(x => !x.deleted).ToList();
 
                 var dataMapList = loadDataCategory(checkdata);
-                #region Warehouse
-                if (category != null && supplier == null && idWarehouse == null && idFloor == null && idArea == null && idShelf == null && pricefrom == null && priceto == null)
-                    dataMapList = dataMapList.Where(x => x.categoryId == category).ToList();
+                var idWarehouse = data.idWarehouse;
+                var idFloor = data.idFloor;
+                var idArea = data.idArea;
+                var idShelf = data.idShelf;
+                var supplier = data.supplier;
+                var category = data.category;
+                var pricefrom = data.pricefrom;
+                var priceto = data.priceto;
+                var name = data.name;
+                var page = data.page;
+                var pageSize = data.pageSize;
+                #region NoName
+                if (data.category != null && data.supplier == null && data.idWarehouse == null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom == null && data.priceto == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.categoryId == data.category).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor == null && idArea == null && idShelf == null && pricefrom == null && priceto == null && category == null)
-                    dataMapList = dataMapList.Where(x => x.supplierId == category).ToList();
+                else if (data.supplier != null && data.idWarehouse == null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.supplierId == data.supplier).ToList();
 
-                else if (supplier == null && idWarehouse == null && idFloor == null && idArea == null && idShelf == null && pricefrom == null && priceto != null && category == null)
-                    dataMapList = dataMapList.Where(x => x.price == priceto).ToList();
+                else if (data.supplier == null && data.idWarehouse == null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom == null && data.priceto != null && data.category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.price == data.priceto).ToList();
 
-                else if (supplier == null && idWarehouse == null && idFloor == null && idArea == null && idShelf == null && pricefrom == null && priceto != null && category != null)
-                    dataMapList = dataMapList.Where(x => x.price >= pricefrom && x.price <= priceto).ToList();
+                else if (data.supplier == null && data.idWarehouse == null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom == null && data.priceto != null && data.category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.price >= data.pricefrom && x.price <= data.priceto).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor == null && idArea == null && idShelf == null && pricefrom == null && priceto == null && category != null)
-                    dataMapList = dataMapList.Where(x => x.supplierId == supplier && x.categoryId == category).ToList();
+                else if (data.supplier != null && data.idWarehouse == null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.supplierId == data.supplier && x.categoryId == data.category).ToList();
 
-                else if (supplier == null && idWarehouse == null && idFloor == null && idArea == null && idShelf == null && pricefrom != null && priceto == null && category != null)
-                    dataMapList = dataMapList.Where(x => x.categoryId == category && x.price == pricefrom).ToList();
+                else if (data.supplier == null && data.idWarehouse == null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto == null && data.category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.categoryId == data.category && x.price == data.pricefrom).ToList();
 
-                else if (supplier == null && idWarehouse == null && idFloor == null && idArea == null && idShelf == null && pricefrom != null && priceto != null && category != null)
-                    dataMapList = dataMapList.Where(x => x.categoryId == category && x.price >= pricefrom && x.price <= priceto).ToList();
+                else if (data.supplier == null && data.idWarehouse == null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto != null && data.category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.categoryId == data.category && x.price >= data.pricefrom && x.price <= data.priceto).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor == null && idArea == null && idShelf == null && pricefrom != null && priceto == null && category == null)
-                    dataMapList = dataMapList.Where(x => x.supplierId == supplier && x.price == pricefrom).ToList();
+                else if (data.supplier != null && data.idWarehouse == null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto == null && data.category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.supplierId == data.supplier && x.price == data.pricefrom).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor == null && idArea == null && idShelf == null && pricefrom != null && priceto != null && category == null)
-                    dataMapList = dataMapList.Where(x => x.supplierId == supplier && x.price >= pricefrom && x.price <= priceto).ToList();
+                else if (data.supplier != null && data.idWarehouse == null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto != null && data.category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.supplierId == data.supplier && x.price >= data.pricefrom && x.price <= data.priceto).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor == null && idArea == null && idShelf == null && pricefrom != null && priceto != null && category != null)
-                    dataMapList = dataMapList.Where(x => x.supplierId == supplier && x.categoryId == category && x.price >= pricefrom && x.price <= priceto).ToList();
+                else if (data.supplier != null && data.idWarehouse == null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto != null && data.category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.supplierId == data.supplier && x.categoryId == data.category && x.price >= data.pricefrom && x.price <= data.priceto).ToList();
 
-                else if (supplier == null && idWarehouse != null && idFloor == null && idArea == null && idShelf == null && pricefrom == null && priceto == null && category == null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse)).ToList();
+                else if (data.supplier == null && data.idWarehouse != null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse)).ToList();
 
-                else if (supplier == null && idWarehouse == null && idFloor != null && idArea == null && idShelf == null && pricefrom == null && priceto == null && category == null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor)).ToList();
+                else if (data.supplier == null && data.idWarehouse == null && data.idFloor != null && data.idArea == null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == data.idFloor)).ToList();
 
-                else if (supplier == null && idWarehouse == null && idFloor == null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category == null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idArea == idArea)).ToList();
+                else if (data.supplier == null && data.idWarehouse == null && data.idFloor == null && data.idArea != null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idArea == data.idArea)).ToList();
 
-                else if (supplier == null && idWarehouse == null && idFloor == null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category == null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idShelf == idShelf)).ToList();
+                else if (data.supplier == null && data.idWarehouse == null && data.idFloor == null && data.idArea == null && data.idShelf != null && data.pricefrom == null && data.priceto == null && data.category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idShelf == data.idShelf)).ToList();
 
-                else if (supplier == null && idWarehouse != null && idFloor != null && idArea == null && idShelf == null && pricefrom == null && priceto == null && category == null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor)).ToList();
+                else if (data.supplier == null && data.idWarehouse != null && data.idFloor != null && data.idArea == null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idFloor == data.idFloor)).ToList();
 
-                else if (supplier == null && idWarehouse != null && idFloor == null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category == null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idArea == idArea)).ToList();
+                else if (data.supplier == null && data.idWarehouse != null && data.idFloor == null && data.idArea != null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idArea == data.idArea)).ToList();
 
-                else if (supplier == null && idWarehouse != null && idFloor == null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category == null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idShelf == idShelf)).ToList();
+                else if (data.supplier == null && data.idWarehouse != null && data.idFloor == null && data.idArea == null && data.idShelf != null && data.pricefrom == null && data.priceto == null && data.category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idShelf == data.idShelf)).ToList();
 
-                else if (supplier == null && idWarehouse != null && idFloor == null && idArea == null && idShelf == null && pricefrom != null && priceto == null && category == null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse) && x.price == pricefrom).ToList();
+                else if (data.supplier == null && data.idWarehouse != null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto == null && data.category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse) && x.price == data.pricefrom).ToList();
 
-                else if (supplier == null && idWarehouse != null && idFloor == null && idArea == null && idShelf == null && pricefrom != null && priceto != null && category == null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse) && x.price >= pricefrom && x.price <= priceto).ToList();
+                else if (data.supplier == null && data.idWarehouse != null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto != null && data.category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse) && x.price >= data.pricefrom && x.price <= data.priceto).ToList();
 
-                else if (supplier == null && idWarehouse != null && idFloor == null && idArea == null && idShelf == null && pricefrom == null && priceto == null && category != null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse) && x.categoryId == category).ToList();
+                else if (data.supplier == null && data.idWarehouse != null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse) && x.categoryId == data.category).ToList();
 
-                else if (supplier == null && idWarehouse != null && idFloor == null && idArea == null && idShelf == null && pricefrom != null && priceto == null && category != null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse) && x.categoryId == category && x.price == pricefrom).ToList();
+                else if (data.supplier == null && data.idWarehouse != null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto == null && data.category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse) && x.categoryId == data.category && x.price == data.pricefrom).ToList();
 
-                else if (supplier == null && idWarehouse != null && idFloor == null && idArea == null && idShelf == null && pricefrom != null && priceto != null && category != null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse) && x.categoryId == category && x.price >= pricefrom && x.price <= priceto).ToList();
+                else if (data.supplier == null && data.idWarehouse != null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto != null && data.category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse) && x.categoryId == data.category && x.price >= data.pricefrom && x.price <= data.priceto).ToList();
 
-                else if (supplier != null && idWarehouse != null && idFloor == null && idArea == null && idShelf == null && pricefrom != null && priceto == null && category == null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse) && x.supplierId == supplier && x.price == pricefrom).ToList();
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto == null && data.category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse) && x.supplierId == data.supplier && x.price == data.pricefrom).ToList();
 
-                else if (supplier != null && idWarehouse != null && idFloor == null && idArea == null && idShelf == null && pricefrom != null && priceto != null && category == null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse) && x.supplierId == supplier && x.price >= pricefrom && x.price <= priceto).ToList();
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto != null && data.category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse) && x.supplierId == data.supplier && x.price >= data.pricefrom && x.price <= data.priceto).ToList();
 
-                else if (supplier != null && idWarehouse != null && idFloor == null && idArea == null && idShelf == null && pricefrom == null && priceto == null && category == null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse) && x.supplierId == supplier).ToList();
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse) && x.supplierId == data.supplier).ToList();
 
-                else if (supplier != null && idWarehouse != null && idFloor == null && idArea == null && idShelf == null && pricefrom == null && priceto == null && category != null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse) && x.supplierId == supplier && x.categoryId == category).ToList();
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse) && x.supplierId == data.supplier && x.categoryId == data.category).ToList();
 
-                else if (supplier != null && idWarehouse != null && idFloor == null && idArea == null && idShelf == null && pricefrom != null && priceto == null && category != null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse) && x.supplierId == supplier && x.categoryId == category && x.price == pricefrom).ToList();
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto == null && data.category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse) && x.supplierId == data.supplier && x.categoryId == data.category && x.price == data.pricefrom).ToList();
 
-                else if (supplier != null && idWarehouse != null && idFloor == null && idArea == null && idShelf == null && pricefrom != null && priceto != null && category != null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse) && x.supplierId == supplier && x.categoryId == category && x.price >= pricefrom && x.price <= priceto).ToList();
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto != null && data.category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse) && x.supplierId == data.supplier && x.categoryId == data.category && x.price >= data.pricefrom && x.price <= data.priceto).ToList();
 
-                else if (supplier != null && idWarehouse != null && idFloor != null && idArea == null && idShelf == null && pricefrom == null && priceto == null && category == null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor) && x.supplierId == supplier).ToList();
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor != null && data.idArea == null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idFloor == data.idFloor) && x.supplierId == data.supplier).ToList();
 
-                else if (supplier != null && idWarehouse != null && idFloor == null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category == null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idArea == idArea) && x.supplierId == supplier).ToList();
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor == null && data.idArea != null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idArea == data.idArea) && x.supplierId == data.supplier).ToList();
 
-                else if (supplier != null && idWarehouse != null && idFloor == null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category == null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idShelf == idShelf) && x.supplierId == supplier).ToList();
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor == null && data.idArea == null && data.idShelf != null && data.pricefrom == null && data.priceto == null && data.category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idShelf == data.idShelf) && x.supplierId == data.supplier).ToList();
 
-                else if (supplier != null && idWarehouse != null && idFloor != null && idArea == null && idShelf == null && pricefrom != null && priceto == null && category == null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor) && x.supplierId == supplier && x.price == pricefrom).ToList();
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor != null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto == null && data.category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idFloor == data.idFloor) && x.supplierId == data.supplier && x.price == data.pricefrom).ToList();
 
-                else if (supplier != null && idWarehouse != null && idFloor != null && idArea == null && idShelf == null && pricefrom != null && priceto != null && category == null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor) && x.supplierId == supplier && x.price >= pricefrom && x.price <= priceto).ToList();
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor != null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto != null && data.category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idFloor == data.idFloor) && x.supplierId == data.supplier && x.price >= data.pricefrom && x.price <= data.priceto).ToList();
 
-                else if (supplier != null && idWarehouse != null && idFloor != null && idArea == null && idShelf == null && pricefrom == null && priceto == null && category != null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor) && x.supplierId == supplier && x.categoryId == category).ToList();
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor != null && data.idArea == null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idFloor == data.idFloor) && x.supplierId == data.supplier && x.categoryId == data.category).ToList();
 
-                else if (supplier != null && idWarehouse != null && idFloor != null && idArea == null && idShelf == null && pricefrom != null && priceto == null && category == null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor) && x.supplierId == supplier && x.price == pricefrom).ToList();
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor != null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto == null && data.category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idFloor == data.idFloor) && x.supplierId == data.supplier && x.price == data.pricefrom).ToList();
 
-                else if (supplier != null && idWarehouse != null && idFloor != null && idArea == null && idShelf == null && pricefrom != null && priceto == null && category != null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor) && x.supplierId == supplier && x.categoryId == category && x.price == pricefrom).ToList();
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor != null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto == null && data.category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idFloor == data.idFloor) && x.supplierId == data.supplier && x.categoryId == data.category && x.price == data.pricefrom).ToList();
 
-                else if (supplier != null && idWarehouse != null && idFloor != null && idArea == null && idShelf == null && pricefrom != null && priceto != null && category != null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor) && x.supplierId == supplier && x.categoryId == category && x.price >= pricefrom && x.price <= priceto).ToList();
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor != null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto != null && data.category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idFloor == data.idFloor) && x.supplierId == data.supplier && x.categoryId == data.category && x.price >= data.pricefrom && x.price <= data.priceto).ToList();
 
-                else if (supplier != null && idWarehouse != null && idFloor == null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category == null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idArea == idArea) && x.supplierId == supplier).ToList();
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor == null && data.idArea != null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idArea == data.idArea) && x.supplierId == data.supplier).ToList();
 
-                else if (supplier != null && idWarehouse != null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto == null && category == null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idArea == idArea) && x.supplierId == supplier && x.price == pricefrom).ToList();
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor == null && data.idArea != null && data.idShelf == null && data.pricefrom != null && data.priceto == null && data.category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idArea == data.idArea) && x.supplierId == data.supplier && x.price == data.pricefrom).ToList();
 
-                else if (supplier != null && idWarehouse != null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto != null && category == null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idArea == idArea) && x.supplierId == supplier && x.price >= pricefrom && x.price <= priceto).ToList();
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor == null && data.idArea != null && data.idShelf == null && data.pricefrom != null && data.priceto != null && data.category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idArea == data.idArea) && x.supplierId == data.supplier && x.price >= data.pricefrom && x.price <= data.priceto).ToList();
 
-                else if (supplier != null && idWarehouse != null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto == null && category != null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idArea == idArea) && x.supplierId == supplier && x.price == pricefrom && x.categoryId == category).ToList();
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor == null && data.idArea != null && data.idShelf == null && data.pricefrom != null && data.priceto == null && data.category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idArea == data.idArea) && x.supplierId == data.supplier && x.price == data.pricefrom && x.categoryId == data.category).ToList();
 
-                else if (supplier != null && idWarehouse != null && idFloor == null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category != null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idArea == idArea) && x.supplierId == supplier && x.categoryId == category).ToList();
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor == null && data.idArea != null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idArea == data.idArea) && x.supplierId == data.supplier && x.categoryId == data.category).ToList();
 
-                else if (supplier == null && idWarehouse != null && idFloor != null && idArea == null && idShelf == null && pricefrom == null && priceto == null && category != null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor) && x.categoryId == category).ToList();
+                else if (data.supplier == null && data.idWarehouse != null && data.idFloor != null && data.idArea == null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idFloor == data.idFloor) && x.categoryId == data.category).ToList();
 
-                else if (supplier == null && idWarehouse != null && idFloor != null && idArea == null && idShelf == null && pricefrom != null && priceto == null && category != null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor) && x.categoryId == category && x.price == pricefrom).ToList();
+                else if (data.supplier == null && data.idWarehouse != null && data.idFloor != null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto == null && data.category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idFloor == data.idFloor) && x.categoryId == data.category && x.price == data.pricefrom).ToList();
 
-                else if (supplier == null && idWarehouse != null && idFloor != null && idArea == null && idShelf == null && pricefrom != null && priceto != null && category != null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor) && x.categoryId == category && x.price >= pricefrom && x.price <= priceto).ToList();
+                else if (data.supplier == null && data.idWarehouse != null && data.idFloor != null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto != null && data.category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idFloor == data.idFloor) && x.categoryId == data.category && x.price >= data.pricefrom && x.price <= data.priceto).ToList();
 
-                else if (supplier == null && idWarehouse != null && idFloor == null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category != null)
-                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idArea == idArea) && x.categoryId == category).ToList();
+                else if (data.supplier == null && data.idWarehouse != null && data.idFloor == null && data.idArea != null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idArea == data.idArea) && x.categoryId == data.category).ToList();
 
-                else if (supplier == null && idWarehouse != null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto == null && category != null)
+                else if (supplier == null && idWarehouse != null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idArea == idArea) && x.categoryId == category && x.price == pricefrom).ToList();
 
-                else if (supplier == null && idWarehouse != null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto != null && category != null)
+                else if (supplier == null && idWarehouse != null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto != null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idArea == idArea) && x.categoryId == category && x.price >= pricefrom && x.price <= priceto).ToList();
 
-                else if (supplier != null && idWarehouse != null && idFloor == null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category == null)
+                else if (supplier != null && idWarehouse != null && idFloor == null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category == null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idArea == idArea) && x.supplierId == idShelf).ToList();
 
-                else if (supplier != null && idWarehouse != null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto == null && category == null)
+                else if (supplier != null && idWarehouse != null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto == null && category == null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idArea == idArea) && x.supplierId == idShelf && x.price == pricefrom).ToList();
 
-                else if (supplier != null && idWarehouse != null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto != null && category == null)
+                else if (supplier != null && idWarehouse != null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto != null && category == null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idArea == idArea) && x.supplierId == idShelf && x.price >= pricefrom && x.price <= priceto).ToList();
 
-                else if (supplier != null && idWarehouse != null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto != null && category != null)
+                else if (supplier != null && idWarehouse != null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto != null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idArea == idArea) && x.supplierId == idShelf && x.price >= pricefrom && x.price <= priceto && x.categoryId == category).ToList();
 
-                else if (supplier == null && idWarehouse != null && idFloor == null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category != null)
+                else if (supplier == null && idWarehouse != null && idFloor == null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idShelf == idShelf) && x.categoryId == category).ToList();
 
-                else if (supplier == null && idWarehouse != null && idFloor == null && idArea == null && idShelf != null && pricefrom != null && priceto == null && category != null)
+                else if (supplier == null && idWarehouse != null && idFloor == null && idArea == null && idShelf != null && pricefrom != null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idShelf == idShelf) && x.categoryId == category && x.price == pricefrom).ToList();
 
-                else if (supplier == null && idWarehouse != null && idFloor == null && idArea == null && idShelf != null && pricefrom != null && priceto != null && category != null)
+                else if (supplier == null && idWarehouse != null && idFloor == null && idArea == null && idShelf != null && pricefrom != null && priceto != null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idShelf == idShelf) && x.categoryId == category && x.price >= pricefrom && x.price <= priceto).ToList();
 
-                else if (supplier != null && idWarehouse != null && idFloor == null && idArea == null && idShelf != null && pricefrom != null && priceto != null && category != null)
+                else if (supplier != null && idWarehouse != null && idFloor == null && idArea == null && idShelf != null && pricefrom != null && priceto != null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idShelf == idShelf) && x.supplierId == supplier && x.categoryId == category && x.price >= pricefrom && x.price <= priceto).ToList();
 
-                else if (supplier != null && idWarehouse != null && idFloor == null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category == null)
+                else if (supplier != null && idWarehouse != null && idFloor == null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category == null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idShelf == idShelf) && x.supplierId == supplier).ToList();
 
-                else if (supplier != null && idWarehouse != null && idFloor == null && idArea == null && idShelf != null && pricefrom != null && priceto == null && category == null)
+                else if (supplier != null && idWarehouse != null && idFloor == null && idArea == null && idShelf != null && pricefrom != null && priceto == null && category == null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idShelf == idShelf) && x.supplierId == supplier && x.price == pricefrom).ToList();
 
-                else if (supplier != null && idWarehouse != null && idFloor == null && idArea == null && idShelf != null && pricefrom != null && priceto != null && category == null)
+                else if (supplier != null && idWarehouse != null && idFloor == null && idArea == null && idShelf != null && pricefrom != null && priceto != null && category == null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idShelf == idShelf) && x.supplierId == supplier && x.price >= pricefrom && x.price <= priceto).ToList();
-                #endregion
-                else if (supplier != null && idWarehouse == null && idFloor != null && idArea == null && idShelf == null && pricefrom == null && priceto == null && category == null)
+                
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea == null && idShelf == null && pricefrom == null && priceto == null && category == null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x =>x.listAreaOfproducts.Any(p => p.idFloor == idFloor) && x.supplierId == supplier).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor != null && idArea == null && idShelf == null && pricefrom != null && priceto != null && category == null)
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea == null && idShelf == null && pricefrom != null && priceto != null && category == null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor) && x.supplierId == supplier && x.price >= pricefrom && x.price <= priceto).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor != null && idArea == null && idShelf == null && pricefrom != null && priceto != null && category != null)
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea == null && idShelf == null && pricefrom != null && priceto != null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor) && x.supplierId == supplier && x.price >= pricefrom && x.price <= priceto && x.categoryId == category).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor != null && idArea == null && idShelf == null && pricefrom == null && priceto == null && category != null)
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea == null && idShelf == null && pricefrom == null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor) && x.supplierId == supplier && x.categoryId == category).ToList();
 
-                else if (supplier == null && idWarehouse == null && idFloor != null && idArea == null && idShelf == null && pricefrom == null && priceto == null && category != null)
+                else if (supplier == null && idWarehouse == null && idFloor != null && idArea == null && idShelf == null && pricefrom == null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor) && x.categoryId == category).ToList();
 
-                else if (supplier == null && idWarehouse == null && idFloor != null && idArea == null && idShelf == null && pricefrom != null && priceto == null && category != null)
+                else if (supplier == null && idWarehouse == null && idFloor != null && idArea == null && idShelf == null && pricefrom != null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor) && x.categoryId == category && x.price == pricefrom).ToList();
 
-                else if (supplier == null && idWarehouse == null && idFloor != null && idArea == null && idShelf == null && pricefrom != null && priceto != null && category != null)
+                else if (supplier == null && idWarehouse == null && idFloor != null && idArea == null && idShelf == null && pricefrom != null && priceto != null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor) && x.categoryId == category && x.price >= pricefrom && x.price <= priceto).ToList();
 
-                else if (supplier == null && idWarehouse == null && idFloor != null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category != null)
+                else if (supplier == null && idWarehouse == null && idFloor != null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea) && x.categoryId == category).ToList();
 
-                else if (supplier == null && idWarehouse == null && idFloor != null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category == null)
+                else if (supplier == null && idWarehouse == null && idFloor != null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category == null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea)).ToList();
 
-                else if (supplier == null && idWarehouse == null && idFloor != null && idArea != null && idShelf == null && pricefrom != null && priceto == null && category != null)
+                else if (supplier == null && idWarehouse == null && idFloor != null && idArea != null && idShelf == null && pricefrom != null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea) && x.categoryId == category && x.price == pricefrom).ToList();
 
-                else if (supplier == null && idWarehouse == null && idFloor != null && idArea != null && idShelf == null && pricefrom != null && priceto != null && category != null)
+                else if (supplier == null && idWarehouse == null && idFloor != null && idArea != null && idShelf == null && pricefrom != null && priceto != null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea) && x.categoryId == category && x.price >= pricefrom && x.price <= priceto).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor != null && idArea != null && idShelf == null && pricefrom != null && priceto != null && category != null)
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea != null && idShelf == null && pricefrom != null && priceto != null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea) && x.categoryId == category && x.price >= pricefrom && x.price <= priceto && x.supplierId == supplier).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor != null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category != null)
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea) && x.categoryId == category && x.supplierId == supplier).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor != null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category == null)
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category == null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea) && x.supplierId == supplier).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor != null && idArea != null && idShelf == null && pricefrom != null && priceto == null && category == null)
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea != null && idShelf == null && pricefrom != null && priceto == null && category == null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea) && x.supplierId == supplier && x.price == pricefrom).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor != null && idArea != null && idShelf == null && pricefrom != null && priceto != null && category == null)
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea != null && idShelf == null && pricefrom != null && priceto != null && category == null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea) && x.supplierId == supplier && x.price >= pricefrom && x.price <= priceto).ToList();
 
-                else if (supplier == null && idWarehouse == null && idFloor != null && idArea != null && idShelf != null && pricefrom == null && priceto == null && category == null)
+                else if (supplier == null && idWarehouse == null && idFloor != null && idArea != null && idShelf != null && pricefrom == null && priceto == null && category == null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea && p.idShelf == idShelf)).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor != null && idArea != null && idShelf != null && pricefrom == null && priceto == null && category == null)
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea != null && idShelf != null && pricefrom == null && priceto == null && category == null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea && p.idShelf == idShelf) && x.supplierId == supplier).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor != null && idArea != null && idShelf != null && pricefrom != null && priceto == null && category == null)
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea != null && idShelf != null && pricefrom != null && priceto == null && category == null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea && p.idShelf == idShelf) && x.supplierId == supplier && x.price == pricefrom).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor != null && idArea != null && idShelf != null && pricefrom != null && priceto != null && category == null)
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea != null && idShelf != null && pricefrom != null && priceto != null && category == null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea && p.idShelf == idShelf) && x.supplierId == supplier && x.price >= pricefrom && x.price <= priceto).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor != null && idArea != null && idShelf != null && pricefrom != null && priceto != null && category != null)
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea != null && idShelf != null && pricefrom != null && priceto != null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea && p.idShelf == idShelf) && x.supplierId == supplier && x.price >= pricefrom && x.price <= priceto && x.categoryId == category).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor != null && idArea != null && idShelf != null && pricefrom == null && priceto == null && category != null)
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea != null && idShelf != null && pricefrom == null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea && p.idShelf == idShelf) && x.categoryId == category).ToList();
 
-                else if (supplier == null && idWarehouse == null && idFloor != null && idArea != null && idShelf != null && pricefrom != null && priceto == null && category != null)
+                else if (supplier == null && idWarehouse == null && idFloor != null && idArea != null && idShelf != null && pricefrom != null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea && p.idShelf == idShelf) && x.price == pricefrom && x.categoryId == category).ToList();
 
-                else if (supplier == null && idWarehouse == null && idFloor != null && idArea != null && idShelf != null && pricefrom != null && priceto != null && category != null)
+                else if (supplier == null && idWarehouse == null && idFloor != null && idArea != null && idShelf != null && pricefrom != null && priceto != null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea && p.idShelf == idShelf) && x.price >= pricefrom && x.price <= priceto && x.categoryId == category).ToList();
 
-                else if (supplier == null && idWarehouse == null && idFloor != null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category != null)
+                else if (supplier == null && idWarehouse == null && idFloor != null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idShelf == idShelf) && x.categoryId == category).ToList();
 
-                else if (supplier == null && idWarehouse == null && idFloor != null && idArea == null && idShelf != null && pricefrom != null && priceto == null && category != null)
+                else if (supplier == null && idWarehouse == null && idFloor != null && idArea == null && idShelf != null && pricefrom != null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idShelf == idShelf) && x.price == pricefrom && x.categoryId == category).ToList();
 
-                else if (supplier == null && idWarehouse == null && idFloor != null && idArea == null && idShelf != null && pricefrom != null && priceto != null && category != null)
+                else if (supplier == null && idWarehouse == null && idFloor != null && idArea == null && idShelf != null && pricefrom != null && priceto != null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idShelf == idShelf) && x.price >= pricefrom && x.price <= priceto && x.categoryId == category).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor != null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category != null)
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idShelf == idShelf) && x.supplierId == supplier && x.categoryId == category).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor != null && idArea == null && idShelf != null && pricefrom != null && priceto != null && category != null)
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea == null && idShelf != null && pricefrom != null && priceto != null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idShelf == idShelf) && x.supplierId == supplier && x.categoryId == category && x.price >= pricefrom && x.price <= priceto).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor != null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category != null)
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idShelf == idShelf) && x.supplierId == supplier && x.categoryId == category).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor != null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category == null)
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category == null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idShelf == idShelf) && x.supplierId == supplier).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor != null && idArea == null && idShelf != null && pricefrom != null && priceto == null && category == null)
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea == null && idShelf != null && pricefrom != null && priceto == null && category == null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idShelf == idShelf) && x.supplierId == supplier && x.price == pricefrom).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor != null && idArea == null && idShelf != null && pricefrom != null && priceto != null && category == null)
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea == null && idShelf != null && pricefrom != null && priceto != null && category == null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idShelf == idShelf) && x.supplierId == supplier && x.price >= pricefrom && x.price <= priceto).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor == null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category == null)
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category == null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idArea == idArea) && x.supplierId == supplier).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto == null && category == null)
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto == null && category == null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idArea == idArea) && x.supplierId == supplier && x.price == pricefrom).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto != null && category == null)
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto != null && category == null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idArea == idArea) && x.supplierId == supplier && x.price >= pricefrom && x.price <= priceto).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto != null && category != null)
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto != null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idArea == idArea) && x.supplierId == supplier && x.price >= pricefrom && x.price <= priceto && x.categoryId == category).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor == null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category != null)
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idArea == idArea) && x.supplierId == supplier && x.categoryId == category).ToList();
 
-                else if (supplier == null && idWarehouse == null && idFloor == null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category != null)
+                else if (supplier == null && idWarehouse == null && idFloor == null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idArea == idArea) && x.categoryId == category).ToList();
 
-                else if (supplier == null && idWarehouse == null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto == null && category != null)
+                else if (supplier == null && idWarehouse == null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idArea == idArea) && x.categoryId == category && x.price == pricefrom).ToList();
 
-                else if (supplier == null && idWarehouse == null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto != null && category != null)
+                else if (supplier == null && idWarehouse == null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto != null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idArea == idArea) && x.categoryId == category && x.price >= pricefrom && x.price <= priceto).ToList();
 
-                else if (supplier == null && idWarehouse == null && idFloor == null && idArea != null && idShelf != null && pricefrom == null && priceto == null && category != null)
+                else if (supplier == null && idWarehouse == null && idFloor == null && idArea != null && idShelf != null && pricefrom == null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idArea == idArea && p.idShelf == idShelf) && x.categoryId == category).ToList();
 
-                else if (supplier == null && idWarehouse == null && idFloor == null && idArea != null && idShelf != null && pricefrom != null && priceto == null && category != null)
+                else if (supplier == null && idWarehouse == null && idFloor == null && idArea != null && idShelf != null && pricefrom != null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idArea == idArea && p.idShelf == idShelf) && x.categoryId == category && x.price == pricefrom).ToList();
 
-                else if (supplier == null && idWarehouse == null && idFloor == null && idArea != null && idShelf != null && pricefrom != null && priceto != null && category != null)
+                else if (supplier == null && idWarehouse == null && idFloor == null && idArea != null && idShelf != null && pricefrom != null && priceto != null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idArea == idArea && p.idShelf == idShelf) && x.categoryId == category && x.price >= pricefrom && x.price <= priceto).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor == null && idArea != null && idShelf != null && pricefrom != null && priceto != null && category != null)
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea != null && idShelf != null && pricefrom != null && priceto != null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idArea == idArea && p.idShelf == idShelf) && x.categoryId == category && x.price >= pricefrom && x.price <= priceto && x.supplierId == supplier).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor == null && idArea != null && idShelf != null && pricefrom == null && priceto == null && category != null)
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea != null && idShelf != null && pricefrom == null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idArea == idArea && p.idShelf == idShelf) && x.categoryId == category && x.supplierId == supplier).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor == null && idArea != null && idShelf != null && pricefrom == null && priceto == null && category == null)
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea != null && idShelf != null && pricefrom == null && priceto == null && category == null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idArea == idArea && p.idShelf == idShelf) && x.supplierId == supplier).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor == null && idArea != null && idShelf != null && pricefrom != null && priceto == null && category == null)
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea != null && idShelf != null && pricefrom != null && priceto == null && category == null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idArea == idArea && p.idShelf == idShelf) && x.supplierId == supplier && x.price == pricefrom).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor == null && idArea != null && idShelf != null && pricefrom != null && priceto != null && category == null)
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea != null && idShelf != null && pricefrom != null && priceto != null && category == null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idArea == idArea && p.idShelf == idShelf) && x.supplierId == supplier && x.price >= pricefrom && x.price <= priceto).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor == null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category == null)
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category == null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idShelf == idShelf) && x.supplierId == supplier).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor == null && idArea == null && idShelf != null && pricefrom != null && priceto == null && category == null)
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea == null && idShelf != null && pricefrom != null && priceto == null && category == null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idShelf == idShelf) && x.supplierId == supplier && x.price == pricefrom).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor == null && idArea == null && idShelf != null && pricefrom != null && priceto != null && category == null)
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea == null && idShelf != null && pricefrom != null && priceto != null && category == null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idShelf == idShelf) && x.supplierId == supplier && x.price >= pricefrom && x.price <= priceto).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor == null && idArea == null && idShelf != null && pricefrom != null && priceto != null && category != null)
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea == null && idShelf != null && pricefrom != null && priceto != null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idShelf == idShelf) && x.supplierId == supplier && x.price >= pricefrom && x.price <= priceto && x.categoryId == category).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor == null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category != null)
+                else if (supplier == null && idWarehouse == null && idFloor == null && idArea != null && idShelf != null && pricefrom == null && priceto == null && category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idShelf == idShelf && p.idArea == idArea)).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idShelf == idShelf) && x.supplierId == supplier && x.categoryId == category).ToList();
 
-                else if (supplier != null && idWarehouse == null && idFloor == null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category != null)
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idShelf == idShelf) && x.supplierId == supplier && x.categoryId == category).ToList();
 
-                else if (supplier == null && idWarehouse == null && idFloor == null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category != null)
+                else if (supplier == null && idWarehouse == null && idFloor == null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idShelf == idShelf) && x.categoryId == category).ToList();
 
-                else if (supplier == null && idWarehouse == null && idFloor == null && idArea == null && idShelf != null && pricefrom != null && priceto == null && category != null)
+                else if (supplier == null && idWarehouse == null && idFloor == null && idArea == null && idShelf != null && pricefrom != null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idShelf == idShelf) && x.categoryId == category && x.price == pricefrom).ToList();
 
-                else if (supplier == null && idWarehouse == null && idFloor == null && idArea == null && idShelf != null && pricefrom != null && priceto != null && category != null)
+                else if (supplier == null && idWarehouse == null && idFloor == null && idArea == null && idShelf != null && pricefrom != null && priceto != null && category != null && string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idShelf == idShelf) && x.categoryId == category && x.price >= pricefrom && x.price <= priceto).ToList();
+
+                else if (supplier == null && idWarehouse != null && idFloor != null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idWarehouse == idWarehouse && p.idArea == idArea)).ToList();
+
+                else if (supplier == null && idWarehouse != null && idFloor != null && idArea != null && idShelf != null && pricefrom == null && priceto == null && category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idWarehouse == idWarehouse && p.idArea == idArea && p.idShelf == idShelf)).ToList();
+
+                else if (supplier != null && idWarehouse != null && idFloor != null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idWarehouse == idWarehouse && p.idArea == idArea) && x.supplierId == supplier).ToList();
+
+                else if (supplier != null && idWarehouse != null && idFloor != null && idArea != null && idShelf != null && pricefrom == null && priceto == null && category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idWarehouse == idWarehouse && p.idArea == idArea && p.idShelf == idShelf) && x.supplierId == supplier).ToList();
+
+                else if (supplier == null && idWarehouse != null && idFloor != null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idWarehouse == idWarehouse && p.idArea == idArea) && x.categoryId == category).ToList();
+
+                else if (supplier == null && idWarehouse != null && idFloor != null && idArea != null && idShelf != null && pricefrom == null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idWarehouse == idWarehouse && p.idArea == idArea && p.idShelf == idShelf) && x.categoryId == category).ToList();
+
+                else if (supplier != null && idWarehouse != null && idFloor != null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idWarehouse == idWarehouse && p.idArea == idArea) && x.supplierId == supplier && x.categoryId == category).ToList();
+
+                else if (supplier != null && idWarehouse != null && idFloor != null && idArea != null && idShelf != null && pricefrom == null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idWarehouse == idWarehouse && p.idArea == idArea && p.idShelf == idShelf) && x.supplierId == supplier && x.categoryId == category).ToList();
+
+                else if (supplier != null && idWarehouse != null && idFloor != null && idArea != null && idShelf != null && pricefrom != null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idWarehouse == idWarehouse && p.idArea == idArea && p.idShelf == idShelf) && x.supplierId == supplier && x.categoryId == category && x.price == pricefrom).ToList();
+
+                else if (supplier != null && idWarehouse != null && idFloor != null && idArea != null && idShelf != null && pricefrom != null && priceto != null && category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idWarehouse == idWarehouse && p.idArea == idArea && p.idShelf == idShelf) && x.supplierId == supplier && x.categoryId == category && x.price >= pricefrom && x.price <= priceto).ToList();
+
+                else if (supplier == null && idWarehouse == null && idFloor == null && idArea == null && idShelf == null && pricefrom != null && priceto == null && category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.price == pricefrom).ToList();
+
+                else if (supplier == null && idWarehouse != null && idFloor != null && idArea == null && idShelf == null && pricefrom != null && priceto == null && category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor) && x.price == pricefrom).ToList();
+
+                else if (supplier == null && idWarehouse != null && idFloor != null && idArea != null && idShelf == null && pricefrom != null && priceto == null && category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor && p.idArea == idArea) && x.price == pricefrom).ToList();
+
+                else if (supplier == null && idWarehouse != null && idFloor != null && idArea != null && idShelf != null && pricefrom != null && priceto == null && category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor && p.idArea == idArea && p.idShelf == idShelf) && x.price == pricefrom).ToList();
+
+                else if (supplier != null && idWarehouse != null && idFloor != null && idArea != null && idShelf != null && pricefrom != null && priceto == null && category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor && p.idArea == idArea && p.idShelf == idShelf) && x.supplierId == supplier && x.price == pricefrom).ToList();
+
+                else if (supplier != null && idWarehouse != null && idFloor != null && idArea == null && idShelf != null && pricefrom != null && priceto == null && category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor && p.idShelf == idShelf) && x.supplierId == supplier && x.price == pricefrom).ToList();
+
+                else if (supplier == null && idWarehouse != null && idFloor != null && idArea == null && idShelf != null && pricefrom != null && priceto == null && category == null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor && p.idShelf == idShelf) && x.price == pricefrom).ToList();
+
+                else if (supplier == null && idWarehouse != null && idFloor != null && idArea != null && idShelf != null && pricefrom != null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor && p.idArea == idArea && p.idShelf == idShelf) && x.price == pricefrom && x.categoryId == category).ToList();
+
+                else if (supplier == null && idWarehouse != null && idFloor != null && idArea != null && idShelf == null && pricefrom != null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor && p.idArea == idArea) && x.price == pricefrom && x.categoryId == category).ToList();
+
+                else if (supplier == null && idWarehouse != null && idFloor != null && idArea == null && idShelf != null && pricefrom != null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor && p.idShelf == idShelf) && x.price == pricefrom && x.categoryId == category).ToList();
+
+                else if (supplier != null && idWarehouse != null && idFloor != null && idArea != null && idShelf != null && pricefrom != null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor && p.idArea == idArea && p.idShelf == idShelf) && x.price == pricefrom && x.categoryId == category && x.supplierId == supplier).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea == null && idShelf == null && pricefrom != null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor && p.idArea == idArea && p.idShelf == idShelf) && x.price == pricefrom && x.categoryId == category && x.supplierId == supplier).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea == null && idShelf == null && pricefrom != null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.price == pricefrom && x.categoryId == category && x.supplierId == supplier).ToList();
+
+                else if (supplier != null && idWarehouse != null && idFloor != null && idArea != null && idShelf == null && pricefrom != null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor && p.idArea == idArea) && x.price == pricefrom && x.categoryId == category && x.supplierId == supplier).ToList();
+
+                else if (supplier == null && idWarehouse == null && idFloor == null && idArea == null && idShelf == null && pricefrom != null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.price == pricefrom && x.categoryId == category).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea == null && idShelf == null && pricefrom != null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.price == pricefrom && x.categoryId == category && x.supplierId == supplier).ToList();
+
+                else if (supplier != null && idWarehouse != null && idFloor != null && idArea == null && idShelf != null && pricefrom != null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor && p.idShelf == idShelf) && x.price == pricefrom && x.categoryId == category && x.supplierId == supplier).ToList();
+
+                else if (supplier != null && idWarehouse != null && idFloor != null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category != null && string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor && p.idShelf == idShelf) && x.categoryId == category && x.supplierId == supplier).ToList();
+                #endregion
+
+
+                #region Name
+                if (data.category != null && data.supplier == null && data.idWarehouse == null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom == null && data.priceto == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.categoryId == data.category).ToList();
+
+                else if (data.supplier != null && data.idWarehouse == null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.supplierId == data.supplier).ToList();
+
+                else if (data.supplier == null && data.idWarehouse == null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom == null && data.priceto != null && data.category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.price == data.priceto).ToList();
+
+                else if (data.supplier == null && data.idWarehouse == null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom == null && data.priceto != null && data.category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.price >= data.pricefrom && x.price <= data.priceto).ToList();
+
+                else if (data.supplier != null && data.idWarehouse == null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.supplierId == data.supplier && x.categoryId == data.category).ToList();
+
+                else if (data.supplier == null && data.idWarehouse == null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto == null && data.category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.categoryId == data.category && x.price == data.pricefrom).ToList();
+
+                else if (data.supplier == null && data.idWarehouse == null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto != null && data.category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.categoryId == data.category && x.price >= data.pricefrom && x.price <= data.priceto).ToList();
+
+                else if (data.supplier != null && data.idWarehouse == null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto == null && data.category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.supplierId == data.supplier && x.price == data.pricefrom).ToList();
+
+                else if (data.supplier != null && data.idWarehouse == null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto != null && data.category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.supplierId == data.supplier && x.price >= data.pricefrom && x.price <= data.priceto).ToList();
+
+                else if (data.supplier != null && data.idWarehouse == null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto != null && data.category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.supplierId == data.supplier && x.categoryId == data.category && x.price >= data.pricefrom && x.price <= data.priceto).ToList();
+
+                else if (data.supplier == null && data.idWarehouse != null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse)).ToList();
+
+                else if (data.supplier == null && data.idWarehouse == null && data.idFloor != null && data.idArea == null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == data.idFloor)).ToList();
+
+                else if (data.supplier == null && data.idWarehouse == null && data.idFloor == null && data.idArea != null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idArea == data.idArea)).ToList();
+
+                else if (data.supplier == null && data.idWarehouse == null && data.idFloor == null && data.idArea == null && data.idShelf != null && data.pricefrom == null && data.priceto == null && data.category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idShelf == data.idShelf)).ToList();
+
+                else if (data.supplier == null && data.idWarehouse != null && data.idFloor != null && data.idArea == null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idFloor == data.idFloor)).ToList();
+
+                else if (data.supplier == null && data.idWarehouse != null && data.idFloor == null && data.idArea != null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idArea == data.idArea)).ToList();
+
+                else if (data.supplier == null && data.idWarehouse != null && data.idFloor == null && data.idArea == null && data.idShelf != null && data.pricefrom == null && data.priceto == null && data.category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idShelf == data.idShelf)).ToList();
+
+                else if (data.supplier == null && data.idWarehouse != null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto == null && data.category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse) && x.price == data.pricefrom).ToList();
+
+                else if (data.supplier == null && data.idWarehouse != null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto != null && data.category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse) && x.price >= data.pricefrom && x.price <= data.priceto).ToList();
+
+                else if (data.supplier == null && data.idWarehouse != null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse) && x.categoryId == data.category).ToList();
+
+                else if (data.supplier == null && data.idWarehouse != null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto == null && data.category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse) && x.categoryId == data.category && x.price == data.pricefrom).ToList();
+
+                else if (data.supplier == null && data.idWarehouse != null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto != null && data.category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse) && x.categoryId == data.category && x.price >= data.pricefrom && x.price <= data.priceto).ToList();
+
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto == null && data.category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse) && x.supplierId == data.supplier && x.price == data.pricefrom).ToList();
+
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto != null && data.category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse) && x.supplierId == data.supplier && x.price >= data.pricefrom && x.price <= data.priceto).ToList();
+
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse) && x.supplierId == data.supplier).ToList();
+
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse) && x.supplierId == data.supplier && x.categoryId == data.category).ToList();
+
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto == null && data.category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse) && x.supplierId == data.supplier && x.categoryId == data.category && x.price == data.pricefrom).ToList();
+
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor == null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto != null && data.category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse) && x.supplierId == data.supplier && x.categoryId == data.category && x.price >= data.pricefrom && x.price <= data.priceto).ToList();
+
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor != null && data.idArea == null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idFloor == data.idFloor) && x.supplierId == data.supplier).ToList();
+
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor == null && data.idArea != null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idArea == data.idArea) && x.supplierId == data.supplier).ToList();
+
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor == null && data.idArea == null && data.idShelf != null && data.pricefrom == null && data.priceto == null && data.category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idShelf == data.idShelf) && x.supplierId == data.supplier).ToList();
+
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor != null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto == null && data.category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idFloor == data.idFloor) && x.supplierId == data.supplier && x.price == data.pricefrom).ToList();
+
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor != null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto != null && data.category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idFloor == data.idFloor) && x.supplierId == data.supplier && x.price >= data.pricefrom && x.price <= data.priceto).ToList();
+
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor != null && data.idArea == null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idFloor == data.idFloor) && x.supplierId == data.supplier && x.categoryId == data.category).ToList();
+
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor != null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto == null && data.category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idFloor == data.idFloor) && x.supplierId == data.supplier && x.price == data.pricefrom).ToList();
+
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor != null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto == null && data.category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idFloor == data.idFloor) && x.supplierId == data.supplier && x.categoryId == data.category && x.price == data.pricefrom).ToList();
+
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor != null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto != null && data.category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idFloor == data.idFloor) && x.supplierId == data.supplier && x.categoryId == data.category && x.price >= data.pricefrom && x.price <= data.priceto).ToList();
+
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor == null && data.idArea != null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idArea == data.idArea) && x.supplierId == data.supplier).ToList();
+
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor == null && data.idArea != null && data.idShelf == null && data.pricefrom != null && data.priceto == null && data.category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idArea == data.idArea) && x.supplierId == data.supplier && x.price == data.pricefrom).ToList();
+
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor == null && data.idArea != null && data.idShelf == null && data.pricefrom != null && data.priceto != null && data.category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idArea == data.idArea) && x.supplierId == data.supplier && x.price >= data.pricefrom && x.price <= data.priceto).ToList();
+
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor == null && data.idArea != null && data.idShelf == null && data.pricefrom != null && data.priceto == null && data.category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idArea == data.idArea) && x.supplierId == data.supplier && x.price == data.pricefrom && x.categoryId == data.category).ToList();
+
+                else if (data.supplier != null && data.idWarehouse != null && data.idFloor == null && data.idArea != null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idArea == data.idArea) && x.supplierId == data.supplier && x.categoryId == data.category).ToList();
+
+                else if (data.supplier == null && data.idWarehouse != null && data.idFloor != null && data.idArea == null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idFloor == data.idFloor) && x.categoryId == data.category).ToList();
+
+                else if (data.supplier == null && data.idWarehouse != null && data.idFloor != null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto == null && data.category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idFloor == data.idFloor) && x.categoryId == data.category && x.price == data.pricefrom).ToList();
+
+                else if (data.supplier == null && data.idWarehouse != null && data.idFloor != null && data.idArea == null && data.idShelf == null && data.pricefrom != null && data.priceto != null && data.category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idFloor == data.idFloor) && x.categoryId == data.category && x.price >= data.pricefrom && x.price <= data.priceto).ToList();
+
+                else if (data.supplier == null && data.idWarehouse != null && data.idFloor == null && data.idArea != null && data.idShelf == null && data.pricefrom == null && data.priceto == null && data.category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == data.idWarehouse && p.idArea == data.idArea) && x.categoryId == data.category).ToList();
+
+                else if (supplier == null && idWarehouse != null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idArea == idArea) && x.categoryId == category && x.price == pricefrom).ToList();
+
+                else if (supplier == null && idWarehouse != null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto != null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idArea == idArea) && x.categoryId == category && x.price >= pricefrom && x.price <= priceto).ToList();
+
+                else if (supplier != null && idWarehouse != null && idFloor == null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idArea == idArea) && x.supplierId == idShelf).ToList();
+
+                else if (supplier != null && idWarehouse != null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto == null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idArea == idArea) && x.supplierId == idShelf && x.price == pricefrom).ToList();
+
+                else if (supplier != null && idWarehouse != null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto != null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idArea == idArea) && x.supplierId == idShelf && x.price >= pricefrom && x.price <= priceto).ToList();
+
+                else if (supplier != null && idWarehouse != null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto != null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idArea == idArea) && x.supplierId == idShelf && x.price >= pricefrom && x.price <= priceto && x.categoryId == category).ToList();
+
+                else if (supplier == null && idWarehouse != null && idFloor == null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idShelf == idShelf) && x.categoryId == category).ToList();
+
+                else if (supplier == null && idWarehouse != null && idFloor == null && idArea == null && idShelf != null && pricefrom != null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idShelf == idShelf) && x.categoryId == category && x.price == pricefrom).ToList();
+
+                else if (supplier == null && idWarehouse != null && idFloor == null && idArea == null && idShelf != null && pricefrom != null && priceto != null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idShelf == idShelf) && x.categoryId == category && x.price >= pricefrom && x.price <= priceto).ToList();
+
+                else if (supplier != null && idWarehouse != null && idFloor == null && idArea == null && idShelf != null && pricefrom != null && priceto != null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idShelf == idShelf) && x.supplierId == supplier && x.categoryId == category && x.price >= pricefrom && x.price <= priceto).ToList();
+
+                else if (supplier != null && idWarehouse != null && idFloor == null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idShelf == idShelf) && x.supplierId == supplier).ToList();
+
+                else if (supplier != null && idWarehouse != null && idFloor == null && idArea == null && idShelf != null && pricefrom != null && priceto == null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idShelf == idShelf) && x.supplierId == supplier && x.price == pricefrom).ToList();
+
+                else if (supplier != null && idWarehouse != null && idFloor == null && idArea == null && idShelf != null && pricefrom != null && priceto != null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idShelf == idShelf) && x.supplierId == supplier && x.price >= pricefrom && x.price <= priceto).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea == null && idShelf == null && pricefrom == null && priceto == null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor) && x.supplierId == supplier).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea == null && idShelf == null && pricefrom != null && priceto != null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor) && x.supplierId == supplier && x.price >= pricefrom && x.price <= priceto).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea == null && idShelf == null && pricefrom != null && priceto != null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor) && x.supplierId == supplier && x.price >= pricefrom && x.price <= priceto && x.categoryId == category).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea == null && idShelf == null && pricefrom == null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor) && x.supplierId == supplier && x.categoryId == category).ToList();
+
+                else if (supplier == null && idWarehouse == null && idFloor != null && idArea == null && idShelf == null && pricefrom == null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor) && x.categoryId == category).ToList();
+
+                else if (supplier == null && idWarehouse == null && idFloor != null && idArea == null && idShelf == null && pricefrom != null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor) && x.categoryId == category && x.price == pricefrom).ToList();
+
+                else if (supplier == null && idWarehouse == null && idFloor != null && idArea == null && idShelf == null && pricefrom != null && priceto != null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor) && x.categoryId == category && x.price >= pricefrom && x.price <= priceto).ToList();
+
+                else if (supplier == null && idWarehouse == null && idFloor != null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea) && x.categoryId == category).ToList();
+
+                else if (supplier == null && idWarehouse == null && idFloor != null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea)).ToList();
+
+                else if (supplier == null && idWarehouse == null && idFloor != null && idArea != null && idShelf == null && pricefrom != null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea) && x.categoryId == category && x.price == pricefrom).ToList();
+
+                else if (supplier == null && idWarehouse == null && idFloor != null && idArea != null && idShelf == null && pricefrom != null && priceto != null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea) && x.categoryId == category && x.price >= pricefrom && x.price <= priceto).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea != null && idShelf == null && pricefrom != null && priceto != null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea) && x.categoryId == category && x.price >= pricefrom && x.price <= priceto && x.supplierId == supplier).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea) && x.categoryId == category && x.supplierId == supplier).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea) && x.supplierId == supplier).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea != null && idShelf == null && pricefrom != null && priceto == null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea) && x.supplierId == supplier && x.price == pricefrom).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea != null && idShelf == null && pricefrom != null && priceto != null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea) && x.supplierId == supplier && x.price >= pricefrom && x.price <= priceto).ToList();
+
+                else if (supplier == null && idWarehouse == null && idFloor != null && idArea != null && idShelf != null && pricefrom == null && priceto == null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea && p.idShelf == idShelf)).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea != null && idShelf != null && pricefrom == null && priceto == null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea && p.idShelf == idShelf) && x.supplierId == supplier).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea != null && idShelf != null && pricefrom != null && priceto == null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea && p.idShelf == idShelf) && x.supplierId == supplier && x.price == pricefrom).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea != null && idShelf != null && pricefrom != null && priceto != null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea && p.idShelf == idShelf) && x.supplierId == supplier && x.price >= pricefrom && x.price <= priceto).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea != null && idShelf != null && pricefrom != null && priceto != null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea && p.idShelf == idShelf) && x.supplierId == supplier && x.price >= pricefrom && x.price <= priceto && x.categoryId == category).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea != null && idShelf != null && pricefrom == null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea && p.idShelf == idShelf) && x.categoryId == category).ToList();
+
+                else if (supplier == null && idWarehouse == null && idFloor != null && idArea != null && idShelf != null && pricefrom != null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea && p.idShelf == idShelf) && x.price == pricefrom && x.categoryId == category).ToList();
+
+                else if (supplier == null && idWarehouse == null && idFloor != null && idArea != null && idShelf != null && pricefrom != null && priceto != null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idArea == idArea && p.idShelf == idShelf) && x.price >= pricefrom && x.price <= priceto && x.categoryId == category).ToList();
+
+                else if (supplier == null && idWarehouse == null && idFloor != null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idShelf == idShelf) && x.categoryId == category).ToList();
+
+                else if (supplier == null && idWarehouse == null && idFloor != null && idArea == null && idShelf != null && pricefrom != null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idShelf == idShelf) && x.price == pricefrom && x.categoryId == category).ToList();
+
+                else if (supplier == null && idWarehouse == null && idFloor != null && idArea == null && idShelf != null && pricefrom != null && priceto != null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idShelf == idShelf) && x.price >= pricefrom && x.price <= priceto && x.categoryId == category).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idShelf == idShelf) && x.supplierId == supplier && x.categoryId == category).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea == null && idShelf != null && pricefrom != null && priceto != null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idShelf == idShelf) && x.supplierId == supplier && x.categoryId == category && x.price >= pricefrom && x.price <= priceto).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idShelf == idShelf) && x.supplierId == supplier && x.categoryId == category).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idShelf == idShelf) && x.supplierId == supplier).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea == null && idShelf != null && pricefrom != null && priceto == null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idShelf == idShelf) && x.supplierId == supplier && x.price == pricefrom).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor != null && idArea == null && idShelf != null && pricefrom != null && priceto != null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idShelf == idShelf) && x.supplierId == supplier && x.price >= pricefrom && x.price <= priceto).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idArea == idArea) && x.supplierId == supplier).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto == null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idArea == idArea) && x.supplierId == supplier && x.price == pricefrom).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto != null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idArea == idArea) && x.supplierId == supplier && x.price >= pricefrom && x.price <= priceto).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto != null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idArea == idArea) && x.supplierId == supplier && x.price >= pricefrom && x.price <= priceto && x.categoryId == category).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idArea == idArea) && x.supplierId == supplier && x.categoryId == category).ToList();
+
+                else if (supplier == null && idWarehouse == null && idFloor == null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idArea == idArea) && x.categoryId == category).ToList();
+
+                else if (supplier == null && idWarehouse == null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idArea == idArea) && x.categoryId == category && x.price == pricefrom).ToList();
+
+                else if (supplier == null && idWarehouse == null && idFloor == null && idArea != null && idShelf == null && pricefrom != null && priceto != null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idArea == idArea) && x.categoryId == category && x.price >= pricefrom && x.price <= priceto).ToList();
+
+                else if (supplier == null && idWarehouse == null && idFloor == null && idArea != null && idShelf != null && pricefrom == null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idArea == idArea && p.idShelf == idShelf) && x.categoryId == category).ToList();
+
+                else if (supplier == null && idWarehouse == null && idFloor == null && idArea != null && idShelf != null && pricefrom != null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idArea == idArea && p.idShelf == idShelf) && x.categoryId == category && x.price == pricefrom).ToList();
+
+                else if (supplier == null && idWarehouse == null && idFloor == null && idArea != null && idShelf != null && pricefrom != null && priceto != null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idArea == idArea && p.idShelf == idShelf) && x.categoryId == category && x.price >= pricefrom && x.price <= priceto).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea != null && idShelf != null && pricefrom != null && priceto != null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idArea == idArea && p.idShelf == idShelf) && x.categoryId == category && x.price >= pricefrom && x.price <= priceto && x.supplierId == supplier).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea != null && idShelf != null && pricefrom == null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idArea == idArea && p.idShelf == idShelf) && x.categoryId == category && x.supplierId == supplier).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea != null && idShelf != null && pricefrom == null && priceto == null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idArea == idArea && p.idShelf == idShelf) && x.supplierId == supplier).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea != null && idShelf != null && pricefrom != null && priceto == null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idArea == idArea && p.idShelf == idShelf) && x.supplierId == supplier && x.price == pricefrom).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea != null && idShelf != null && pricefrom != null && priceto != null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idArea == idArea && p.idShelf == idShelf) && x.supplierId == supplier && x.price >= pricefrom && x.price <= priceto).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idShelf == idShelf) && x.supplierId == supplier).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea == null && idShelf != null && pricefrom != null && priceto == null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idShelf == idShelf) && x.supplierId == supplier && x.price == pricefrom).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea == null && idShelf != null && pricefrom != null && priceto != null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idShelf == idShelf) && x.supplierId == supplier && x.price >= pricefrom && x.price <= priceto).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea == null && idShelf != null && pricefrom != null && priceto != null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idShelf == idShelf) && x.supplierId == supplier && x.price >= pricefrom && x.price <= priceto && x.categoryId == category).ToList();
+
+                else if (supplier == null && idWarehouse == null && idFloor == null && idArea != null && idShelf != null && pricefrom == null && priceto == null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idShelf == idShelf && p.idArea == idArea)).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idShelf == idShelf) && x.supplierId == supplier && x.categoryId == category).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idShelf == idShelf) && x.supplierId == supplier && x.categoryId == category).ToList();
+
+                else if (supplier == null && idWarehouse == null && idFloor == null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idShelf == idShelf) && x.categoryId == category).ToList();
+
+                else if (supplier == null && idWarehouse == null && idFloor == null && idArea == null && idShelf != null && pricefrom != null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idShelf == idShelf) && x.categoryId == category && x.price == pricefrom).ToList();
+
+                else if (supplier == null && idWarehouse == null && idFloor == null && idArea == null && idShelf != null && pricefrom != null && priceto != null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idShelf == idShelf) && x.categoryId == category && x.price >= pricefrom && x.price <= priceto).ToList();
+
+                else if (supplier == null && idWarehouse != null && idFloor != null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idWarehouse == idWarehouse && p.idArea == idArea)).ToList();
+
+                else if (supplier == null && idWarehouse != null && idFloor != null && idArea != null && idShelf != null && pricefrom == null && priceto == null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idWarehouse == idWarehouse && p.idArea == idArea && p.idShelf == idShelf)).ToList();
+
+                else if (supplier != null && idWarehouse != null && idFloor != null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idWarehouse == idWarehouse && p.idArea == idArea) && x.supplierId == supplier).ToList();
+
+                else if (supplier != null && idWarehouse != null && idFloor != null && idArea != null && idShelf != null && pricefrom == null && priceto == null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idWarehouse == idWarehouse && p.idArea == idArea && p.idShelf == idShelf) && x.supplierId == supplier).ToList();
+
+                else if (supplier == null && idWarehouse != null && idFloor != null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idWarehouse == idWarehouse && p.idArea == idArea) && x.categoryId == category).ToList();
+
+                else if (supplier == null && idWarehouse != null && idFloor != null && idArea != null && idShelf != null && pricefrom == null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idWarehouse == idWarehouse && p.idArea == idArea && p.idShelf == idShelf) && x.categoryId == category).ToList();
+
+                else if (supplier != null && idWarehouse != null && idFloor != null && idArea != null && idShelf == null && pricefrom == null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idWarehouse == idWarehouse && p.idArea == idArea) && x.supplierId == supplier && x.categoryId == category).ToList();
+
+                else if (supplier != null && idWarehouse != null && idFloor != null && idArea != null && idShelf != null && pricefrom == null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idWarehouse == idWarehouse && p.idArea == idArea && p.idShelf == idShelf) && x.supplierId == supplier && x.categoryId == category).ToList();
+
+                else if (supplier != null && idWarehouse != null && idFloor != null && idArea != null && idShelf != null && pricefrom != null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idWarehouse == idWarehouse && p.idArea == idArea && p.idShelf == idShelf) && x.supplierId == supplier && x.categoryId == category && x.price == pricefrom).ToList();
+
+                else if (supplier != null && idWarehouse != null && idFloor != null && idArea != null && idShelf != null && pricefrom != null && priceto != null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idFloor == idFloor && p.idWarehouse == idWarehouse && p.idArea == idArea && p.idShelf == idShelf) && x.supplierId == supplier && x.categoryId == category && x.price >= pricefrom && x.price <= priceto).ToList();
+
+                else if (supplier == null && idWarehouse == null && idFloor == null && idArea == null && idShelf == null && pricefrom != null && priceto == null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.price == pricefrom).ToList();
+
+                else if (supplier == null && idWarehouse != null && idFloor != null && idArea == null && idShelf == null && pricefrom != null && priceto == null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor) && x.price == pricefrom).ToList();
+
+                else if (supplier == null && idWarehouse != null && idFloor != null && idArea != null && idShelf == null && pricefrom != null && priceto == null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor && p.idArea == idArea) && x.price == pricefrom).ToList();
+
+                else if (supplier == null && idWarehouse != null && idFloor != null && idArea != null && idShelf != null && pricefrom != null && priceto == null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor && p.idArea == idArea && p.idShelf == idShelf) && x.price == pricefrom).ToList();
+
+                else if (supplier != null && idWarehouse != null && idFloor != null && idArea != null && idShelf != null && pricefrom != null && priceto == null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor && p.idArea == idArea && p.idShelf == idShelf) && x.supplierId == supplier && x.price == pricefrom).ToList();
+
+                else if (supplier != null && idWarehouse != null && idFloor != null && idArea == null && idShelf != null && pricefrom != null && priceto == null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor && p.idShelf == idShelf) && x.supplierId == supplier && x.price == pricefrom).ToList();
+
+                else if (supplier == null && idWarehouse != null && idFloor != null && idArea == null && idShelf != null && pricefrom != null && priceto == null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor && p.idShelf == idShelf) && x.price == pricefrom).ToList();
+
+                else if (supplier == null && idWarehouse != null && idFloor != null && idArea != null && idShelf != null && pricefrom != null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor && p.idArea == idArea && p.idShelf == idShelf) && x.price == pricefrom && x.categoryId == category).ToList();
+
+                else if (supplier == null && idWarehouse != null && idFloor != null && idArea != null && idShelf == null && pricefrom != null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor && p.idArea == idArea) && x.price == pricefrom && x.categoryId == category).ToList();
+
+                else if (supplier == null && idWarehouse != null && idFloor != null && idArea == null && idShelf != null && pricefrom != null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor && p.idShelf == idShelf) && x.price == pricefrom && x.categoryId == category).ToList();
+
+                else if (supplier != null && idWarehouse != null && idFloor != null && idArea != null && idShelf != null && pricefrom != null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor && p.idArea == idArea && p.idShelf == idShelf) && x.price == pricefrom && x.categoryId == category && x.supplierId == supplier).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea == null && idShelf == null && pricefrom != null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor && p.idArea == idArea && p.idShelf == idShelf) && x.price == pricefrom && x.categoryId == category && x.supplierId == supplier).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea == null && idShelf == null && pricefrom != null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.price == pricefrom && x.categoryId == category && x.supplierId == supplier).ToList();
+
+                else if (supplier != null && idWarehouse != null && idFloor != null && idArea != null && idShelf == null && pricefrom != null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor && p.idArea == idArea) && x.price == pricefrom && x.categoryId == category && x.supplierId == supplier).ToList();
+
+                else if (supplier == null && idWarehouse == null && idFloor == null && idArea == null && idShelf == null && pricefrom != null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.price == pricefrom && x.categoryId == category).ToList();
+
+                else if (supplier != null && idWarehouse == null && idFloor == null && idArea == null && idShelf == null && pricefrom != null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.price == pricefrom && x.categoryId == category && x.supplierId == supplier).ToList();
+
+                else if (supplier != null && idWarehouse != null && idFloor != null && idArea == null && idShelf != null && pricefrom != null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor && p.idShelf == idShelf) && x.price == pricefrom && x.categoryId == category && x.supplierId == supplier).ToList();
+
+                else if (supplier != null && idWarehouse != null && idFloor != null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor && p.idShelf == idShelf) && x.categoryId == category && x.supplierId == supplier).ToList();
+                #endregion
                 return await Task.FromResult(PayLoad<object>.Successfully(new
                 {
                     dataMapList
                 }));
             }
             catch (Exception ex)
+            {
+                return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
+            }
+        }
+
+        public async Task<PayLoad<object>> checkLocationProductExsis(checkLocation data)
+        {
+            try
+            {
+                var checkData = _context.productlocations.Where(x => x.id_product == data.id_product && x.location == data.location && x.id_shelf == data.id_Shelf && !x.deleted).FirstOrDefault();
+                if(checkData != null)
+                    return await Task.FromResult(PayLoad<object>.CreatedFail(Status.DATANULL));
+
+                return await Task.FromResult(PayLoad<object>.Successfully(new
+                {
+                    data = true
+                }));
+            }
+            catch(Exception ex)
             {
                 return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
             }
