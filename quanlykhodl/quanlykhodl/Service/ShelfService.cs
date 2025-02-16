@@ -8,6 +8,7 @@ using quanlykhodl.Common;
 using quanlykhodl.Models;
 using quanlykhodl.ViewModel;
 using System.Linq;
+using Vonage.Common.Monads;
 
 namespace quanlykhodl.Service
 {
@@ -40,7 +41,7 @@ namespace quanlykhodl.Service
                     return await Task.FromResult(PayLoad<ShelfDTO>.CreatedFail(Status.DATANULL));
 
                 var checkLineArea = _context.linespage.Include(x => x.areasids).Where(x => x.id_area == checkLine.id_area && !x.deleted).ToList();
-                var indexData = checkLineArea.FindIndex(x => x.id == checkLine.id && !x.deleted);
+                var indexData = checkLineArea.FindIndex(x => x.id == checkLine.id && !x.deleted) + 1;
 
                 if (!checkFullQuantity(checkLine, checkLine.id))
                     return await Task.FromResult(PayLoad<ShelfDTO>.CreatedFail(Status.FULLQUANTITY));
@@ -57,8 +58,11 @@ namespace quanlykhodl.Service
                 _context.SaveChanges();
 
                 var dataNew = _context.shelfs.Where(x => !x.deleted).OrderByDescending(x => x.createdat).FirstOrDefault();
+                var checkShelfInLines = _context.shelfs.Where(x => x.line == dataNew.line && !x.deleted).ToList();
+                var checkIndexShelInLine = checkShelfInLines.FindIndex(x => x.id == dataNew.id) + 1;
                 var codeIndexLine = indexData >= 1 && indexData <= 9 ? "0" + indexData.ToString() : indexData.ToString();
-
+                var codeIndexShelf = checkIndexShelInLine >= 1 && checkIndexShelInLine <= 9 ? "0" + checkIndexShelInLine.ToString() : checkIndexShelInLine.ToString();
+                
                 if (areaDTO.image != null)
                 {
                     if (!_kiemtrabase64.kiemtra(areaDTO.image))
@@ -82,7 +86,7 @@ namespace quanlykhodl.Service
 
                 //dataNew.code = RanDomCode.geneAction(8) + dataNew.id.ToString();
                 
-                dataNew.code = checkLine.areasids.name + codeIndexLine + dataNew.id;
+                dataNew.code = checkLine.areasids.name + codeIndexLine + codeIndexShelf;
 
                 addCodeLocation(dataNew, dataNew.quantity.Value, dataNew.code);
                 _context.shelfs.Update(dataNew);
@@ -105,18 +109,59 @@ namespace quanlykhodl.Service
 
         private void addCodeLocation(Shelf shelf, int location, string code)
         {
-            for(var i = 1; i <= location; i++)
-            {
-                var dataItem = new Codelocation
-                {
-                    shelf = shelf,
-                    code = code + i,
-                    id_helf = shelf.id,
-                    location = i
-                };
+            //for(var i = 1; i <= location; i++)
+            //{
+            //    var dataItem = new Codelocation
+            //    {
+            //        shelf = shelf,
+            //        code = code + i,
+            //        id_helf = shelf.id,
+            //        location = i
+            //    };
 
-                _context.codelocations.Add(dataItem);
-                _context.SaveChanges();
+            //    _context.codelocations.Add(dataItem);
+            //    _context.SaveChanges();
+            //}
+
+            int rows = (int)Math.Ceiling(Math.Sqrt(location));
+            int cols = (int)Math.Ceiling((double)location / rows);
+
+            int value = 1;
+
+            for (int i = 1; i <= cols; i++)
+            {
+                List<int> row = new List<int>();
+                for (int j = 1; j <= rows; j++)
+                {
+                    if (value <= location)
+                    {
+                        var dataItem = new Codelocation
+                        {
+                            shelf = shelf,
+                            code = code + i.ToString() + j.ToString(),
+                            id_helf = shelf.id,
+                            location = value
+                        };
+
+                        _context.codelocations.Add(dataItem);
+                        _context.SaveChanges();
+                        row.Add(value++);
+                    }
+                    
+                    else
+                    {
+                        var dataItem = new Codelocation
+                        {
+                            shelf = shelf,
+                            code = code + i.ToString() + j.ToString(),
+                            id_helf = shelf.id,
+                            location = i
+                        };
+
+                        _context.codelocations.Add(dataItem);
+                        _context.SaveChanges();
+                    }   
+                }
             }
         }
         private void updateLocationExcep(List<locationExceptionsDTO> data, Shelf shelf)

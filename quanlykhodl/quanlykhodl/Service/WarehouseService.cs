@@ -31,13 +31,16 @@ namespace quanlykhodl.Service
                 if (checkName != null)
                     return await Task.FromResult(PayLoad<WarehouseDTO>.CreatedFail(Status.DATANULL));
 
+                var checkCodeExsis = _context.warehouses.Where(x => x.code == data.code && !x.deleted).FirstOrDefault();
+                if(checkCodeExsis != null)
+                    return await Task.FromResult(PayLoad<WarehouseDTO>.CreatedFail(Status.DATATONTAI));
+
                 var checkAccount = _context.accounts.Where(x => x.id == idConver && !x.deleted).FirstOrDefault();
                 if (checkAccount == null)
                     return await Task.FromResult(PayLoad<WarehouseDTO>.CreatedFail(Status.DATANULL));
 
                 var mapData = _mapper.Map<Warehouse>(data);
-
-                mapData.code = RanDomCode.geneAction(8);
+                //mapData.code = RanDomCode.geneAction(8);
                 mapData.account = checkAccount;
                 mapData.account_map = checkAccount.id;
 
@@ -162,6 +165,10 @@ namespace quanlykhodl.Service
                 var checkId = _context.warehouses.Where(x => x.id == id && !x.deleted).FirstOrDefault();
                 if (checkId == null)
                     return await Task.FromResult(PayLoad<WarehouseDTO>.CreatedFail(Status.DATANULL));
+
+                var checkCodeExsis = _context.warehouses.Where(x => x.code == data.code && x.id != checkId.id && !x.deleted).FirstOrDefault();
+                if(checkCodeExsis != null)
+                    return await Task.FromResult(PayLoad<WarehouseDTO>.CreatedFail(Status.DATATONTAI));
 
                 var checkAccount = _context.accounts.Where(x => x.id == int.Parse(user) && !x.deleted).FirstOrDefault();
                 if (checkAccount == null)

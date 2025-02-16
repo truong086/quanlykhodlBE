@@ -2,6 +2,7 @@
 {
     public class LinegetAll
     {
+        public int id { get; set; }
         public string? name { get; set; }
         public int quantityshelf { get; set; }
         public int? id_area { get; set; }

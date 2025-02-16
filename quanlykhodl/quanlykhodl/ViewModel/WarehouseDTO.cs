@@ -9,6 +9,7 @@
         public string? City { get; set; }
         public string? Country { get; set; }
         public string? address { get; set; }
+        public string? code { get; set; }
         public IFormFile? Image { get; set; }
     }
 }

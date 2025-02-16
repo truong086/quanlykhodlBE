@@ -2393,6 +2393,9 @@ namespace quanlykhodl.Service
 
                 else if (supplier != null && idWarehouse != null && idFloor != null && idArea == null && idShelf != null && pricefrom == null && priceto == null && category != null && !string.IsNullOrEmpty(data.name))
                     dataMapList = dataMapList.Where(x => x.title.Contains(data.name) && x.listAreaOfproducts.Any(p => p.idWarehouse == idWarehouse && p.idFloor == idFloor && p.idShelf == idShelf) && x.categoryId == category && x.supplierId == supplier).ToList();
+
+                else if (supplier == null && idWarehouse == null && idFloor == null && idArea == null && idShelf == null && pricefrom == null && priceto == null && category == null && !string.IsNullOrEmpty(data.name))
+                    dataMapList = dataMapList.Where(x => x.title.Contains(data.name)).ToList();
                 #endregion
                 return await Task.FromResult(PayLoad<object>.Successfully(new
                 {

@@ -6,6 +6,7 @@
         public string? title { get; set; }
         public string? description { get; set; }
         public string? status { get; set; }
+        public string? statusData { get; set; }
         public int? localtionNew { get; set; }
         public bool isConfirmation { get; set; }
         public bool isConsent { get; set; }

@@ -361,7 +361,7 @@ namespace quanlykhodl.Service
             mapData.idAreaNew = checkAreaNew == null ? null : checkAreaNew.id;
             mapData.idShelfNew = checkShelfNew == null ? null : checkShelfNew.id;
             mapData.idShelfOld = checkShelfOld == null ? null : checkShelfOld.id;
-
+            mapData.statusData = item.status;
             return mapData;
         }
         public async Task<PayLoad<object>> FindConfirmationAndConsentAdmin(string? name, int page = 1, int pageSize = 20)
@@ -638,15 +638,18 @@ namespace quanlykhodl.Service
                         }
                     }
                 }
-                var mapDataUpdate = MapperData.GanData(checkId, planDTO);
-                mapDataUpdate.shelf = checkShelfNew.id;
-                mapDataUpdate.shelfid = checkShelfNew;
-                mapDataUpdate.area_id = checkAreaNew;
-                mapDataUpdate.area = checkAreaNew.id;
-                mapDataUpdate.floor = chechFloorNew.id;
-                mapDataUpdate.floor_id = chechFloorNew;
-                mapDataUpdate.warehouse = checkWarehourseNew.id;
-                mapDataUpdate.warehouse_id = checkWarehourseNew;
+                //var mapDataUpdate = MapperData.GanData(checkId, planDTO);
+                checkId.shelf = checkShelfNew.id;
+                checkId.shelfid = checkShelfNew;
+                checkId.area_id = checkAreaNew;
+                checkId.area = checkAreaNew.id;
+                checkId.floor = chechFloorNew.id;
+                checkId.floor_id = chechFloorNew;
+                checkId.warehouse = checkWarehourseNew.id;
+                checkId.warehouse_id = checkWarehourseNew;
+                checkId.title = planDTO.title;
+                checkId.description = planDTO.description;
+                checkId.status = checkId.status;
 
                 if (!planDTO.isWarehourse)
                 {
@@ -656,9 +659,9 @@ namespace quanlykhodl.Service
                         if (checkLocationProductOld == null)
                             return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATANULL));
 
-                        mapDataUpdate.productlocation_map = checkLocationProductOld.id;
-                        mapDataUpdate.productidlocation = checkLocationProductOld;
-                        mapDataUpdate.localtionold = checkLocationProductOld.location;
+                        checkId.productlocation_map = checkLocationProductOld.id;
+                        checkId.productidlocation = checkLocationProductOld;
+                        checkId.localtionold = checkLocationProductOld.location;
                     }
                 }
                 else
@@ -678,18 +681,18 @@ namespace quanlykhodl.Service
                     var checkWarehourseOla = _context.warehouses.Where(x => x.id == checkFloorOld.warehouse && !x.deleted).FirstOrDefault();
                     if (checkWarehourseOla == null)
                         return await Task.FromResult(PayLoad<PlanDTO>.CreatedFail(Status.DATANULL));
-                  
-                    mapDataUpdate.shelfOld = checkShelfOld.id;
-                    mapDataUpdate.areaold = checkAreaOld.id;
-                    mapDataUpdate.floorold = checkFloorOld.id;
-                    mapDataUpdate.warehouseold = checkWarehourseOla.id;
-                    mapDataUpdate.localtionnew = planDTO.localtionNew;
-                    mapDataUpdate.localtionold = planDTO.locationOld;
-                    mapDataUpdate.productidlocation = null;
-                    mapDataUpdate.productlocation_map = null;
+
+                    checkId.shelfOld = checkShelfOld.id;
+                    checkId.areaold = checkAreaOld.id;
+                    checkId.floorold = checkFloorOld.id;
+                    checkId.warehouseold = checkWarehourseOla.id;
+                    checkId.localtionnew = planDTO.localtionNew;
+                    checkId.localtionold = planDTO.locationOld;
+                    checkId.productidlocation = null;
+                    checkId.productlocation_map = null;
                 }
                 
-                _context.plans.Update(mapDataUpdate);
+                _context.plans.Update(checkId);
                 _context.SaveChanges();
 
                 return await Task.FromResult(PayLoad<PlanDTO>.Successfully(planDTO));
