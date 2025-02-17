@@ -7,6 +7,7 @@ using quanlykhodl.Clouds;
 using quanlykhodl.Common;
 using quanlykhodl.Models;
 using quanlykhodl.ViewModel;
+using System;
 using System.Linq;
 using Vonage.Common.Monads;
 
@@ -282,20 +283,97 @@ namespace quanlykhodl.Service
 
             return mapData;
         }
+        //private List<productInPlan> dataProductInPlan(Shelf item)
+        //{
+        //    var list = new List<productInPlan>();
+
+        //    var checkPlan = _context.plans.Where(x => (x.shelf == item.id || x.shelfOld == item.id) && x.status.ToLower() != Status.DONE.ToLower() && !x.deleted).ToList();
+        //    foreach(var itemPlan in checkPlan)
+        //    {
+        //        var dataItem = new productInPlan
+        //        {
+        //            shelfsNew = itemPlan.shelf,
+        //            shelfsOld = itemPlan.shelfOld,
+        //            locationNew = itemPlan.localtionnew,
+        //            locationOld = itemPlan.localtionold,
+        //            title = itemPlan.title
+        //        };
+
+        //        list.Add(dataItem);
+        //    }
+
+        //    return list;
+        //}
+        //private List<totalQuantityUsed> totalQuantityUsedsData(Shelf shelf)
+        //{
+        //    var list = new List<totalQuantityUsed>();
+
+        //    for(var i = 1; i <= shelf.quantity; i++)
+        //    {
+        //        var checkLocation = _context.productlocations.Where(x => x.id_shelf == shelf.id && x.location == i && !x.deleted && x.isaction).ToList();
+        //        if(checkLocation.Count > 0)
+        //        {
+        //            var dataItem = new totalQuantityUsed();
+        //            dataItem.location = i;
+        //            var checkLocationException = _context.locationexceptions.Where(x => x.id_shelf == shelf.id && x.location == i && !x.deleted).FirstOrDefault();
+        //            if(checkLocationException != null)
+        //            {
+        //                dataItem.quantity = checkLocationException.max.Value;
+        //                dataItem.quantityUsed = checkLocationException.max.Value - checkLocation.Sum(x => x.quantity);
+        //            }
+        //            else
+        //            {
+        //                dataItem.quantity = shelf.max.Value;
+        //                dataItem.quantityUsed = shelf.max.Value - checkLocation.Sum(x => x.quantity);
+        //            }
+
+        //            list.Add(dataItem);
+        //        }
+        //    }
+
+        //    return list;
+        //}
+
         private List<productInPlan> dataProductInPlan(Shelf item)
         {
-            var list = new List<productInPlan>();
-
-            var checkPlan = _context.plans.Where(x => (x.shelf == item.id || x.shelfOld == item.id) && x.status.ToLower() != Status.DONE.ToLower() && !x.deleted).ToList();
-            foreach(var itemPlan in checkPlan)
-            {
-                var dataItem = new productInPlan
+            return _context.plans
+                .Where(x => (x.shelf == item.id || x.shelfOld == item.id) && x.status.ToLower() != Status.DONE.ToLower() && !x.deleted)
+                .Select(x => new productInPlan
                 {
-                    shelfsNew = itemPlan.shelf,
-                    shelfsOld = itemPlan.shelfOld,
-                    locationNew = itemPlan.localtionnew,
-                    locationOld = itemPlan.localtionold,
-                    title = itemPlan.title
+                    shelfsNew = x.shelf,
+                    shelfsOld = x.shelfOld,
+                    locationNew = x.localtionnew,
+                    locationOld = x.localtionold,
+                    title = x.title
+                })
+                .ToList();
+        }
+
+        private List<totalQuantityUsed> totalQuantityUsedsData(Shelf shelf)
+        {
+            var list = new List<totalQuantityUsed>();
+
+            var checkLocations = _context.productlocations
+                 .Where(x => x.id_shelf == shelf.id && !x.deleted && x.isaction)
+                 .Select(x => new { x.location, x.quantity }) // Giảm tải dữ liệu
+                 .AsEnumerable() // Chuyển về client-side
+                 .GroupBy(x => x.location)
+                 .ToDictionary(g => g.Key, g => g.Sum(x => x.quantity));
+
+
+            var locationExceptions = _context.locationexceptions
+                .Where(x => x.id_shelf == shelf.id && !x.deleted)
+                .ToDictionary(x => x.location);
+
+            for (var i = 1; i <= shelf.quantity; i++)
+            {
+                if (!checkLocations.ContainsKey(i)) continue;
+
+                var dataItem = new totalQuantityUsed
+                {
+                    location = i,
+                    quantity = locationExceptions.TryGetValue(i, out var exception) ? exception.max.Value : shelf.max.Value,
+                    quantityUsed = (locationExceptions.TryGetValue(i, out var exceptionData) ? exceptionData.max.Value : shelf.max.Value) - checkLocations[i]
                 };
 
                 list.Add(dataItem);
@@ -303,35 +381,7 @@ namespace quanlykhodl.Service
 
             return list;
         }
-        private List<totalQuantityUsed> totalQuantityUsedsData(Shelf shelf)
-        {
-            var list = new List<totalQuantityUsed>();
 
-            for(var i = 1; i <= shelf.quantity; i++)
-            {
-                var checkLocation = _context.productlocations.Where(x => x.id_shelf == shelf.id && x.location == i && !x.deleted && x.isaction).ToList();
-                if(checkLocation.Count > 0)
-                {
-                    var dataItem = new totalQuantityUsed();
-                    dataItem.location = i;
-                    var checkLocationException = _context.locationexceptions.Where(x => x.id_shelf == shelf.id && x.location == i && !x.deleted).FirstOrDefault();
-                    if(checkLocationException != null)
-                    {
-                        dataItem.quantity = checkLocationException.max.Value;
-                        dataItem.quantityUsed = checkLocationException.max.Value - checkLocation.Sum(x => x.quantity);
-                    }
-                    else
-                    {
-                        dataItem.quantity = shelf.max.Value;
-                        dataItem.quantityUsed = shelf.max.Value - checkLocation.Sum(x => x.quantity);
-                    }
-
-                    list.Add(dataItem);
-                }
-            }
-
-            return list;
-        }
         private int checkLocationAreaExsis(Shelf area)
         {
             var list = new List<int>();
@@ -518,45 +568,99 @@ namespace quanlykhodl.Service
 
             return list;
         }
+        //private List<productLocationArea> productLocationAreas(int id)
+        //{
+        //    var list = new List<productLocationArea>();
+        //    var checkData = _context.productlocations.Where(x => x.id_shelf == id && !x.deleted && x.isaction).ToList();
+
+        //    foreach (var item in checkData)
+        //    {
+        //        var checkProduct = _context.products1
+        //            .Include(c => c.categoryid123)
+        //            .Include(a => a.account)
+        //            .Include(s => s.supplier_id)
+        //            .Include(i => i.imageProducts)
+        //            .FirstOrDefault(x => x.id == item.id_product && !x.deleted);
+        //        if(checkProduct != null)
+        //        {
+        //            //var checkCategory = _context.categories.Where(x => x.id == checkProduct.category_map && !x.deleted).FirstOrDefault();
+        //            //var checkSupplier = _context.suppliers.Where(x => x.id == checkProduct.suppliers && !x.deleted).FirstOrDefault();
+        //            //var checkAccountCreate = _context.accounts.Where(x => x.id == checkProduct.account_map && !x.deleted).FirstOrDefault();
+        //            //var imageProductData = _context.imageproducts.Where(x => x.productmap == checkProduct.id && !x.deleted).ToList();
+        //            var checkLocationCode = _context.codelocations.FirstOrDefault(x => x.id_helf == id && x.location == item.location && !x.deleted);
+        //            var dataItem = new productLocationArea
+        //            {
+        //                Id = item.id,
+        //                Id_product = checkProduct.id,
+        //                name = checkProduct.title,
+        //                image = checkProduct.imageProducts.First().link,
+        //                images = checkProduct.imageProducts.Select(x => x.link).ToList(),
+        //                location = item.location,
+        //                quantity = item.quantity,
+        //                supplier = checkProduct.supplier_id.name,
+        //                supplier_image = checkProduct.supplier_id.image,
+        //                account_image = checkProduct.account.image,
+        //                account_name = checkProduct.account.username,
+        //                category = checkProduct.categoryid123.name,
+        //                category_image = checkProduct.categoryid123.image,
+        //                code = checkLocationCode == null ? Status.CODEFAILD : checkLocationCode.code,
+        //                Inventory = checkProduct.quantity,
+        //                price = checkProduct.price
+        //            };
+        //            list.Add(dataItem);
+        //        }
+        //    }
+        //    return list;
+        //}
+
         private List<productLocationArea> productLocationAreas(int id)
         {
             var list = new List<productLocationArea>();
-            var checkData = _context.productlocations.Where(x => x.id_shelf == id && !x.deleted && x.isaction).ToList();
+
+            var checkData = _context.productlocations
+                .Where(x => x.id_shelf == id && !x.deleted && x.isaction)
+                .ToList(); // Lấy toàn bộ dữ liệu một lần
+
+            var productIds = checkData.Select(x => x.id_product).Distinct().ToList();
+
+            // Load toàn bộ sản phẩm liên quan để tránh gọi FirstOrDefault() nhiều lần
+            var products = _context.products1
+                .Where(x => productIds.Contains(x.id) && !x.deleted)
+                .Include(c => c.categoryid123)
+                .Include(a => a.account)
+                .Include(s => s.supplier_id)
+                .Include(i => i.imageProducts)
+                .ToDictionary(x => x.id);
 
             foreach (var item in checkData)
             {
-                var checkProduct = _context.products1.Include(c => c.categoryid123).Include(a => a.account).Include(s => s.supplier_id).Include(i => i.imageProducts).Where(x => x.id == item.id_product && !x.deleted).FirstOrDefault();
-                if(checkProduct != null)
+                if (!products.TryGetValue(item.id_product, out var checkProduct))
+                    continue;
+                var checkLocationCode = _context.codelocations.FirstOrDefault(x => x.id_helf == id && x.location == item.location && !x.deleted);
+                
+                list.Add(new productLocationArea
                 {
-                    //var checkCategory = _context.categories.Where(x => x.id == checkProduct.category_map && !x.deleted).FirstOrDefault();
-                    //var checkSupplier = _context.suppliers.Where(x => x.id == checkProduct.suppliers && !x.deleted).FirstOrDefault();
-                    //var checkAccountCreate = _context.accounts.Where(x => x.id == checkProduct.account_map && !x.deleted).FirstOrDefault();
-                    //var imageProductData = _context.imageproducts.Where(x => x.productmap == checkProduct.id && !x.deleted).ToList();
-                    var checkLocationCode = _context.codelocations.Where(x => x.id_helf == id && x.location == item.location && !x.deleted).FirstOrDefault();
-                    var dataItem = new productLocationArea
-                    {
-                        Id = item.id,
-                        Id_product = checkProduct.id,
-                        name = checkProduct.title,
-                        image = checkProduct.imageProducts.First().link,
-                        images = checkProduct.imageProducts.Select(x => x.link).ToList(),
-                        location = item.location,
-                        quantity = item.quantity,
-                        supplier = checkProduct.supplier_id.name,
-                        supplier_image = checkProduct.supplier_id.image,
-                        account_image = checkProduct.account.image,
-                        account_name = checkProduct.account.username,
-                        category = checkProduct.categoryid123.name,
-                        category_image = checkProduct.categoryid123.image,
-                        code = checkLocationCode == null ? Status.CODEFAILD : checkLocationCode.code,
-                        Inventory = checkProduct.quantity,
-                        price = checkProduct.price
-                    };
-                    list.Add(dataItem);
-                }
+                    Id = item.id,
+                    Id_product = checkProduct.id,
+                    name = checkProduct.title,
+                    image = checkProduct.imageProducts.FirstOrDefault()?.link ?? string.Empty,
+                    images = checkProduct.imageProducts.Select(x => x.link).ToList(),
+                    location = item.location,
+                    quantity = item.quantity,
+                    supplier = checkProduct.supplier_id?.name,
+                    supplier_image = checkProduct.supplier_id?.image,
+                    account_image = checkProduct.account?.image,
+                    account_name = checkProduct.account?.username,
+                    category = checkProduct.categoryid123?.name,
+                    category_image = checkProduct.categoryid123?.image,
+                    code = checkLocationCode != null ? checkLocationCode.code : Status.CODEFAILD,
+                    Inventory = checkProduct.quantity,
+                    price = checkProduct.price
+                });
             }
             return list;
         }
+
         private int totalQuantityLocation(Shelf data)
         {
             var checkLocationExceps = _context.locationexceptions.Where(x => x.id_shelf == data.id && !x.deleted).Count();
