@@ -88,7 +88,7 @@ namespace quanlykhodl.Service
                 mapData.isconfirmation = false;
                 mapData.isconsent = false;
                 mapData.status = Status.XACNHAN;
-                mapData.cretoredit = checkAccount.username + " đã tạo Plan vào lúc " + DateTimeOffset.UtcNow;
+                mapData.cretoredit = checkAccount.username + " " + Status.CREATEPLAN + " " + DateTimeOffset.UtcNow;
 
                 if (!planDTO.isWarehourse)
                 {

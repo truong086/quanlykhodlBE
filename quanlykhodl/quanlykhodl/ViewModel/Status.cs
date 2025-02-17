@@ -20,6 +20,7 @@
         public static string UNKNOWN = "Unknown";
         public static string IMAGE = "Image";
         public static string MAXLENG = "Data Vượt quá dữ liệu";
+        public static string CREATEPLAN = "已於創建計劃";
         public static string XACNHAN = "等待確認";
         public static string DANHAN = "已收到";
         public static string INTRANSIT = "在途中";
