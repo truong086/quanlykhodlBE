@@ -28,5 +28,6 @@ namespace quanlykhodl.Service
         Task<PayLoad<object>> FindCodeLocation(string code);
         Task<PayLoad<object>> FindAllProductSearch(SerchData data);
         Task<PayLoad<object>> checkLocationProductExsis(checkLocation data);
+        byte[] FindAllDataByDateExcel();
     }
 }

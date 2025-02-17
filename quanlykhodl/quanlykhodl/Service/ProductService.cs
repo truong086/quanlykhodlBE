@@ -1,10 +1,14 @@
 ﻿using AutoMapper;
+using CloudinaryDotNet.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using OfficeOpenXml.Style;
+using OfficeOpenXml;
 using quanlykhodl.Clouds;
 using quanlykhodl.Common;
 using quanlykhodl.Models;
 using quanlykhodl.ViewModel;
+using Org.BouncyCastle.Asn1.X509;
 
 namespace quanlykhodl.Service
 {
@@ -2434,6 +2438,93 @@ namespace quanlykhodl.Service
             {
                 return await Task.FromResult(PayLoad<object>.CreatedFail(ex.Message));
             }
+        }
+
+        public byte[] FindAllDataByDateExcel()
+        {
+            var data = _context.productlocations.Where(x => !x.deleted).ToList();
+
+            using (var package = new ExcelPackage())
+            {
+                var worksheet = package.Workbook.Worksheets.Add("Products");
+                worksheet.Cells[1, 1].Value = "warehouseID";
+                worksheet.Cells[1, 2].Value = "ptNo";
+                worksheet.Cells[1, 3].Value = "ptLimitDate";
+                worksheet.Cells[1, 4].Value = "wsNo";
+                worksheet.Cells[1, 5].Value = "wsMode";
+                worksheet.Cells[1, 6].Value = "wsNum";
+                worksheet.Cells[1, 7].Value = "osID";
+                worksheet.Cells[1, 8].Value = "wsArea";
+                worksheet.Cells[1, 9].Value = "wsRow";
+                worksheet.Cells[1, 10].Value = "wsFrame";
+                worksheet.Cells[1, 11].Value = "CreateDate";
+                worksheet.Cells[1, 12].Value = "LastModifyDate";
+
+                // Định dạng tiêu đề
+                using (var range = worksheet.Cells[1, 1, 1, 12])
+                {
+                    range.Style.Font.Bold = true; // Chữ in đậm
+                    range.Style.Fill.PatternType = ExcelFillStyle.Solid; // Nền đặc
+                    range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray); // Nền xám nhạt
+                    range.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center; // Căn giữa nội dung
+                }
+
+                // Đổ dữ liệu vào file Excel
+                int row = 2;
+                foreach (var product in dataList(data))
+                {
+                    worksheet.Cells[row, 1].Value = product.warehouseID;
+                    worksheet.Cells[row, 2].Value = product.ptNo;
+                    worksheet.Cells[row, 3].Value = product.ptLimitDate;
+                    worksheet.Cells[row, 4].Value = product.wsNo;
+                    worksheet.Cells[row, 5].Value = product.wsMode;
+                    worksheet.Cells[row, 6].Value = product.wsNum;
+                    worksheet.Cells[row, 7].Value = product.osID;
+                    worksheet.Cells[row, 8].Value = product.wsArea;
+                    worksheet.Cells[row, 9].Value = product.wsRow;
+                    worksheet.Cells[row, 10].Value = product.wsFrame;
+                    worksheet.Cells[row, 11].Value = product.CreateDate;
+                    worksheet.Cells[row, 12].Value = product.LastModifyDate;
+                    row++;
+                }
+
+                worksheet.Cells.AutoFitColumns(); // Tự động chỉnh độ rộng cột
+                return package.GetAsByteArray();
+            }
+        }
+
+        private List<DataExcelLocationProduct> dataList(List<productlocation> data)
+        {
+            var list = new List<DataExcelLocationProduct>();
+
+            foreach (var item in data)
+            {
+                var checkShelf = _context.shelfs.Include(l => l.line_id).Where(x => x.id == item.id_shelf && !x.deleted).FirstOrDefault();
+                var checkArea = _context.areas.Include(f => f.floor_id).Where(x => x.id == checkShelf.line_id.id_area && !x.deleted).FirstOrDefault();
+                var checkWarehouse = _context.warehouses.FirstOrDefault(x => x.id == checkArea.floor_id.warehouse);
+                var checkCodeLocation = _context.codelocations.FirstOrDefault(x => x.id_helf == item.id_shelf && x.location == item.location && !x.deleted);
+                var checkProduct = _context.products1.FirstOrDefault(x => x.id == item.id_product);
+
+                var dataItem = new DataExcelLocationProduct();
+
+                list.Add(new DataExcelLocationProduct
+                {
+                    warehouseID = checkWarehouse.code,
+                    ptNo = checkProduct.id,
+                    ptLimitDate = checkProduct.createdat,
+                    wsNo = checkCodeLocation.code,
+                    wsMode = item.isaction,
+                    wsNum = item.quantity,
+                    osID = item.id,
+                    wsArea = checkArea.name,
+                    wsRow = checkShelf.line_id.name,
+                    wsFrame = checkShelf.name,
+                    CreateDate = item.createdat,
+                    LastModifyDate = item.updatedat
+                });
+            }
+
+            return list;
         }
     }
 }

@@ -180,5 +180,14 @@ namespace quanlykhodl.Controllers
         {
             return await _productService.checkLocationProductExsis(data);
         }
+
+        [HttpPost]
+        [Route(nameof(FindAllDataByDateExcel))]
+        public IActionResult FindAllDataByDateExcel()
+        {
+            var dataByte = _productService.FindAllDataByDateExcel();
+
+            return File(dataByte, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "ProductLocation.xlsx");
+        }
     }
 }
