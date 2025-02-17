@@ -837,7 +837,7 @@ namespace quanlykhodl.Service
         {
             var list = new List<dataListLineBtArea>();
 
-            var checkLine = _context.linespage.Where(x => x.id_area == areaId && !x.deleted).ToList();
+            var checkLine = _context.linespage.Include(s => s.shelfs).Where(x => x.id_area == areaId && !x.deleted).ToList();
             foreach(var item in checkLine)
             {
                 var dataItem = new dataListLineBtArea
@@ -845,7 +845,7 @@ namespace quanlykhodl.Service
                     id = item.id,
                     name = item.name,
                     quantityshelf = item.quantityshelf,
-                    shelfGetAlls = loadDataShelfByLine(item.id)
+                    shelfGetAlls = loadDataShelfByLine(item.shelfs.ToList())
                 };
 
                 list.Add(dataItem);
@@ -854,12 +854,12 @@ namespace quanlykhodl.Service
             return list;
         }
 
-        private List<ShelfGetAll> loadDataShelfByLine(int line)
+        private List<ShelfGetAll> loadDataShelfByLine(List<Shelf> data)
         {
             var list = new List<ShelfGetAll>();
 
-            var checkShelf = _context.shelfs.Where(x => x.line == line && !x.deleted).ToList();
-            foreach( var item in checkShelf)
+            //var checkShelf = _context.shelfs.Where(x => x.line == line && !x.deleted).ToList();
+            foreach( var item in data)
             {
                 list.Add(dataFindOneShelf(item));
             }
