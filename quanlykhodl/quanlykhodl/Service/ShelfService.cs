@@ -196,7 +196,7 @@ namespace quanlykhodl.Service
         private bool checkFullQuantity(Line line, int id)
         {
             var checkAreaQuantity = _context.shelfs.Where(x => x.line == id && !x.deleted).Count();
-            if (line.quantityshelf < checkAreaQuantity)
+            if (line.quantityshelf <= checkAreaQuantity)
                 return false;
 
             return true;
@@ -260,15 +260,15 @@ namespace quanlykhodl.Service
         private ShelfGetAll dataFindOneShelf(Shelf item)
         {
             var checkAccount = _context.accounts.Where(x => x.id == item.account && !x.deleted).FirstOrDefault();
-            var checkLine = _context.linespage.Where(x => x.id == item.line && !x.deleted).FirstOrDefault();
-            var checkArea = _context.areas.Where(x => x.id == checkLine.id_area && !x.deleted).FirstOrDefault();
+            var checkLine = _context.linespage.Include(a => a.areasids).Where(x => x.id == item.line && !x.deleted).FirstOrDefault();
+            //var checkArea = _context.areas.Where(x => x.id == checkLine.id_area && !x.deleted).FirstOrDefault();
             var checkProductLocation = _context.productlocations.Where(x => x.id_shelf == item.id && !x.deleted && x.isaction).Count();
 
             var mapData = _mapper.Map<ShelfGetAll>(item);
             mapData.Id = item.id;
-            mapData.Area_name = checkArea.name;
-            mapData.Id_Area = checkArea.id;
-            mapData.Area_image = checkArea.image;
+            mapData.Area_name = checkLine.areasids.name;
+            mapData.Id_Area = checkLine.areasids.id;
+            mapData.Area_image = checkLine.areasids.image;
             mapData.linenames = checkLine.name;
             mapData.lineidsdata = checkLine.id;
             mapData.account_name = checkAccount.username;
@@ -277,7 +277,7 @@ namespace quanlykhodl.Service
             mapData.totalLocationExsis = item.quantity - checkLocationAreaExsis(item);
             mapData.productShefl = findAreaproduct(item);
             mapData.totalQuantityUseds = totalQuantityUsedsData(item);
-            mapData.quantityExceptions = dataLocationException(item);
+            //mapData.quantityExceptions = dataLocationException(item);
             mapData.productInPlans = dataProductInPlan(item);
 
             return mapData;
@@ -357,8 +357,8 @@ namespace quanlykhodl.Service
             data.totalLocationEmpty = CheckLocationUsed(area);
             data.totalLocatiEmpty = totalQuantityLocation(area) - CheckLocationUsed(area);
             data.productLocationAreas = productLocationAreas(area.id);
-            data.productPlans = productLocationAreasPlan(area.id);
-            data.locationTotal = checkLocation(area.id);
+            //data.productPlans = productLocationAreasPlan(area.id);
+            //data.locationTotal = checkLocation(area.id);
             data.warehoursPlans = loadDataWarehoursePlan(area.id);
 
             return data;

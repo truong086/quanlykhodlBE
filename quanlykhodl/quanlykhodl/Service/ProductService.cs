@@ -328,7 +328,7 @@ namespace quanlykhodl.Service
             data.totalLocatiEmpty = totalQuantityLocation(shelf) - CheckLocationUsed(shelf);
             data.productLocationAreas = productLocationShelf(shelf.id);
             data.productPlans = productLocationShelfPlan(shelf.id);
-            data.locationTotal = checkLocation(shelf.id);
+            //data.locationTotal = checkLocation(shelf.id);
             data.warehoursPlans = loadDataWarehoursePlan(shelf.id);
             data.totalLocatiExsis = shelf.quantity.Value - checkLocationAreaExsis(shelf);
             data.productInPlans = dataProductInPlan(shelf);
@@ -535,7 +535,8 @@ namespace quanlykhodl.Service
                         category_image = checkCategory.image,
                         code = checkLocationCode == null ? Status.CODEFAILD : checkLocationCode.code,
                         Inventory = checkProduct.quantity,
-                        price = checkProduct.price
+                        price = checkProduct.price,
+                        codeproduct = checkProduct.code
                     };
                     list.Add(dataItem);
                 }
@@ -1277,6 +1278,9 @@ namespace quanlykhodl.Service
                     var checkProduct = _context.products1.Where(x => x.id == item.id_product && !x.deleted).FirstOrDefault();
                     if(checkProduct != null)
                     {
+                        var checkCategory = _context.categories.Where(x => x.id == checkProduct.category_map && !x.deleted).FirstOrDefault();
+                        var checkSuppier = _context.suppliers.Where(x => x.id == checkProduct.suppliers && !x.deleted).FirstOrDefault();
+
                         var mapData = _mapper.Map<ProductOneLocation>(checkProduct);
                         var checkShelf = _context.shelfs.Where(x => x.id == item.id_shelf && !x.deleted).FirstOrDefault();
                         if(checkShelf != null)
@@ -1313,6 +1317,11 @@ namespace quanlykhodl.Service
                         mapData.Id_product = checkProduct.id;
                         mapData.shelf_name = checkShelf == null ? Status.NOSHELF : checkShelf.name;
                         mapData.shelf_image = checkShelf == null ? Status.NOSHELF : checkShelf.image;
+                       
+                        mapData.categoryImage = checkCategory == null ? Status.NOCATEGORY : checkCategory.image;
+                        mapData.categoryName = checkCategory == null ? Status.NOCATEGORY : checkCategory.name;
+                        mapData.supplierImage = checkSuppier == null ? Status.DATANULL : checkSuppier.image;
+                        mapData.supplierName = checkSuppier == null ? Status.DATANULL : checkSuppier.name;
 
                         list.Add(mapData);
 

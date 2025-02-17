@@ -20,12 +20,12 @@
         public static string UNKNOWN = "Unknown";
         public static string IMAGE = "Image";
         public static string MAXLENG = "Data Vượt quá dữ liệu";
-        public static string XACNHAN = "Chờ xác nhận";
-        public static string DANHAN = "Đã nhận";
-        public static string INTRANSIT = "Đang vận chuyển";
+        public static string XACNHAN = "等待確認";
+        public static string DANHAN = "已收到";
+        public static string INTRANSIT = "在途中";
         public static string DANGGIAO = "Đang giao";
         public static string NHANHANG = "Xác nhận đã nhận hàng";
-        public static string DONE = "DONE";
+        public static string DONE = "完成的";
         public static string ADD1 = "Add1";
         public static string GIAM1 = "Giam1";
         public static string DELETEITEMCART = "DeleteItemCart";

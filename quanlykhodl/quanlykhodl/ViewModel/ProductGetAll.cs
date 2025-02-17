@@ -8,6 +8,7 @@
         public List<string>? images { get; set; }
         public double price { get; set; }
         public string? DonViTinh { get; set; }
+        public string? code { get; set; }
         public int? categoryId { get; set; }
         public string? categoryName { get; set; }
         public string? categoryImage { get; set; }
@@ -66,6 +67,7 @@
         public string? DonViTinh { get; set; }
         public string? categoryName { get; set; }
         public string? categoryImage { get; set; }
+        public string? code { get; set; }
         public int quantity { get; set; }
         public int star { get; set; }
         public string? warehouse_name { get; set; }
@@ -134,6 +136,10 @@
         public string? shelf_name { get; set; }
         public string? shelf_image { get; set; }
         public string? codeLocation { get; set; }
+        public string? supplierName { get; set; }
+        public string? supplierImage { get; set; }
+        public string? categoryImage { get; set; }
+        public string? categoryName { get; set; }
         public int? quantityArea { get; set; }
         public int? TotalLocationEmty { get; set; }
     }

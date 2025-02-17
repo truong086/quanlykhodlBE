@@ -24,6 +24,7 @@
         public string? titlePlan { get; set; }
         public string? name { get; set; }
         public string? code { get; set; }
+        public string? codeproduct { get; set; }
         public string? image { get; set; }
         public string? category { get; set; }
         public string? category_image { get; set; }
